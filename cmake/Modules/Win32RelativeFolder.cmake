@@ -1,0 +1,15 @@
+function (WIN32_RELATIVE_FOLDER)
+#if (WIN32)
+   # Found here: http://www.vtk.org/Wiki/CMakeMacroGenerateProject
+   SET (all ${ARGV})
+   SET (ProjectDir ${CMAKE_CURRENT_SOURCE_DIR})
+   FOREACH ( Source ${all} )
+     STRING ( REGEX REPLACE "${ProjectDir}" "" RelativePath "${Source}" )
+     STRING ( REGEX REPLACE "[\\\\/][^\\\\/]*$" "" RelativePath "${RelativePath}" )
+     STRING ( REGEX REPLACE "^[\\\\/]" "" RelativePath "${RelativePath}" )
+     STRING ( REGEX REPLACE "/" "\\\\\\\\" RelativePath "${RelativePath}" )
+     SOURCE_GROUP ( "${RelativePath}" FILES ${Source} )
+   ENDFOREACH ( Source )
+#endif()
+endfunction ()
+
