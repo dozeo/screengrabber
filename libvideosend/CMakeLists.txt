@@ -10,5 +10,5 @@ add_library (videosend ${src_files} ${header_files})
 
 if (LINUX)
     # otherwise we get strange linking errors
-    target_link_libraries (videosend ${SCREENGRAB_LIBS}})
+    target_link_libraries (videosend ${SCREENGRAB_LIBS})
 endif()

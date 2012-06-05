@@ -7,6 +7,7 @@ OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
 # Additional tools
 set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
 set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCREENGRABBER_DIRECTORY}/cmake/Modules/")
+include (Win32RelativeFolder)
 include (InitProject)
 
 # Variables
@@ -43,49 +44,30 @@ message (STATUS "ENABLE_DEPLOY:    ${ENABLE_DEPLOY}")
 #
 # List all necessary dependencies!
 #
+LIST_SCREENGRAB_DEPENDENCIES()
 
-# Qt4
 if (NOT QT4_FOUND)
 	find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
 endif ()
-message (STATUS "Dependencies")
-message (STATUS "    QT4_FOUND:      ${QT4_FOUND}")
 if (QT4_FOUND)
 	include (${QT_USE_FILE})
-	message (STATUS "        QT_LIBRARIES: ${QT_LIBRARIES}")
-	message (STATUS "        QT_INCLUDE_DIR: ${QT_INCLUDE_DIR}")
-
 	set (LIBS ${LIBS} ${QT_LIBRARIES})
 	include_directories (${QT_INCLUDE_DIR})
 endif()
 
 # ffmpeg
-message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
 if (FFMPEG_FOUND)
- 	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
- 	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
-
  	set (LIBS ${LIBS} ${FFMPEG_LIBRARIES})
  	include_directories (${FFMPEG_INCLUDE_DIRS})
 endif ()
 
-# DirectX
-message (STATUS "    DIRECTX_FOUND: ${DIRECTX_FOUND}")
 if (DIRECTX_FOUND)
-	message (STATUS "         DIRECTX_INCLUDE_DIRS=${DIRECTX_INCLUDE_DIRS}")
-	message (STATUS "         DIRECTX_LIBRARIES=${DIRECTX_LIBRARIES}")
-
 	set (LIBS ${LIBS} ${DIRECTX_LIBRARIES})
 	include_directories (${DIRECTX_INCLUDE_DIRS})
 endif ()
 
-# Boost
 find_package (Boost COMPONENTS program_options REQUIRED)
-message (STATUS "    Boost_FOUND: ${Boost_FOUND}")
 if (Boost_FOUND)
-	message (STATUS "        Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
-	message (STATUS "        Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
-	message (STATUS "        Boost_LIBRARIES   =${Boost_LIBRARIES}")
 	include_directories (${Boost_INCLUDE_DIRS})
 	link_directories (${Boost_LIBRARY_DIRS})
 	if (NOT WIN32)
@@ -94,14 +76,6 @@ if (Boost_FOUND)
 	endif()
 endif()
 	
-# And additional OpenSSL
-if (NOT WIN32)
-	find_package (OpenSSL REQUIRED)
-else ()
-	# Use our own OpenSSL here
-	set (OPENSSL_LIBRARIES ${CMAKE_SOURCE_DIR}/dependencies/lib/ssleay32.lib ${CMAKE_SOURCE_DIR}/dependencies/lib/libeay32.lib)
-endif()
-message (STATUS "OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
 set (LIBS ${LIBS} ${OPENSSL_LIBRARIES})
 
 
@@ -111,11 +85,11 @@ message (STATUS "Libraries")
 message (STATUS "    libgrabber")
 include_directories (libgrabber)
 add_subdirectory (libgrabber)
-set (LIBS ${LIBS} grabber)
+set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} grabber)
 
 include_directories (libvideosend)
 add_subdirectory (libvideosend)
-set (GPL_LIBS ${GPL_LIBS} videosend)
+set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} videosend)
 
 
 message (STATUS "Applications")

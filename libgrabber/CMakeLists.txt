@@ -10,6 +10,6 @@ WIN32_RELATIVE_FOLDER (${src_files} ${header_files} ${objcpp_src_files})
 add_library (grabber ${src_files} ${header_files} ${objcpp_src_files})
 if (LINUX)
     # otherwise we get strange linking errors
-    target_link_libraries (grabber ${LIBS})
+    target_link_libraries (grabber ${SCREENGRAB_LIBS})
 endif()
 
