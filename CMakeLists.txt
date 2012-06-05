@@ -40,64 +40,58 @@ endif()
 message (STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message (STATUS "ENABLE_DEPLOY:    ${ENABLE_DEPLOY}")
 
+#
+# List all necessary dependencies!
+#
 
+# Qt4
+if (NOT QT4_FOUND)
+	find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
+endif ()
 message (STATUS "Dependencies")
-message (STATUS "    Qt4")
-find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
 message (STATUS "    QT4_FOUND:      ${QT4_FOUND}")
-message (STATUS "    QT_INCLUDE_DIR: ${QT_INCLUDE_DIR}")
 if (QT4_FOUND)
 	include (${QT_USE_FILE})
-	message (STATUS "    QT_LIBRARIES: ${QT_LIBRARIES}")
+	message (STATUS "        QT_LIBRARIES: ${QT_LIBRARIES}")
+	message (STATUS "        QT_INCLUDE_DIR: ${QT_INCLUDE_DIR}")
+
 	set (LIBS ${LIBS} ${QT_LIBRARIES})
 	include_directories (${QT_INCLUDE_DIR})
 endif()
 
-#if (LINUX)
-#	set (LIBS ${LIBS} X11 dl Xext Xrandr pthread)
-#    SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
-#endif()
-#
-#if (MAC_OSX)
-#	find_library (APP_SERVICES ApplicationServices REQUIRED )
-#	find_library (COCOA Cocoa REQUIRED)
-#	set (LIBS ${LIBS} ${COCOA} ${APP_SERVICES})
-#endif()
-#
-#if (WIN32)
-#	set (LIBS ${LIBS} psapi) # Process information in libgrabber
-#endif()
+# ffmpeg
+message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
+if (FFMPEG_FOUND)
+ 	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
+ 	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
 
-#find_package (FFMPEG REQUIRED)
-#message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
-#if (FFMPEG_FOUND)
-#	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
-#	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
-#	include_directories (${FFMPEG_INCLUDE_DIRS})
-#	set (GPL_LIBS ${GPL_LIBS} ${FFMPEG_LIBRARIES})
-#endif ()
+ 	set (LIBS ${LIBS} ${FFMPEG_LIBRARIES})
+ 	include_directories (${FFMPEG_INCLUDE_DIRS})
+endif ()
 
+# DirectX
+message (STATUS "    DIRECTX_FOUND: ${DIRECTX_FOUND}")
+if (DIRECTX_FOUND)
+	message (STATUS "         DIRECTX_INCLUDE_DIRS=${DIRECTX_INCLUDE_DIRS}")
+	message (STATUS "         DIRECTX_LIBRARIES=${DIRECTX_LIBRARIES}")
+
+	set (LIBS ${LIBS} ${DIRECTX_LIBRARIES})
+	include_directories (${DIRECTX_INCLUDE_DIRS})
+endif ()
+
+# Boost
 find_package (Boost COMPONENTS program_options REQUIRED)
+message (STATUS "    Boost_FOUND: ${Boost_FOUND}")
 if (Boost_FOUND)
-		message (STATUS "        Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
-		message (STATUS "        Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
-		message (STATUS "        Boost_LIBRARIES   =${Boost_LIBRARIES}")
-		include_directories (${Boost_INCLUDE_DIRS})
-		link_directories (${Boost_LIBRARY_DIRS})
-		if (NOT WIN32)
-			# Boost for windows finds its libraries by itself.
-			set (LIBS ${LIBS} ${Boost_LIBRARIES})
-		endif()
-endif()
-
-# PusherCon Libraries
-# We need additional boost libraries
-find_package (Boost COMPONENTS system random regex thread date_time REQUIRED)
-
-message (STATUS "${Boost_LIBRARIES}")
-if (NOT WIN32)
-	# Windows finds it by itself
-	set (LIBS ${LIBS} ${Boost_LIBRARIES})
+	message (STATUS "        Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
+	message (STATUS "        Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
+	message (STATUS "        Boost_LIBRARIES   =${Boost_LIBRARIES}")
+	include_directories (${Boost_INCLUDE_DIRS})
+	link_directories (${Boost_LIBRARY_DIRS})
+	if (NOT WIN32)
+		# Boost for windows finds its libraries by itself.
+		set (LIBS ${LIBS} ${Boost_LIBRARIES})
+	endif()
 endif()
 	
 # And additional OpenSSL

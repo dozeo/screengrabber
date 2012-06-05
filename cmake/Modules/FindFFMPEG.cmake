@@ -7,12 +7,12 @@
 # FFMPEG_DEFINITIONS
 
 
-if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/ffmpeg)
-	set (FFMPEG_ROOT_DIR ${CMAKE_SOURCE_DIR}/dependencies/ffmpeg)
+if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
+	set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
 endif ()
-if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/dependencies/include/libavutil)
+if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/include/libavutil)
 	# directly compiled into dependencies folder
-	set (FFMPEG_ROOT_DIR ${CMAKE_SOURCE_DIR}/dependencies)
+	set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies)
 endif()
 
 
