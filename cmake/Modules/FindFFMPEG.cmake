@@ -96,7 +96,7 @@ function (CopyFFMpegLibrariesToDirectory target destinationFolder)
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/swscale-2.dll ${destinationFolder} VERBATIM
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/librtmp.dll ${destinationFolder} VERBATIM
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libz-1.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libx264-122.dll ${destinationFolder} VERBATIM
+			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libx264-125.dll ${destinationFolder} VERBATIM
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libeay32.dll ${destinationFolder} VERBATIM
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/ssleay32.dll ${destinationFolder} VERBATIM
 			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll ${destinationFolder} VERBATIM
