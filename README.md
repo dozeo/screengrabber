@@ -1,0 +1,4 @@
+screengrabber
+=============
+
+Screengrabber (GPL)
