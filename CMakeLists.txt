@@ -4,14 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 
 OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
 
-set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
-
 # Additional tools
-set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-include (FindDirectX)
-include (Win32RelativeFolder)
+set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
+set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCREENGRABBER_DIRECTORY}/cmake/Modules/")
 include (InitProject)
-
 
 # Variables
 if (WIN32)
@@ -57,29 +53,29 @@ if (QT4_FOUND)
 	include_directories (${QT_INCLUDE_DIR})
 endif()
 
-if (LINUX)
-	set (LIBS ${LIBS} X11 dl Xext Xrandr pthread)
-    SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
-endif()
+#if (LINUX)
+#	set (LIBS ${LIBS} X11 dl Xext Xrandr pthread)
+#    SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
+#endif()
+#
+#if (MAC_OSX)
+#	find_library (APP_SERVICES ApplicationServices REQUIRED )
+#	find_library (COCOA Cocoa REQUIRED)
+#	set (LIBS ${LIBS} ${COCOA} ${APP_SERVICES})
+#endif()
+#
+#if (WIN32)
+#	set (LIBS ${LIBS} psapi) # Process information in libgrabber
+#endif()
 
-if (MAC_OSX)
-	find_library (APP_SERVICES ApplicationServices REQUIRED )
-	find_library (COCOA Cocoa REQUIRED)
-	set (LIBS ${LIBS} ${COCOA} ${APP_SERVICES})
-endif()
-
-if (WIN32)
-	set (LIBS ${LIBS} psapi) # Process information in libgrabber
-endif()
-
-find_package (FFMPEG REQUIRED)
-message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
-if (FFMPEG_FOUND)
-	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
-	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
-	include_directories (${FFMPEG_INCLUDE_DIRS})
-	set (GPL_LIBS ${GPL_LIBS} ${FFMPEG_LIBRARIES})
-endif ()
+#find_package (FFMPEG REQUIRED)
+#message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
+#if (FFMPEG_FOUND)
+#	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
+#	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
+#	include_directories (${FFMPEG_INCLUDE_DIRS})
+#	set (GPL_LIBS ${GPL_LIBS} ${FFMPEG_LIBRARIES})
+#endif ()
 
 find_package (Boost COMPONENTS program_options REQUIRED)
 if (Boost_FOUND)
@@ -93,14 +89,6 @@ if (Boost_FOUND)
 			set (LIBS ${LIBS} ${Boost_LIBRARIES})
 		endif()
 endif()
-
-if (WIN32)
-	find_package (DIRECTX REQUIRED)
-	if (DIRECTX_FOUND)
-		include_directories (${DIRECTX_INCLUDE_DIRS})
-		set (LIBS ${LIBS} ${DIRECTX_LIBRARIES})
-	endif ()
-endif ()
 
 # PusherCon Libraries
 # We need additional boost libraries
