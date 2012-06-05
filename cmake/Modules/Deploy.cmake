@@ -1,6 +1,6 @@
 
 # platform specific settings
-set (CPACK_PACKAGE_VENDOR "dozeo") # update with correct info!
+set (CPACK_PACKAGE_VENDOR "screengrabber") # update with correct info!
 set (CPACK_PACKAGE_VERSION ${GIT_DESCRIBE}) # from gitdescribe.cmake
 if (LINUX)
 	SET(CPACK_SOURCE_GENERATOR "TGZ" "DEB")
