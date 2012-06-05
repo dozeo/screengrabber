@@ -3,7 +3,6 @@
 # FFMPEG_FOUND
 # FFMPEG_INCLUDE_DIRS
 # FFMPEG_LIBRARIES
-# FFMPEG_LINK_DIRECTORIES
 # FFMPEG_DEFINITIONS
 
 
@@ -25,7 +24,7 @@ macro (FFMPEG_FIND varname libname headername)
 		/usr/local/include
 		/usr/include
 		PATH_SUFFIXES ffmpeg
-        NO_DEFAULT_PATH        
+		NO_DEFAULT_PATH
 	)
 
 	find_library (FFMPEG_${varname}_LIBRARY
@@ -37,7 +36,7 @@ macro (FFMPEG_FIND varname libname headername)
 		/usr/local/ffmpeg/lib
 		/usr/local/lib
 		/usr/lib
-        NO_DEFAULT_PATH
+		NO_DEFAULT_PATH
 	)
 
 	# message (STATUS "include dir: ${FFMPEG_${varname}_INCLUDE_DIR}")
@@ -70,7 +69,7 @@ if (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FO
 		${FFMPEG_LIBSWSCALE_LIBRARY}
 	)
 
-    list (REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
+	list (REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
 	set (FFMPEG_FOUND TRUE)
 else ()
 	set (FFMPEG_FOUND FALSE)
