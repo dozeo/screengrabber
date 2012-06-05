@@ -1,3 +1,14 @@
+Introduction
+------------
+
+A short description of what the grabber application is about and how to use it in a few sentences
+
+* for whom is this
+* what is the application capable of
+* short description of how-to
+
+
+
 Dependencies
 ------------
 
