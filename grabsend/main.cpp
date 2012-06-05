@@ -10,9 +10,9 @@
 #include <iostream>
 #include <signal.h>
 
+#include "GrabSendOptions.h"
 #include <videosend/VideoSender.h>
 #include "GrabbingPipeline.h"
-#include "GrabSendOptions.h"
 
 #include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>
