@@ -1,13 +1,16 @@
 PROJECT("screengrabber" C CXX)
 cmake_minimum_required(VERSION 2.8)
 
+
+OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
+
+set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # Additional tools
 set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 include (FindDirectX)
 include (Win32RelativeFolder)
-
-
-OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
+include (InitProject)
 
 
 # Variables
