@@ -136,7 +136,7 @@ set (GPL_LIBS ${GPL_LIBS} videosend)
 message (STATUS "Applications")
 if (QT4_FOUND)
 	message (STATUS "    grabsend")
-	add_subdirectory (apps/grabsend)
+	add_subdirectory (grabsend)
 endif()
 
 
