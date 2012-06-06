@@ -256,6 +256,7 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		return result;
 	}
 	_lastTimeStamp = timeStamp;
+	frame->pts = timeStamp;
 
 	frame->pts = timeStamp;
 	int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
