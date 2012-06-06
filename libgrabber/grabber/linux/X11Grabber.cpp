@@ -6,6 +6,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 #include <stdio.h>
+#include <string.h>
 
 namespace dz {
 
@@ -73,11 +74,38 @@ Rect X11Grabber::combinedScreenResolution () const {
 	return result;
 }
 
+/// Clips rectangle into the given window
+static Rect clipRect (const Rect & rect, Display * display, const Window& root) {
+	Window rootReturn;
+	int x,y;
+	unsigned int w;
+	unsigned int h;
+	unsigned int bw;
+	unsigned int dw;
+	Status ret = XGetGeometry(display, root, &rootReturn, &x, &y, &w, &h, &bw, &dw);
+	if (!ret) return Rect();
+	Rect win (x,y,w,h);
+	Rect inter;
+	rect.intersects(win, &inter);
+	return inter;
+}
+
 int X11Grabber::grab (const Rect& rect, Buffer * destination) {
 	int screen = 0; // no multi window suppot
 	Window root = RootWindow (mDisplay, screen);
 
-	XImage * image = XGetImage (mDisplay, root, rect.x, rect.y, rect.w, rect.h, XAllPlanes(), ZPixmap);
+	Rect clippedRect = clipRect (rect, mDisplay, root);
+	if (clippedRect.empty())
+		return 0; // nothing to grab
+	Buffer subBuffer;
+	subBuffer.initAsSubBufferFrom(
+			destination,
+			clippedRect.x - rect.x,
+			clippedRect.y - rect.y,
+			clippedRect.w,
+			clippedRect.h);
+
+	XImage * image = XGetImage (mDisplay, root, clippedRect.x, clippedRect.y, clippedRect.w, clippedRect.h, XAllPlanes(), ZPixmap);
 	if (!image) {
 		std::cerr << "Could not get image" << std::endl;
 		return 1;
@@ -87,12 +115,10 @@ int X11Grabber::grab (const Rect& rect, Buffer * destination) {
 		std::cerr << "Wrong BPP count!" << std::endl;
 		return 2;
 	}
-	for (int y = 0; y < rect.h; y++) {
-		for (int x = 0; x < rect.w; x++) {
-			int32_t * source = (int32_t* ) (image->data + y * image->bytes_per_line + x * 4);
-			int32_t * target = (int32_t* ) (destination->data + y * destination->rowLength + x * 4);
-			*target = *source;
-		}
+	for (int y = 0; y < clippedRect.h; y++) {
+		void * source = image->data + y * image->bytes_per_line;
+		void * target = subBuffer.data + y * subBuffer.rowLength;
+		memcpy (target, source, rect.w * 4);
 	}
 	XDestroyImage (image);
 	return 0;
