@@ -5,6 +5,28 @@
 # SCREENGRAB_OPEN_LIBS - all open source libraries used by screengrabber
 # SCREENGRAB_INCLUDES  - all include directories
 
+# Variables
+if (WIN32)
+    # WIN32 will be set automatically
+elseif (APPLE)
+    add_definitions (-DMAC_OSX -DUNIX)
+    set (MAC_OSX TRUE)
+
+    set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+    set (CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
+    set (CMAKE_C_FLAGS_RELEASE "-O3")
+ 
+else ()
+    add_definitions (-DLINUX -DUNIX)
+    set (LINUX TRUE)
+	set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
+	set (CMAKE_C_FLAGS_DEBUG        "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -Wall")
+	set (CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+	set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Wall")
+endif()
+
+
 # platform specific libraries
 if (LINUX)
 	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} X11 dl Xext Xrandr pthread)
@@ -44,7 +66,7 @@ if (WIN32)
 endif ()
 
 # Boost
-find_package (Boost COMPONENTS program_options REQUIRED)
+find_package (Boost COMPONENTS program_options thread REQUIRED)
 if (Boost_FOUND)
 	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${Boost_INCLUDE_DIRS})
 	if (NOT WIN32)
