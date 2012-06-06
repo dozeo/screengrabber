@@ -1,5 +1,10 @@
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
+if (MAC_OSX)
+	file (GLOB_RECURSE objcpp_src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.mm)
+else()
+	set (objcpp_src_files "")
+endif()
 
 WIN32_RELATIVE_FOLDER (${src_files} ${header_files})
 

@@ -10,9 +10,11 @@
 #include <iostream>
 #include <signal.h>
 
-#include "GrabSendOptions.h"
-#include <videosend/VideoSender.h>
 #include "GrabbingPipeline.h"
+
+#include <videosend/VideoSender.h>
+#include "GrabSendOptions.h"
+#include <gitdescribe.h>
 
 #include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -24,6 +26,7 @@
 #endif
 
 namespace po = boost::program_options;
+
 
 void millisleep (int timeMs) {
 #ifdef WIN32
@@ -176,6 +179,15 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 	return 0;
 }
 
+#ifdef MAC_OSX
+extern "C" {
+    // Initialize NSApplication
+    // This is necessary to use 
+    // Some calls to the window manager (e.g. Current Cursor)
+    void initalizeNSApplication ();
+}
+#endif
+
 int main (int argc, char * argv[]) {
 	GrabSendOptions options;
 
@@ -187,6 +199,7 @@ int main (int argc, char * argv[]) {
 		return 1;
 	}
 	// Debug!
+	std::cout << "Version: " << GIT_DESCRIBE << std::endl;
 	std::cout << "GrabberOptions:     " << options.grabberOptions << std::endl;
 	std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
 
@@ -218,13 +231,13 @@ int main (int argc, char * argv[]) {
 	if (doQuitImmediately) return 0;
 #ifdef QT_GUI_LIB
     boost::scoped_ptr<QApplication> qApplication;
-#ifndef MAC_OSX // OSX needs QApplication to grab Mouse Pointer
 	if (options.videoSenderOptions.type == dz::VT_QT) {
-#endif
         qApplication.reset (new QApplication (argc, argv));
-#ifndef MAC_OSX
-    }
+    } else {
+#ifdef MAC_OSX
+        initalizeNSApplication();
 #endif
+    }
 #endif
 
 	boost::scoped_ptr<dz::VideoSender> sender (dz::VideoSender::create (options.videoSenderOptions.type));
@@ -262,7 +275,12 @@ int main (int argc, char * argv[]) {
 		options.videoSenderOptions.width, 
 		options.videoSenderOptions.height);
 
-	result = sender->setVideoSettings(options.videoSenderOptions.width, options.videoSenderOptions.height, options.videoSenderOptions.fps, options.videoSenderOptions.kiloBitrate * 1000);
+	result = sender->setVideoSettings(
+			options.videoSenderOptions.width,
+			options.videoSenderOptions.height,
+			options.videoSenderOptions.fps,
+			options.videoSenderOptions.kiloBitrate * 1000,
+			options.videoSenderOptions.quality);
 	if (result) {
 		std::cerr << "Error: Could not set video sender settings (w,h,fps,bitrate) " << result << std::endl;
 		return 1;
