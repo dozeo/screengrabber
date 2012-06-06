@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math.h"
-#include <ostream>
+#include <iostream>
 
 namespace dz
 {
@@ -107,6 +107,8 @@ inline bool operator== (const Rect& a, const Rect & b) {
     return a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h;
 }
 
-std::ostream& operator << (std::ostream & s, const dz::Rect & r);
+inline std::ostream& operator << (std::ostream & s, const dz::Rect & r) {
+	return s << r.x << "," << r.y << " " << r.w << "x" << r.h;
+}
 
 }
