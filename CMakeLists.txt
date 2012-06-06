@@ -9,6 +9,7 @@ set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
 set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCREENGRABBER_DIRECTORY}/cmake/Modules/")
 include (Win32RelativeFolder)
 include (InitProject)
+include (gitdescribe)
 
 if (NOT DEFINED ENABLE_DEPLOY)
 	# Strips some files from installation
