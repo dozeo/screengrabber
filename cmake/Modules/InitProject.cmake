@@ -5,6 +5,28 @@
 # SCREENGRAB_OPEN_LIBS - all open source libraries used by screengrabber
 # SCREENGRAB_INCLUDES  - all include directories
 
+# Variables
+if (WIN32)
+    # WIN32 will be set automatically
+elseif (APPLE)
+    add_definitions (-DMAC_OSX -DUNIX)
+    set (MAC_OSX TRUE)
+
+    set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+    set (CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
+    set (CMAKE_C_FLAGS_RELEASE "-O3")
+ 
+else ()
+    add_definitions (-DLINUX -DUNIX)
+    set (LINUX TRUE)
+	set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
+	set (CMAKE_C_FLAGS_DEBUG        "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -Wall")
+	set (CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+	set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Wall")
+endif()
+
+
 # platform specific libraries
 if (LINUX)
 	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} X11 dl Xext Xrandr pthread)
@@ -44,7 +66,7 @@ if (WIN32)
 endif ()
 
 # Boost
-find_package (Boost COMPONENTS program_options REQUIRED)
+find_package (Boost COMPONENTS program_options thread REQUIRED)
 if (Boost_FOUND)
 	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${Boost_INCLUDE_DIRS})
 	if (NOT WIN32)
@@ -58,10 +80,10 @@ if (NOT WIN32)
 	find_package (OpenSSL REQUIRED)
 else ()
 	# Use our own OpenSSL here
-	set (OpenSSL_FOUND TRUE)
-	set (OpenSSL_LIBRARIES ${SCREENGRABBER_DIRECTORY}/dependencies/lib/ssleay32.lib ${SCREENGRABBER_DIRECTORY}/dependencies/lib/libeay32.lib)
+	set (OPENSSL_FOUND TRUE)
+	set (OPENSSL_LIBRARIES ${SCREENGRABBER_DIRECTORY}/dependencies/lib/ssleay32.lib ${SCREENGRABBER_DIRECTORY}/dependencies/lib/libeay32.lib)
 endif()
-set (SCREENGRAB_OPEN_LIBS ${SCREENGRAB_OPEN_LIBS} ${OpenSSL_LIBRARIES})
+set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${OPENSSL_LIBRARIES})
 
 
 #
@@ -95,9 +117,9 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 		message (STATUS "        Boost_LIBRARIES   =${Boost_LIBRARIES}")
 	endif()
 
-	message (STATUS "    OpenSSL_FOUND: ${OpenSSL_FOUND}")
-	if (OpenSSL_FOUND)
-		message (STATUS "        OpenSSL_LIBRARIES=${OpenSSL_LIBRARIES}")
+	message (STATUS "    OPENSSL_FOUND: ${OPENSSL_FOUND}")
+	if (OPENSSL_FOUND)
+		message (STATUS "        OPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}")
 	endif()
 
 	message (STATUS "SCREENGRAB_INCLUDES  = ${SCREENGRAB_INCLUDES}")

@@ -10,29 +10,6 @@ set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCREENGRABBER_DIRECTORY}/cmak
 include (Win32RelativeFolder)
 include (InitProject)
 
-# Variables
-if (WIN32)
-    # WIN32 will be set automatically
-elseif (APPLE)
-    add_definitions (-DMAC_OSX -DUNIX)
-    set (MAC_OSX TRUE)
-
-    # set (CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvm.clang.1_0")
-    # set (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-    set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
-    set (CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
-    set (CMAKE_C_FLAGS_RELEASE "-O3")
- 
-else ()
-    add_definitions (-DLINUX -DUNIX)
-    set (LINUX TRUE)
-	set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
-	set (CMAKE_C_FLAGS_DEBUG        "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -Wall")
-	set (CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
-	set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Wall")
-endif()
-
 if (NOT DEFINED ENABLE_DEPLOY)
 	# Strips some files from installation
 	set (ENABLE_DEPLOY FALSE)
