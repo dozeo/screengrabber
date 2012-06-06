@@ -46,40 +46,11 @@ message (STATUS "ENABLE_DEPLOY:    ${ENABLE_DEPLOY}")
 #
 LIST_SCREENGRAB_DEPENDENCIES()
 
-if (NOT QT4_FOUND)
-	find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
-endif ()
-if (QT4_FOUND)
-	include (${QT_USE_FILE})
-	set (LIBS ${LIBS} ${QT_LIBRARIES})
-	include_directories (${QT_INCLUDE_DIR})
-endif()
-
-# ffmpeg
-if (FFMPEG_FOUND)
- 	set (LIBS ${LIBS} ${FFMPEG_LIBRARIES})
- 	include_directories (${FFMPEG_INCLUDE_DIRS})
-endif ()
-
-if (DIRECTX_FOUND)
-	set (LIBS ${LIBS} ${DIRECTX_LIBRARIES})
-	include_directories (${DIRECTX_INCLUDE_DIRS})
-endif ()
-
-find_package (Boost COMPONENTS program_options REQUIRED)
+include_directories (${SCREENGRAB_INCLUDES})
 if (Boost_FOUND)
-	include_directories (${Boost_INCLUDE_DIRS})
 	link_directories (${Boost_LIBRARY_DIRS})
-	if (NOT WIN32)
-		# Boost for windows finds its libraries by itself.
-		set (LIBS ${LIBS} ${Boost_LIBRARIES})
-	endif()
-endif()
-	
-set (LIBS ${LIBS} ${OPENSSL_LIBRARIES})
+endif ()
 
-
-include (gitdescribe)
 
 message (STATUS "Libraries")
 message (STATUS "    libgrabber")
@@ -89,7 +60,7 @@ set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} grabber)
 
 include_directories (libvideosend)
 add_subdirectory (libvideosend)
-set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} videosend)
+set (SCREENGRAB_OPEN_LIBS ${SCREENGRAB_OPEN_LIBS} videosend)
 
 
 message (STATUS "Applications")
