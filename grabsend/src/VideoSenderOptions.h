@@ -87,11 +87,11 @@ inline std::vector<std::string> VideoSenderOptions::packCommandLine () const {
 	result.push_back (boost::lexical_cast<std::string> (kiloBitrate));
 	result.push_back ("--fps");
 	result.push_back (boost::lexical_cast<std::string> (fps));
-	if (!file.empty()){
+	if (!file.empty()) {
 		result.push_back ("--file");
 		result.push_back (file);
 	}
-	if (!url.empty()){
+	if (!url.empty()) {
 		result.push_back ("--url");
 		result.push_back (url);
 	}
@@ -115,7 +115,7 @@ struct VideoSenderOptionsParser {
 					"  RTMP: rtmp://[host]/[app]/[playpath]"
 					"        rtmp://[host]/[app] playpath=test"
 					"        rtmp://[host] app=appname playpath=1234/1234/1234"
-					"  TCP: tcp://[host]:[port]/[stream]"),
+					"  TCP: tcp://[host]:[port]/[stream]")
 				("file", boost::program_options::value<std::string>(&target->file)->default_value ("screencast.flv"), "File where to write out (when no URL is set)");
 	}
 

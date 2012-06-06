@@ -1,8 +1,9 @@
 
 # ! NOTE ! SCREENGRABBER_DIRECTORY needs to be set
 
-# SCREENGRAB_LIBS     - all libraries used by screengrabber
-# SCREENGRAB_INCLUDES - all include directories
+# SCREENGRAB_LIBS      - NON-GPL libraries used by screengrabber
+# SCREENGRAB_OPEN_LIBS - all open source libraries used by screengrabber
+# SCREENGRAB_INCLUDES  - all include directories
 
 # platform specific libraries
 if (LINUX)
@@ -29,7 +30,7 @@ endif()
 # ffmpeg
 find_package (FFMPEG REQUIRED)
 if (FFMPEG_FOUND)
-	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${FFMPEG_LIBRARIES})
+	set (SCREENGRAB_OPEN_LIBS ${SCREENGRAB_OPEN_LIBS} ${FFMPEG_LIBRARIES})
 	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${FFMPEG_INCLUDE_DIRS})
 endif ()
 
@@ -58,15 +59,16 @@ if (NOT WIN32)
 else ()
 	# Use our own OpenSSL here
 	set (OpenSSL_FOUND TRUE)
-	set (OPENSSL_LIBRARIES ${SCREENGRABBER_DIRECTORY}/dependencies/lib/ssleay32.lib ${SCREENGRABBER_DIRECTORY}/dependencies/lib/libeay32.lib)
+	set (OpenSSL_LIBRARIES ${SCREENGRABBER_DIRECTORY}/dependencies/lib/ssleay32.lib ${SCREENGRABBER_DIRECTORY}/dependencies/lib/libeay32.lib)
 endif()
+set (SCREENGRAB_OPEN_LIBS ${SCREENGRAB_OPEN_LIBS} ${OpenSSL_LIBRARIES})
 
 
 #
 # lists all dependencies
 #
 function (LIST_SCREENGRAB_DEPENDENCIES)
-	message (STATUS "Dependencies")
+	message (STATUS "Screengrabber Dependencies")
 	message (STATUS "    QT4_FOUND: ${QT4_FOUND}")
 	if (QT4_FOUND)
 		message (STATUS "        QT_LIBRARIES: ${QT_LIBRARIES}")
@@ -95,9 +97,10 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 
 	message (STATUS "    OpenSSL_FOUND: ${OpenSSL_FOUND}")
 	if (OpenSSL_FOUND)
-		message (STATUS "        OPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}")
+		message (STATUS "        OpenSSL_LIBRARIES=${OpenSSL_LIBRARIES}")
 	endif()
 
-	message (STATUS "SCREENGRAB_INCLUDES = ${SCREENGRAB_INCLUDES}")
-	message (STATUS "SCREENGRAB_LIBS = ${SCREENGRAB_LIBS}")
+	message (STATUS "SCREENGRAB_INCLUDES  = ${SCREENGRAB_INCLUDES}")
+	message (STATUS "SCREENGRAB_LIBS      = ${SCREENGRAB_LIBS}")
+	message (STATUS "SCREENGRAB_OPEN_LIBS = ${SCREENGRAB_OPEN_LIBS}")
 endfunction ()
