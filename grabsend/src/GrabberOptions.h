@@ -1,5 +1,4 @@
 #pragma once
-
 #include <boost/program_options.hpp>
 #include <grabber/Grabber.h>
 #include <ostream>

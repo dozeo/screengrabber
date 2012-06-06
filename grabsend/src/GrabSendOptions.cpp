@@ -1,6 +1,7 @@
 #include "GrabSendOptions.h"
 namespace po = boost::program_options;
 #include <iostream>
+#include <gitdescribe.h>
 
 GrabSendOptions::GrabSendOptions () :
 	desc ("General Configuration"),
@@ -36,6 +37,7 @@ int GrabSendOptions::parse (int argc, char ** argv){
 
 void GrabSendOptions::doPrintHelp () {
 	std::cout << "grabsend: Grab desktop content and stream it with ffmpeg" << std::endl;
+	std::cout << "Version:  " << GIT_DESCRIBE << std::endl;
 	std::cout << desc << std::endl;
 	std::cout << "grabsend can be stopped by CTRL+C or with entering \"QUIT\\n\"." << std::endl;
 }
