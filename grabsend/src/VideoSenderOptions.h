@@ -35,8 +35,8 @@ struct VideoSenderOptions {
 	bool correctAspect; ///< Correct the aspect of width/height
 	std::string url; ///< Target URL where to send
 	std::string file; ///< Target file where to save (if URL is not set)
-	dz::VideoSenderType type; ///< Type of sender to use
 	dz::VideoQualityLevel quality; ///< Quality level of video encoder
+	dz::VideoSenderType type; ///< Type of sender to use
 };
 
 inline std::ostream & operator<< (std::ostream & s, const VideoSenderOptions & o) { return o.operator<<(s); }
@@ -44,7 +44,7 @@ inline std::ostream & operator<< (std::ostream & s, const VideoSenderOptions & o
 inline std::vector<std::string> VideoSenderOptions::packCommandLine () const {
 	std::vector<std::string> result;
 	if (type != dz::VT_DEFAULT) {
-		const char * nameType;
+		const char * nameType = 0;
 		switch (type) {
 		case dz::VT_NULL:
 			nameType = "Null";
@@ -63,7 +63,7 @@ inline std::vector<std::string> VideoSenderOptions::packCommandLine () const {
 		result.push_back (nameType);
 	}
 	
-	const char * qualityName;
+	const char * qualityName = 0;
 	switch (quality) {
 	case dz::VQ_LOW:
 		qualityName = "Low";

@@ -254,6 +254,7 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		return result;
 	}
 	_lastTimeStamp = timeStamp;
+	frame->pts = timeStamp;
 
 	int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
 	if (size > 0) {
@@ -274,7 +275,6 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		packet.dts  = AV_NOPTS_VALUE;
 		
 		result = av_interleaved_write_frame(_formatContext, &packet);
-		frame->pts ++;
 	}
 
 	return result;
