@@ -10,6 +10,7 @@ void drawMouseIntoBuffer (const Rect& rect, Buffer * destination) {
     // - Mouse position is measured from lower left = 0,0
     // - Hotspot in image is measured from upper left
     // - Drawing via image drawAtPoint is measured from lower left (drawing image upside from given point)
+    // - NSCursor needs NSApplication initialized
     // Real Coordinates: Coordinate space with 0,0 upper left and y+1 = down
     // OSX  Coordinates: Coordinate space with 0,0 lower left and y+1 = up
     
@@ -17,6 +18,11 @@ void drawMouseIntoBuffer (const Rect& rect, Buffer * destination) {
     
     NSPoint p = [NSEvent mouseLocation];
     NSCursor * currentCursor = [NSCursor currentSystemCursor];
+    if (currentCursor == 0) {
+        // could not figure out current cursor
+        // Do you initialized NSApplication?
+        return;
+    }
     NSPoint hotSpot = [currentCursor hotSpot];
     NSImage *  imageFromCursor = [currentCursor image];
     NSSize s = [imageFromCursor size];

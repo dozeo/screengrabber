@@ -64,7 +64,7 @@ inline std::vector<std::string> GrabberOptions::packCommandLine () const {
         result.push_back ("--gcursor");
     }
 	if (grabberType != dz::GT_DEFAULT) {
-		const char * nameType;
+		const char * nameType = "invalid";
 		switch (grabberType) {
 		case dz::GT_DIRECTX:
 			nameType = "DirectX";

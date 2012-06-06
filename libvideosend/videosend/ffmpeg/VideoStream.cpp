@@ -12,15 +12,15 @@ const std::string VideoStream::StreamProtocol     = std::string("flv");
 bool              VideoStream::AVCodecInitialized = false;
 
 VideoStream::VideoStream(const Dimension2& videoSize, enum CodecID videoCodec)
-: _videoFrameSize(videoSize)
-, _videoCodec(videoCodec)
-, _formatContext(NULL)
+: _formatContext(NULL)
 , _convertContext(NULL)
 , _videoStream(NULL)
-, _frameBufferSize(0)
-, _frameBuffer(NULL)
 , _tempFrame(NULL)
 , _scaledFrame(NULL)
+, _frameBufferSize(0)
+, _frameBuffer(NULL)
+, _videoFrameSize(videoSize)
+, _videoCodec(videoCodec)
 , _lastTimeStamp(0)
 , _isStreamOpen(false)
 {
@@ -161,6 +161,8 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 	codec->refs = 3;
 	codec->rc_buffer_size = 0;
 
+	std::cout << "Video Quality: " << level << std::endl;
+
 	if (level == VQ_LOW) {
 		codec->max_b_frames = 0;
 	
@@ -255,13 +257,13 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 	}
 	_lastTimeStamp = timeStamp;
 
+	frame->pts = timeStamp;
 	int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
 	if (size > 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
 
 		if (codec->coded_frame->pts != AV_NOPTS_VALUE) {
-			//packet.pts = av_rescale_q(codec->coded_frame->pts, codec->time_base, _videoStream->time_base);
 			packet.pts = av_rescale_q(timeStamp, codec->time_base, _videoStream->time_base);
 		}
 		if (codec->coded_frame->key_frame) {
@@ -274,7 +276,6 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		packet.dts  = AV_NOPTS_VALUE;
 		
 		result = av_interleaved_write_frame(_formatContext, &packet);
-		frame->pts ++;
 	}
 
 	return result;
