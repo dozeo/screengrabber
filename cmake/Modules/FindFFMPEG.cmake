@@ -68,7 +68,23 @@ if (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FO
 		${FFMPEG_LIBAVUTIL_LIBRARY}
 		${FFMPEG_LIBSWSCALE_LIBRARY}
 	)
-
+	
+	if (WIN32)
+		set (FFMPEG_DLLS 
+			${FFMPEG_ROOT_DIR}/bin/avformat-53.dll
+			${FFMPEG_ROOT_DIR}/bin/avcodec-53.dll
+			${FFMPEG_ROOT_DIR}/bin/avutil-51.dll
+			${FFMPEG_ROOT_DIR}/bin/swscale-2.dll
+			${FFMPEG_ROOT_DIR}/bin/librtmp.dll
+			${FFMPEG_ROOT_DIR}/bin/libz-1.dll
+			${FFMPEG_ROOT_DIR}/bin/libx264-125.dll
+			${FFMPEG_ROOT_DIR}/bin/libeay32.dll
+			${FFMPEG_ROOT_DIR}/bin/ssleay32.dll
+			${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll
+			${FFMPEG_ROOT_DIR}/bin/libgcc_s_dw2-1.dll
+		)
+	endif()
+	
 	list (REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
 	set (FFMPEG_FOUND TRUE)
 else ()
@@ -85,22 +101,14 @@ mark_as_advanced (FFMPEG_INCLUDE_DIRS FFMPEG_LIBRARIES)
 # A small helper macro to copy all necessary dll libraries to a specific folder
 #
 function (CopyFFMpegLibrariesToDirectory target destinationFolder)
-	IF (FFMPEG_FOUND AND FFMPEG_ROOT_DIR)
-		ADD_CUSTOM_COMMAND(
-			TARGET ${target}
-			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/avformat-53.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/avcodec-53.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/avutil-51.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/swscale-2.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/librtmp.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libz-1.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libx264-125.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libeay32.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/ssleay32.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll ${destinationFolder} VERBATIM
-			COMMAND ${CMAKE_COMMAND} -E copy ${FFMPEG_ROOT_DIR}/bin/libgcc_s_dw2-1.dll ${destinationFolder} VERBATIM
-		)
-	ENDIF (FFMPEG_FOUND AND FFMPEG_ROOT_DIR)
+	if (FFMPEG_FOUND AND FFMPEG_ROOT_DIR AND WIN32)
+		foreach (dll ${FFMPEG_DLLS})
+			ADD_CUSTOM_COMMAND(
+				TARGET ${target}
+				POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy ${dll} ${destinationFolder} VERBATIM
+			)
+		endforeach ()
+	endif()
 endfunction (CopyFFMpegLibrariesToDirectory target destinationFolder)
 

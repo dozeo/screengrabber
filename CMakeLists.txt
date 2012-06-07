@@ -11,13 +11,7 @@ include (Win32RelativeFolder)
 include (InitProject)
 include (gitdescribe)
 
-if (NOT DEFINED ENABLE_DEPLOY)
-	# Strips some files from installation
-	set (ENABLE_DEPLOY FALSE)
-endif()
-
 message (STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-message (STATUS "ENABLE_DEPLOY:    ${ENABLE_DEPLOY}")
 
 #
 # List all necessary dependencies!
