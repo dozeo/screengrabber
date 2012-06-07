@@ -10,6 +10,19 @@ WIN32_RELATIVE_FOLDER (${src_files} ${header_files} ${objcpp_src_files})
 
 add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${SCREENGRAB_LIBS} grabber videosend ${FFMPEG_LIBRARIES})
-if (NOT APPLE OR NOT ENABLE_DEPLOY) # gets already integrated into bundle
-	install (TARGETS grabsend RUNTIME DESTINATION bin)
+
+install (TARGETS grabsend RUNTIME DESTINATION bin)
+if (WIN32)
+	install (FILES ${FFMPEG_DLLS} DESTINATION bin)
+	install (FILES ${QT_DLLS} DESTINATION bin)
+	install (FILES ${QT_DLLS_DEBUG} CONFIGURATIONS Debug DESTINATION bin)
 endif()
+if (LINUX)
+	file (GLOB INSTALL_FILES ${FFMPEG_ROOT_DIR}/lib/*.so*)
+	install (FILES ${INSTALL_FILES} DESTINATION lib)
+	
+	# Fix for Ubuntu Buildser; won't work on other platforms probably.
+	set (INSTALL_OPENSSL_LIBRARIES /lib/i386-linux-gnu/libssl.so.1.0.0 /lib/i386-linux-gnu/libcrypto.so.1.0.0)
+	install (FILES ${INSTALL_OPENSSL_LIBRARIES} DESTINATION lib OPTIONAL)
+endif()
+

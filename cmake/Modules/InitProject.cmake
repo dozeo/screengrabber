@@ -95,6 +95,19 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 	if (QT4_FOUND)
 		message (STATUS "        QT_LIBRARIES: ${QT_LIBRARIES}")
 		message (STATUS "        QT_INCLUDE_DIR: ${QT_INCLUDE_DIR}")
+		
+		if (WIN32)
+			set (QT_DLLS
+				${QT_BINARY_DIR}/QtGui4.dll
+				${QT_BINARY_DIR}/QtCore4.dll
+				)
+			set (QT_DLLS_DEBUG
+				${QT_BINARY_DIR}/QtGuid4.dll
+				${QT_BINARY_DIR}/QtCored4.dll
+			)
+			message (STATUS "        QT_DLLS: ${QT_DLLS}")
+			message (STATUS "        QT_DLLS_DEBUG: ${QT_DLLS_DEBUG}")
+		endif()
 	endif()
 
 	message (STATUS "    FFMPEG_FOUND: ${FFMPEG_FOUND}")
@@ -102,6 +115,7 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 		message (STATUS "        FFMPEG_ROOT_DIR=${FFMPEG_ROOT_DIR}")
 	 	message (STATUS "        FFMPEG_INCLUDE_DIRS=${FFMPEG_INCLUDE_DIRS}")
 	 	message (STATUS "        FFMPEG_LIBRARIES=${FFMPEG_LIBRARIES}")
+		message (STATUS "        FFMPEG_DLLS=${FFMPEG_DLLS}")
 	endif ()
 
 	message (STATUS "    DIRECTX_FOUND: ${DIRECTX_FOUND}")
