@@ -6,9 +6,9 @@ else()
 	set (objcpp_src_files "")
 endif()
 
-WIN32_RELATIVE_FOLDER (${src_files} ${header_files})
+WIN32_RELATIVE_FOLDER (${src_files} ${header_files} ${objcpp_src_files})
 
-add_executable (grabsend ${src_files} ${header_files})
+add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${SCREENGRAB_LIBS} grabber videosend ${FFMPEG_LIBRARIES})
 if (NOT APPLE OR NOT ENABLE_DEPLOY) # gets already integrated into bundle
 	install (TARGETS grabsend RUNTIME DESTINATION bin)
