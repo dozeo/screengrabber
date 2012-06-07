@@ -47,6 +47,16 @@ if (QT4_FOUND)
 	include (${QT_USE_FILE})
 	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${QT_LIBRARIES})
 	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${QT_INCLUDE_DIR})
+	if (WIN32)
+		set (QT_DLLS
+			${QT_BINARY_DIR}/QtGui4.dll
+			${QT_BINARY_DIR}/QtCore4.dll
+		)
+		set (QT_DLLS_DEBUG
+			${QT_BINARY_DIR}/QtGuid4.dll
+			${QT_BINARY_DIR}/QtCored4.dll
+		)
+	endif()	
 endif()
 
 # ffmpeg
@@ -95,16 +105,7 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 	if (QT4_FOUND)
 		message (STATUS "        QT_LIBRARIES: ${QT_LIBRARIES}")
 		message (STATUS "        QT_INCLUDE_DIR: ${QT_INCLUDE_DIR}")
-		
 		if (WIN32)
-			set (QT_DLLS
-				${QT_BINARY_DIR}/QtGui4.dll
-				${QT_BINARY_DIR}/QtCore4.dll
-				)
-			set (QT_DLLS_DEBUG
-				${QT_BINARY_DIR}/QtGuid4.dll
-				${QT_BINARY_DIR}/QtCored4.dll
-			)
 			message (STATUS "        QT_DLLS: ${QT_DLLS}")
 			message (STATUS "        QT_DLLS_DEBUG: ${QT_DLLS_DEBUG}")
 		endif()
