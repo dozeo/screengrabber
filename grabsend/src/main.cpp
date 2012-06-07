@@ -27,6 +27,17 @@
 
 namespace po = boost::program_options;
 
+std::string getVideoSenderError (int error) {
+	switch (error) {
+		case dz::VideoSender::VE_INVALID_RESOLUTION: return std::string("invalid resolution");
+		case dz::VideoSender::VE_INVALID_TARGET:     return std::string("invalid target");
+		case dz::VideoSender::VE_CODEC_NOT_FOUND:    return std::string("codec not found");
+		case dz::VideoSender::VE_INVALID_CONVERSION: return std::string("invalid image conversion");
+		case dz::VideoSender::VE_FAILED_OPEN_STREAM: return std::string("failed to open stream");
+		case dz::VideoSender::VE_OK:                 return std::string("ok");
+	}
+	return std::string("unknown");
+}
 
 void millisleep (int timeMs) {
 #ifdef WIN32
@@ -135,11 +146,10 @@ void installLineReader () {
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabber and sender must be completely initialized.
-int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, const GrabberOptions & grabberOptions, */ const VideoSenderOptions & videoSenderOptions,/*  dz::Grabber * grabber,*/ dz::VideoSender * sender) {
-//	dz::Buffer buffer (grabRect.w, grabRect.h);
+int grabbingLoop (GrabbingPipeline * grabbingPipeline, const VideoSenderOptions & videoSenderOptions, dz::VideoSender * sender) {
 	int result = sender->open();
 	if (result) {
-		std::cerr << "Error: Could not open output stream " << result << std::endl;
+		std::cerr << "Error: Could not open output stream: " << getVideoSenderError(result) << std::endl;
 		return 1;
 	}
 	double t0 = microtime();
@@ -157,7 +167,7 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 		const dz::Buffer * buffer = grabbingPipeline->buffer();
 		result = sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
 		if (result) {
-			std::cerr << "Error: could not send " << result << std::endl;
+			std::cerr << "Error: could not send: " << getVideoSenderError(result) << std::endl;
 			return 1;
 		}
 #if QT_GUI_LIB

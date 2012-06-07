@@ -10,62 +10,58 @@ VideoSenderFFmpeg::VideoSenderFFmpeg()
 , _bitRate(300000)
 , _videoStream(0)
 , _quality(VQ_MEDIUM)
-, _mode(OM_FILE)
 {
 	initLog ();
 }
 
-VideoSenderFFmpeg::~VideoSenderFFmpeg()
-{
+VideoSenderFFmpeg::~VideoSenderFFmpeg() {
 	close();
 	uninitLog();
 }
 
-int VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, enum VideoQualityLevel quality)
-{
+int VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, enum VideoQualityLevel quality) {
+	assert(!_videoStream && "already started?");
 	_frameSize = Dimension2(w, h);
 	_fps = fps;
 	_bitRate = bitRate;
 	_quality = quality;
-	return 0;
+	return VE_OK;
 }
 
-int VideoSenderFFmpeg::setTargetFile(const std::string& filename)
-{
-	_url = filename;
-	_mode = OM_FILE;
-	return 0;
+int VideoSenderFFmpeg::setTargetFile(const std::string& filename) {
+	assert(!_videoStream && "already started?");
+	if (!_url.empty()) {
+		return VE_INVALID_TARGET;
+	}
+	_filename = filename;
+	return VE_OK;
 }
 
 int VideoSenderFFmpeg::setTargetUrl(const std::string& url)
 {
+	assert(!_videoStream && "already started?");
+	if (!_filename.empty()) {
+		return VE_INVALID_TARGET;
+	}
 	_url = url;
-	_mode = OM_URL;
-	return 0;
+	return VE_OK;
 }
 
-int VideoSenderFFmpeg::open()
-{
-	assert(_videoStream == 0);
-
-	int result = 0;
+int VideoSenderFFmpeg::open() {
 	_videoStream = new VideoStream(_frameSize, CODEC_ID_H264);
-	if (_mode == OM_FILE)
-	{
-		result = _videoStream->openFile(_url, _fps, _bitRate, _quality);
+	if (!_filename.empty()) {
+		return _videoStream->openFile(_filename, _fps, _bitRate, _quality);
 	}
-	else if (_mode == OM_URL)
-	{
-		result = _videoStream->openUrl(_url, _fps, _bitRate, _quality);
+	else if (!_url.empty()) {
+		return _videoStream->openUrl(_url, _fps, _bitRate, _quality);
 	}
-
-	return result;
+	return VE_OK;
 }
 
 int VideoSenderFFmpeg::putFrame(const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec)
 {
 	assert(data != 0);
-	assert(_videoStream != 0);
+	assert(_videoStream != 0 && "video stream was not opened");
 
 	Dimension2 imageSize(width, height);
 	return _videoStream->sendFrame(data, imageSize, (uint32_t)bytesPerRow, durationInSec);
@@ -73,8 +69,7 @@ int VideoSenderFFmpeg::putFrame(const uint8_t * data, int width, int height, int
 
 void VideoSenderFFmpeg::close()
 {	
-	if (_videoStream != 0)
-	{
+	if (_videoStream != 0) {
 		_videoStream->close();
 		delete _videoStream;
 		_videoStream = 0;

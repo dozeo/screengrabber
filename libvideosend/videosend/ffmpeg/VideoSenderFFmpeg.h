@@ -24,15 +24,10 @@ private:
 	void initLog ();
 	void uninitLog ();
 
-	enum OpenMode {
-		OM_URL = 1,
-		OM_FILE,
-	};
-
 	VideoStream* _videoStream;
 
 	std::string _url;
-	OpenMode    _mode;
+	std::string _filename;
 
 	Dimension2   _frameSize;
 	float        _fps;
