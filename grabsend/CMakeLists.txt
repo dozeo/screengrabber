@@ -26,6 +26,3 @@ if (LINUX)
 	install (FILES ${INSTALL_OPENSSL_LIBRARIES} DESTINATION lib OPTIONAL)
 endif()
 
-# if (NOT APPLE OR NOT ENABLE_DEPLOY) # gets already integrated into bundle
-#	install (TARGETS grabsend RUNTIME DESTINATION bin)
-# endif()
