@@ -85,17 +85,6 @@ if (Boost_FOUND)
 	endif()
 endif()
 
-# OpenSSL
-if (NOT WIN32)
-	find_package (OpenSSL REQUIRED)
-else ()
-	# Use our own OpenSSL here
-	set (OPENSSL_FOUND TRUE)
-	set (OPENSSL_LIBRARIES ${SCREENGRABBER_DIRECTORY}/dependencies/lib/ssleay32.lib ${SCREENGRABBER_DIRECTORY}/dependencies/lib/libeay32.lib)
-endif()
-set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${OPENSSL_LIBRARIES})
-
-
 #
 # lists all dependencies
 #
@@ -130,11 +119,6 @@ function (LIST_SCREENGRAB_DEPENDENCIES)
 		message (STATUS "        Boost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}")
 		message (STATUS "        Boost_LIBRARY_DIRS=${Boost_LIBRARY_DIRS}")
 		message (STATUS "        Boost_LIBRARIES   =${Boost_LIBRARIES}")
-	endif()
-
-	message (STATUS "    OPENSSL_FOUND: ${OPENSSL_FOUND}")
-	if (OPENSSL_FOUND)
-		message (STATUS "        OPENSSL_LIBRARIES=${OPENSSL_LIBRARIES}")
 	endif()
 
 	message (STATUS "SCREENGRAB_INCLUDES  = ${SCREENGRAB_INCLUDES}")
