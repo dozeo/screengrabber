@@ -150,6 +150,7 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 		double t1 = microtime();
 		double dt = t1 - t0;
 		result = grabbingPipeline->grab();
+		double t2 = microtime ();
 		if (result) {
 			std::cerr << "Error: could not grab " << result << std::endl;
 			return 1;
@@ -166,12 +167,15 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
             QApplication::sendPostedEvents();
         }
 #endif
-		double t2 = microtime ();
-		double timeToWait = (1.0f / videoSenderOptions.fps) - (t2 - t1);
+		double t3 = microtime ();
+		double timeToWait = (1.0f / videoSenderOptions.fps) - (t3 - t1);
+		double timeToGrab          = t2 - t1;
+		double timeToEncodeAndSend = t3 - t2;
+		std::cerr.precision(3);
+		std::cerr << "Debug: dt=" << (dt) << "s grab=" << (timeToGrab * 1000) << "ms encode=" << (timeToEncodeAndSend * 1000) << "ms wait=" << (timeToWait * 1000) << "ms" << std::endl;
 		if (timeToWait < 0) {
 			std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
 		} else {
-			std::cout << "Debug: Sleeping for " << timeToWait << "s" << std::endl;
 			millisleep ( (int) (timeToWait * 1000));
 		}
 	}
