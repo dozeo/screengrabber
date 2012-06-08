@@ -83,6 +83,9 @@ if (Boost_FOUND)
 		# Boost for windows finds its libraries by itself.
 		set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${Boost_LIBRARIES})
 	endif()
+	if (Boost_FOUND)
+		link_directories (${Boost_LIBRARY_DIRS})
+	endif ()
 endif()
 
 #
