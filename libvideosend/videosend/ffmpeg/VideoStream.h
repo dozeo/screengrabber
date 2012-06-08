@@ -23,6 +23,7 @@ public:
 	void close();
 
 	int sendFrame(const uint8_t* rgba, const Dimension2& imageSize, uint32_t stride, double timeDurationInSeconds);
+	const VideoSender::Statistic * statistic () const { return &_statistic; }
 
 private:
 
@@ -69,6 +70,7 @@ private:
 	uint64_t _lastTimeStamp;
 
 	bool _isStreamOpen;
+	VideoSender::Statistic    _statistic;
 };
 
 }

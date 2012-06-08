@@ -19,6 +19,7 @@ public:
 	virtual void close();
 	// override
 	virtual void setLoggingCallback (const LogCallback& callback, void * user);
+	virtual const Statistic * statistic () const { return _videoStream ? _videoStream->statistic() : 0; }
 
 private:
 	void initLog ();

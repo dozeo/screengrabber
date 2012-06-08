@@ -173,6 +173,10 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 		double timeToEncodeAndSend = t3 - t2;
 		std::cerr.precision(3);
 		std::cerr << "Debug: dt=" << (dt) << "s grab=" << (timeToGrab * 1000) << "ms encode=" << (timeToEncodeAndSend * 1000) << "ms wait=" << (timeToWait * 1000) << "ms" << std::endl;
+		const dz::VideoSender::Statistic * stat = sender->statistic();
+		if (stat) {
+			std::cerr << "Debug: Statistics" << *stat << std::endl;
+		}
 		if (timeToWait < 0) {
 			std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
 		} else {

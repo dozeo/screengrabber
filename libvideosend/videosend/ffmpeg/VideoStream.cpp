@@ -235,6 +235,7 @@ int VideoStream::sendFrame(
 		setupScaleContext(imageSize, _videoFrameSize);
 	}
 
+	int64_t t0 = av_gettime();
 	FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
 	sws_scale(
 		_convertContext,
@@ -242,7 +243,8 @@ int VideoStream::sendFrame(
 		0,
 		imageSize.height,
 		_scaledFrame->data, _scaledFrame->linesize);
-
+	int64_t t1 = av_gettime();
+	_statistic.lastScaleTime += (t1 - t0);
 	return sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
 }
 
@@ -259,7 +261,10 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 	frame->pts = timeStamp;
 
 	frame->pts = timeStamp;
+	int64_t t0 = av_gettime();
 	int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
+	int64_t t1 = av_gettime();
+	_statistic.lastEncodeTime = (t1 - t0);
 	if (size > 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
@@ -276,9 +281,20 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		packet.size = size;
 		packet.dts  = AV_NOPTS_VALUE;
 		
+		t0 = av_gettime();
 		result = av_interleaved_write_frame(_formatContext, &packet);
-	}
+		t1 = av_gettime();
+		_statistic.lastSendTime = (t1 - t0);
+		int64_t bytes = packet.size;
+		for (int i = 0; i < packet.side_data_elems; i++) {
+			bytes+= packet.side_data[i].size;
+		}
+		_statistic.frameWritten(bytes);
 
+	} else {
+		_statistic.lastSendTime = 0;
+		_statistic.frameWritten (0);
+	}
 	return result;
 }
 
