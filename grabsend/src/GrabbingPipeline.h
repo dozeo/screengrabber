@@ -59,6 +59,7 @@ public:
 		return 0;
 	}
 
+	/// Grab one image; you can get the image using the buffer, returns 0 on success
 	int grab () {
 		int result = reinit ();
 		if (result) return result;
