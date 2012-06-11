@@ -68,6 +68,7 @@ private:
 	enum CodecID _videoCodec;
 
 	uint64_t _lastTimeStamp;
+	bool _waitForFirstFrame;
 
 	bool _isStreamOpen;
 	VideoSender::Statistic    _statistic;

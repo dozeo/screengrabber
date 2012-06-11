@@ -22,6 +22,7 @@ VideoStream::VideoStream(const Dimension2& videoSize, enum CodecID videoCodec)
 , _videoFrameSize(videoSize)
 , _videoCodec(videoCodec)
 , _lastTimeStamp(0)
+, _waitForFirstFrame(true)
 , _isStreamOpen(false)
 {
 	if (!AVCodecInitialized) {
@@ -60,6 +61,7 @@ int VideoStream::open(
 {
 	int result = 0;
 	_lastTimeStamp = 0;
+	_waitForFirstFrame = true;
 
 	PixelFormat destPixFormat = PIX_FMT_YUV420P;
 	_formatContext = FFmpegUtils::createFormatContext(StreamProtocol, _videoCodec);
@@ -255,9 +257,15 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 	AVCodecContext* codec = videoStream->codec;
 
 	uint64_t timeStamp = (uint64_t)(timeDurationInSeconds * codec->time_base.den);
-	if (_lastTimeStamp == timeStamp) {
+
+	if (_lastTimeStamp == timeStamp && !_waitForFirstFrame) {
+		// ignore
+		_statistic.lastEncodeTime = 0;
+		_statistic.lastSendTime   = 0;
+		_statistic.frameWritten(0);
 		return result;
 	}
+	_waitForFirstFrame = false;
 	_lastTimeStamp = timeStamp;
 	frame->pts = timeStamp;
 
