@@ -9,6 +9,8 @@ struct VideoSenderOptions {
 	VideoSenderOptions () :
 		fps (10.0f),
 		kiloBitrate (100),
+		correctWidth (false),
+		correctAspect (false),
 		width (640),
 		height(480),
 		quality (dz::VQ_MEDIUM),
@@ -32,6 +34,7 @@ struct VideoSenderOptions {
 	float fps; ///< fps rate to send
 	int kiloBitrate; ///< bitrate in kiloBit
 	int width, height; ///< Width/Height of the video
+	bool correctWidth;  ///< Correct initial width that it matches the aspect of the data source
 	bool correctAspect; ///< Correct the aspect of width/height
 	std::string url; ///< Target URL where to send
 	std::string file; ///< Target file where to save (if URL is not set)
@@ -97,6 +100,8 @@ inline std::vector<std::string> VideoSenderOptions::packCommandLine () const {
 	}
 	result.push_back ("--correctAspect");
 	result.push_back (correctAspect ? "true" : "false");
+	result.push_back ("--correctWidth");
+	result.push_back (correctWidth ? "true" : "false");
 	return result;
 }
 
@@ -106,6 +111,7 @@ struct VideoSenderOptionsParser {
 		desc.add_options()
 				("vsize", boost::program_options::value<std::string>(), "Video Resolution w,h")
 				("correctAspect", boost::program_options::value<bool> (&target->correctAspect)->default_value(true), "Correct Aspect")
+				("correctWidth", boost::program_options::value<bool> (&target->correctWidth)->default_value(true), "Correct Width to the data source (ignoring given width)")
 				("vtype", boost::program_options::value<std::string>(), "Sender Type (Null|Default|Qt)")
 				("quality", boost::program_options::value<std::string>(), "Quality Level (Low|Medium|High)")
 				("fps", boost::program_options::value<float>(&target->fps)->default_value (10.0f), "Frames per Second")

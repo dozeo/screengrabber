@@ -65,41 +65,48 @@ public:
 		if (result) return result;
 
 		if (mGrabberOptions->grabFollow) {
-			dz::Rect newGrabRect = calcGrabRect ();
-			if (newGrabRect.empty()) {
-				std::cerr << "Error: could not get grabbing rect " << std::endl;
+			dz::Rect r = calcGrabRect ();
+			if (!(mGrabRect == r)) {
+				// otherwise we could get artefacts.
+				mDestinationBuffer.clear();
+			}
+			mGrabRect = r;
+			if (mGrabRect.empty()){
+				std::cerr << "Error: could not get grabbing rect" << std::endl;
 				return 1;
 			}
-			int bufferWidth  (newGrabRect.w);
-			int bufferHeight (newGrabRect.h);
+		}
 
-			if (mCorrectAspectToVideo) {
-				// TODO: Cleanup
-				float aspect = (float) mVideoWidth  / (float) mVideoHeight;
-				int   bestWith = aspect * newGrabRect.h;
-				if (bestWith > newGrabRect.w) {
-					// increase width
-					bufferWidth = bestWith;
+		if (mCorrectAspectToVideo) {
+			float aspect = (float) mVideoWidth  / (float) mVideoHeight;
+			int   bestWidth = aspect * mGrabRect.h;
+			int bufferWidth  (mGrabRect.w);
+			int bufferHeight (mGrabRect.h);
+			int letterX = 0;	///< Pillarbox (black left and right)
+			int letterY = 0;	///< Letterbox (black up and down)
+			if (bestWidth > mGrabRect.w) {
+				// increase width
+				bufferWidth = bestWidth;
+				letterX = (bestWidth - mGrabRect.w) / 2;
+			} else {
+				// increase height
+				int bestHeight = mGrabRect.w / aspect;
+				if (bestHeight > mGrabRect.h) {
+					bufferHeight = bestHeight;
+					letterY = (bestHeight - mGrabRect.h) / 2;
 				} else {
-					// increase height
-					int bestHeight = newGrabRect.w / aspect;
-					if (bestHeight > newGrabRect.h) {
-						bufferHeight = bestHeight;
-					} else {
-						// huh?  rounding errors?
-						// we are probably already right
-					}
+					// huh?  rounding errors?
+					// we are probably already right
 				}
 			}
 			if (mDestinationBuffer.width != bufferWidth || mDestinationBuffer.height != bufferHeight) {
 				mDestinationBuffer.init (bufferWidth, bufferHeight);
 			}
-			if (!(mGrabRect == newGrabRect)){
-				mDestinationBuffer.clear();
-			}
-			mGrabRect = newGrabRect;
+			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
+		} else {
+			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, 0, 0, mDestinationBuffer.width, mDestinationBuffer.height);
 		}
-		result = mGrabber->grab(mGrabRect, &mDestinationBuffer);
+		result = mGrabber->grab(mGrabRect, &mDestinationBufferBox);
 		return result;
 	}
 
@@ -150,6 +157,7 @@ private:
 
 	const GrabberOptions * mGrabberOptions; ///< Current set video options, must stay valid as long as grab() and init () rns
 	dz::Buffer mDestinationBuffer;			///< Buffer in which grabbing is done, can be recreated during grab calls
+	dz::Buffer mDestinationBufferBox;		///< The box isnide the destination buffer in which is grabbed actually
 	dz::Rect mGrabRect;						///< Current grab rect
 	dz::GrabberType mCurrentGrabberType;	///< Current initialized grabber type
 	dz::Grabber * mGrabber;					///< Current Grabber
