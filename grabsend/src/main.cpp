@@ -24,15 +24,17 @@ namespace po = boost::program_options;
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
-int grabbingLoop (GrabbingPipeline * grabbingPipeline, const VideoSenderOptions & videoSenderOptions, dz::VideoSender * sender) {
+int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender) {
 	int result = sender->open();
 	if (result) {
 		std::cerr << "Error: Could not open output stream " << result << std::endl;
 		return 1;
 	}
 	double t0 = microtime();
+	double timeToGrabSum = 0;
 	installSigHandler ();
 	installLineReader ();
+	int frame = 0;
 	while (!shutDownLoop()) {
 		double t1 = microtime();
 		double dt = t1 - t0;
@@ -54,18 +56,39 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, const VideoSenderOptions 
             QApplication::sendPostedEvents();
         }
 #endif
+		frame++;
 		double t3 = microtime ();
-		double timeToWait = (1.0f / videoSenderOptions.fps) - (t3 - t1);
+		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - t1);
 		double timeToGrab          = t2 - t1;
 		double timeToEncodeAndSend = t3 - t2;
-		std::cerr.precision(3);
-		std::cerr << "Debug: dt=" << (dt) << "s grab=" << (timeToGrab * 1000) << "ms encode=" << (timeToEncodeAndSend * 1000) << "ms wait=" << (timeToWait * 1000) << "ms" << std::endl;
+		timeToGrabSum += timeToGrab;
+		double timeToGrabAvg = (timeToGrabSum / frame);
+
 		const dz::VideoSender::Statistic * stat = sender->statistic();
-		if (stat) {
-			printLastFrame(std::cerr << "Debug Statistics " , *stat) << std::endl;
+
+		std::cerr.precision(3);
+		if (options.statLevel >= 1 && stat) {
+			// on each 10th frame print average information
+			if ((frame % 10) == 0 && frame > 0) {
+				printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
+			}
+		}
+		if (options.statLevel >= 2) {
+			// on each frame print time about grabing and sending (scale, encode + send)
+			std::cerr << "Info: " << dt << "s grab: " << (timeToGrab * 1000) << "ms encodeAndSend: " << (timeToEncodeAndSend * 1000) << " wait: " << (timeToWait * 1000) << "ms" << std::endl;
+		}
+		if (options.statLevel >= 3 && stat) {
+			// on each frame print time for scaling, encoding, sending
+			printLastFrame(std::cerr << "Info: ", *stat) << std::endl << std::endl;
 		}
 		if (timeToWait < 0) {
-			std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
+			// oh, do not have time, what takes so long?
+			if (stat) { // can make assumption only if statistic
+				analyseFrameDropCause (std::cerr << "Warning: ", frame, timeToGrabSum, *stat) << std::endl;
+			} else {
+				// no statistic, cannot analyze
+				std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
+			}
 		} else {
 			millisleep ( (int) (timeToWait * 1000));
 		}
@@ -172,7 +195,7 @@ int main (int argc, char * argv[]) {
 		return 1;
 	}
 
-	result = grabbingLoop (&grabbingPipeline, options.videoSenderOptions, sender.get());
+	result = grabbingLoop (&grabbingPipeline, options, sender.get());
 	if (result) {
 		std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
 		return result;

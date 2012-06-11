@@ -83,15 +83,48 @@ void printProcesses (const dz::Grabber * grabber) {
 
 std::ostream& printLastFrame (std::ostream & o, const dz::VideoSender::Statistic & s) {
 	o
-		<< s.framesWritten << " sc:" << (s.lastScaleTime / 1000) << "ms e:" << (s.lastEncodeTime / 1000) << "ms tx: " << (s.lastSendTime / 1000) << "ms";
+		<< "[" << s.framesWritten << "] last: sc:" << (s.lastScaleTime / 1000) << "ms e:" << (s.lastEncodeTime / 1000) << "ms tx: " << (s.lastSendTime / 1000) << "ms";
 	return o;
 }
 
 std::ostream& printSum (std::ostream & o, const dz::VideoSender::Statistic & s) {
 	o
-		<< s.framesWritten << "(" << (s.bytesSent / 1024) << "kb)"
-		<< " sc:" << (s.sumScaleTime / 1000) << "ms e:" << (s.sumEncodeTime / 1000) << "ms tx: " << (s.sumSendTime / 1000) << "ms";
+		<< "[" << s.framesWritten << "]  " << (s.bytesSent / 1024) << "kb "
+		<< "sum: sc:" << (s.sumScaleTime / 1000) << "ms e:" << (s.sumEncodeTime / 1000) << "ms tx: " << (s.sumSendTime / 1000) << "ms";
 	return o;
+}
+
+std::ostream & printAvg (std::ostream & o, const dz::VideoSender::Statistic & s) {
+	o
+		<< "[" << s.framesWritten << "] " << (s.bytesSent / 1024) << "kb "
+		<< "avg: sc:" << (s.sumScaleTime / s.framesWritten / 1000) << "ms e:" << (s.sumEncodeTime / s.framesWritten / 1000) << "ms tx: " << (s.sumSendTime / s.framesWritten / 1000) << "ms";
+	return o;
+}
+
+/// Returns true if a is significant (more than 10% of a) greater than b
+static bool sigGreater (double a, double b) {
+	return (a - b) / a > 0.1;
+}
+
+std::ostream & analyseFrameDropCause (std::ostream & o, int frame, double grabTimeSum, const dz::VideoSender::Statistic & s) {
+	double avgGrabTime           = grabTimeSum / (frame);
+	double avgScaleAndEncodeTime = (s.sumScaleTime + s.sumEncodeTime) / 1000000.0 / frame;
+	double avgSendTime           = (s.sumSendTime) / 1000000.0 / frame;
+	assert (avgGrabTime >= 0);
+	assert (avgScaleAndEncodeTime >=0);
+	assert (avgSendTime >= 0);
+
+	if (sigGreater (avgGrabTime, avgScaleAndEncodeTime) && sigGreater (avgGrabTime, avgSendTime)) {
+		return o << "GRAB cannot grab in time, try to reduce fps or grabbing area";
+	}
+	if (sigGreater (avgScaleAndEncodeTime, avgGrabTime) && sigGreater (avgScaleAndEncodeTime, avgSendTime)) {
+		return o << "ENCD cannot encode in time, try to reduce fps or grabbing area";
+	}
+	if (sigGreater (avgSendTime, avgGrabTime) && sigGreater (avgSendTime, avgScaleAndEncodeTime)) {
+		return o << "SEND cannot send in time, try to reduce bitrate";
+	}
+	// unknown
+	return o << "UNKN cannot grab,encode and send in time, try to reduce fps and bitrate";
 }
 
 volatile static bool gShutdown = false;

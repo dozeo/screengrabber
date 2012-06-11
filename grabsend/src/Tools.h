@@ -30,6 +30,12 @@ std::ostream& printLastFrame (std::ostream & o, const dz::VideoSender::Statistic
 /// Print statistic about summarized timings
 std::ostream& printSum (std::ostream & o, const dz::VideoSender::Statistic & s);
 
+/// Print statisitc about average timings
+/// Note: sent bytes is not averaged
+std::ostream & printAvg (std::ostream & o, const dz::VideoSender::Statistic & s);
+
+/// Analyze the cause of framedrops (the part of the encoding chain which takes too much time)
+std::ostream & analyseFrameDropCause (std::ostream & o, int frame, double grabTimeSum, const dz::VideoSender::Statistic & s);
 
 //@name  Endless Loop Handlers
 //@{
