@@ -1,5 +1,6 @@
 #include "NullGrabber.h"
 #include <assert.h>
+#include <string.h>
 
 namespace dz {
 
@@ -37,6 +38,15 @@ Rect NullGrabber::combinedScreenResolution () const {
     return box;
 }
 
+void fillWithColor (Buffer * destination, int32_t color) {
+	for (int y = 0; y < destination->height; y++) {
+		int32_t * line = (int32_t*) (destination->data + y * destination->rowLength);
+		for (int x = 0; x < destination->width; x++) {
+			*(line + x) = color;
+		}
+	}
+}
+
 int NullGrabber::grab(const Rect& rect, Buffer * destination) {
 	assert (rect.w >= 0);
 	assert (rect.h >= 0);
@@ -46,17 +56,18 @@ int NullGrabber::grab(const Rect& rect, Buffer * destination) {
 	int32_t blue = 0x000000ff;
 	Rect first    = screenResolution(0);
 	Rect second   = screenResolution(1);
-	for (int x = 0; x < dz::minimum (destination->width, rect.w); x++) {
-		for (int y = 0; y < dz::minimum (destination->height, rect.h); y++) {
-			int rx = rect.x + x;
-			int ry = rect.y + y;
-			if (first.contains (rx,ry) || second.contains (rx,ry)){
-				int32_t * pos = (int32_t* ) (destination->data + y * (destination->rowLength) + x * 4);
-				*pos = blue;
-			}
-		}
-	}
 
+	Rect cut;
+	if (rect.intersects(first, &cut)) {
+		Buffer part;
+		part.initAsSubBufferFrom(destination, cut.x, cut.y, cut.w, cut.h);
+		fillWithColor (&part, blue);
+	}
+	if (rect.intersects(second, &cut)){
+		Buffer part;
+		part.initAsSubBufferFrom(destination, cut.x - rect.x, cut.y - rect.y, cut.w, cut.h);
+		fillWithColor (&part, blue);
+	}
 	return 0;
 }
 

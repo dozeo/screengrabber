@@ -12,12 +12,14 @@ GrabSendOptions::GrabSendOptions () :
 	printScreens   = false;
 	printWindows   = false;
 	printProcesses = false;
+	statLevel      = 1;
 
 	desc.add_options()
 				("help", "Show help message")
 				("screens", "Print screens and exit")
 				("windows", "Print windows and exit")
-				("processes", "Print processes and exit");
+				("processes", "Print processes and exit")
+				("stat", boost::program_options::value<int>(&statLevel)->default_value(1), "Statistics level (0 .. 2)");
 	desc.add (grabberOptionsParser.desc);
 	desc.add (videoSenderOptionsParser.desc);
 }

@@ -1,15 +1,9 @@
-#ifndef WIN32
-#include <unistd.h>
-#include <sys/time.h>
-#else
-#include <windows.h>
-#endif
-
 #include <string>
 #include <stdio.h>
 #include <iostream>
 #include <signal.h>
 
+#include "Tools.h"
 #include "GrabbingPipeline.h"
 
 #include <videosend/VideoSender.h>
@@ -27,126 +21,21 @@
 
 namespace po = boost::program_options;
 
-
-void millisleep (int timeMs) {
-#ifdef WIN32
-	::Sleep (timeMs);
-#else
-	usleep (timeMs * 1000);
-#endif
-}
-
-/// Note: following snippet is from Schneeflocke (github.com/nob13/schneeflocke)
-/// I hereby license this as public domain (Norbert Schultz)
-/// Returns a time stamp with millisecond to microsecond exactness
-/// Note: it is for measuring time intervals, NOT exact time of day.
-double microtime (){
-#ifdef WIN32
-	FILETIME time;
-	GetSystemTimeAsFileTime (&time);
-	int64_t full = 0;
-	full |= time.dwHighDateTime;
-	full <<= 32;
-	full |= time.dwLowDateTime;
-	// is in 100nano-seconds intervals...
-	static int64_t first = full;
-	int64_t use = (full - first);
-	return (use / 10000000.0);
-#else
-	struct timeval t;
-	gettimeofday (&t, 0);
-	return t.tv_sec + t.tv_usec / 1000000.0;
-#endif
-}
-
-void printScreens (const dz::Grabber * grabber) {
-	int count = grabber->screenCount();
-	std::cout << "Screen Count: " << count << std::endl;
-	for (int i = 0; i < count; i++) {
-		dz::Rect r = grabber->screenResolution(i);
-		std::cout << "Screen " << i << ": " << r << std::endl;
-	}
-}
-
-void printWindows (const dz::Grabber * grabber) {
-	typedef std::vector<dz::WindowInfo> WindowVec;
-	WindowVec windows;
-	int result = dz::WindowInfo::populate (&windows);
-	if (result) {
-		std::cerr << "Error: Could not populate windows " << result << std::endl;
-		return;
-	}
-	std::cout << "Window count: " << windows.size() << std::endl;
-	for (WindowVec::const_iterator i = windows.begin(); i != windows.end(); i++) {
-		const dz::WindowInfo & win (*i);
-		std::cout << "Window " << win.id << " pid: " << win.pid << " title: " << win.title << " area: " << win.area << std::endl;
-	}
-}
-
-void printProcesses (const dz::Grabber * grabber) {
-	typedef std::vector<dz::ProcessInfo> ProcessVec;
-	ProcessVec processes;
-	int result = dz::ProcessInfo::populate (&processes);
-	if (result) {
-		std::cerr << "Error: Could not populate processes " << result << std::endl;
-		return;
-	}
-	std::cout << "Process count: " << processes.size() << std::endl;
-	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++) {
-		const dz::ProcessInfo & pinfo (*i);
-		std::cout << "Process " << pinfo.pid << " exec: " << pinfo.exec << std::endl;
-	}
-}
-
-/// Stop the grabbingLoop
-volatile bool gShutdown = false;
-void signalHandler (int id) {
-	printf ("Catched signal %d, will shut down\n", id);
-	assert (id == SIGINT || id == SIGTERM);
-	gShutdown = true;
-}
-
-/// Installs signal handler for SIGINT
-void installSigHandler () {
-	::signal(SIGINT, &signalHandler);
-	::signal(SIGTERM, &signalHandler);
-}
-
-/// Waits for readed "QUIT\n" line to quit application
-/// This is needed because there are not many reliable 
-/// Ways to send messages to child console applications in Win32.
-void lineReader () {
-	while (std::cin && !gShutdown) {
-		std::string line;
-		std::getline(std::cin, line);
-		if (line == "QUIT"){
-			printf ("Read QUIT, shutting down\n");
-			break;
-		}
-	}
-	gShutdown = true;
-}
-
-void installLineReader () {
-	boost::thread t (&lineReader);
-}
-
-
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
-/// Note: grabber and sender must be completely initialized.
-int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, const GrabberOptions & grabberOptions, */ const VideoSenderOptions & videoSenderOptions,/*  dz::Grabber * grabber,*/ dz::VideoSender * sender) {
-//	dz::Buffer buffer (grabRect.w, grabRect.h);
+/// Note: grabbbingPipeline and sender must be completely initialized.
+int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender) {
 	int result = sender->open();
 	if (result) {
 		std::cerr << "Error: Could not open output stream " << result << std::endl;
 		return 1;
 	}
 	double t0 = microtime();
-	gShutdown = false;
+	double timeToGrabSum = 0;
 	installSigHandler ();
 	installLineReader ();
-	while (!gShutdown) {
+	int frame = 0;
+	while (!shutDownLoop()) {
 		double t1 = microtime();
 		double dt = t1 - t0;
 		result = grabbingPipeline->grab();
@@ -167,14 +56,39 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
             QApplication::sendPostedEvents();
         }
 #endif
+		frame++;
 		double t3 = microtime ();
-		double timeToWait = (1.0f / videoSenderOptions.fps) - (t3 - t1);
+		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - t1);
 		double timeToGrab          = t2 - t1;
 		double timeToEncodeAndSend = t3 - t2;
+		timeToGrabSum += timeToGrab;
+		double timeToGrabAvg = (timeToGrabSum / frame);
+
+		const dz::VideoSender::Statistic * stat = sender->statistic();
+
 		std::cerr.precision(3);
-		std::cerr << "Debug: dt=" << (dt) << "s grab=" << (timeToGrab * 1000) << "ms encode=" << (timeToEncodeAndSend * 1000) << "ms wait=" << (timeToWait * 1000) << "ms" << std::endl;
+		if (options.statLevel >= 1 && stat) {
+			// on each 10th frame print average information
+			if ((frame % 10) == 0 && frame > 0) {
+				printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
+			}
+		}
+		if (options.statLevel >= 2) {
+			// on each frame print time about grabing and sending (scale, encode + send)
+			std::cerr << "Info: " << dt << "s grab: " << (timeToGrab * 1000) << "ms encodeAndSend: " << (timeToEncodeAndSend * 1000) << " wait: " << (timeToWait * 1000) << "ms" << std::endl;
+		}
+		if (options.statLevel >= 3 && stat) {
+			// on each frame print time for scaling, encoding, sending
+			printLastFrame(std::cerr << "Info: ", *stat) << std::endl << std::endl;
+		}
 		if (timeToWait < 0) {
-			std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
+			// oh, do not have time, what takes so long?
+			if (stat) { // can make assumption only if statistic
+				analyseFrameDropCause (std::cerr << "Warning: ", frame, timeToGrabSum, *stat) << std::endl;
+			} else {
+				// no statistic, cannot analyze
+				std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
+			}
 		} else {
 			millisleep ( (int) (timeToWait * 1000));
 		}
@@ -182,15 +96,6 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 	sender->close();
 	return 0;
 }
-
-#ifdef MAC_OSX
-extern "C" {
-    // Initialize NSApplication
-    // This is necessary to use 
-    // Some calls to the window manager (e.g. Current Cursor)
-    void initalizeNSApplication ();
-}
-#endif
 
 int main (int argc, char * argv[]) {
 	GrabSendOptions options;
@@ -290,7 +195,7 @@ int main (int argc, char * argv[]) {
 		return 1;
 	}
 
-	result = grabbingLoop (&grabbingPipeline, options.videoSenderOptions, sender.get());
+	result = grabbingLoop (&grabbingPipeline, options, sender.get());
 	if (result) {
 		std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
 		return result;
