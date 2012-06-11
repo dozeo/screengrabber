@@ -22,6 +22,7 @@ VideoStream::VideoStream(const Dimension2& videoSize, enum CodecID videoCodec)
 , _videoFrameSize(videoSize)
 , _videoCodec(videoCodec)
 , _lastTimeStamp(0)
+, _waitForFirstFrame(true)
 , _isStreamOpen(false)
 {
 	if (!AVCodecInitialized) {
@@ -60,6 +61,7 @@ int VideoStream::open(
 {
 	int result = 0;
 	_lastTimeStamp = 0;
+	_waitForFirstFrame = true;
 
 	PixelFormat destPixFormat = PIX_FMT_YUV420P;
 	_formatContext = FFmpegUtils::createFormatContext(StreamProtocol, _videoCodec);
@@ -235,14 +237,17 @@ int VideoStream::sendFrame(
 		setupScaleContext(imageSize, _videoFrameSize);
 	}
 
+	int64_t t0 = av_gettime();
 	FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
+	// int64_t t1 = av_gettime();
 	sws_scale(
 		_convertContext,
 		_tempFrame->data, _tempFrame->linesize,
 		0,
 		imageSize.height,
 		_scaledFrame->data, _scaledFrame->linesize);
-
+	int64_t t2 = av_gettime();
+	_statistic.lastScaleTime = (t2 - t0);
 	return sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
 }
 
@@ -252,14 +257,23 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 	AVCodecContext* codec = videoStream->codec;
 
 	uint64_t timeStamp = (uint64_t)(timeDurationInSeconds * codec->time_base.den);
-	if (_lastTimeStamp == timeStamp) {
+
+	if (_lastTimeStamp == timeStamp && !_waitForFirstFrame) {
+		// ignore
+		_statistic.lastEncodeTime = 0;
+		_statistic.lastSendTime   = 0;
+		_statistic.frameWritten(0);
 		return result;
 	}
+	_waitForFirstFrame = false;
 	_lastTimeStamp = timeStamp;
 	frame->pts = timeStamp;
 
 	frame->pts = timeStamp;
+	int64_t t0 = av_gettime();
 	int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
+	int64_t t1 = av_gettime();
+	_statistic.lastEncodeTime = (t1 - t0);
 	if (size > 0) {
 		AVPacket packet;
 		av_init_packet(&packet);
@@ -276,9 +290,20 @@ int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDur
 		packet.size = size;
 		packet.dts  = AV_NOPTS_VALUE;
 		
+		t0 = av_gettime();
 		result = av_interleaved_write_frame(_formatContext, &packet);
-	}
+		t1 = av_gettime();
+		_statistic.lastSendTime = (t1 - t0);
+		int64_t bytes = packet.size;
+		for (int i = 0; i < packet.side_data_elems; i++) {
+			bytes+= packet.side_data[i].size;
+		}
+		_statistic.frameWritten(bytes);
 
+	} else {
+		_statistic.lastSendTime = 0;
+		_statistic.frameWritten (0);
+	}
 	return result;
 }
 

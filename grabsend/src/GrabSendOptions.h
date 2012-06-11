@@ -18,6 +18,7 @@ struct GrabSendOptions {
 	bool printScreens;
 	bool printWindows;
 	bool printProcesses;
+	int  statLevel;
 	GrabberOptions grabberOptions;
 	VideoSenderOptions videoSenderOptions;
 private:
