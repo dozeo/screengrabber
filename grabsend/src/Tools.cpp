@@ -115,16 +115,16 @@ std::ostream & analyseFrameDropCause (std::ostream & o, int frame, double grabTi
 	assert (avgSendTime >= 0);
 
 	if (sigGreater (avgGrabTime, avgScaleAndEncodeTime) && sigGreater (avgGrabTime, avgSendTime)) {
-		return o << "GRAB cannot grab in time, try to reduce fps or grabbing area";
+		return o << "DCGRAB cannot grab in time, try to reduce fps or grabbing area";
 	}
 	if (sigGreater (avgScaleAndEncodeTime, avgGrabTime) && sigGreater (avgScaleAndEncodeTime, avgSendTime)) {
-		return o << "ENCD cannot encode in time, try to reduce fps or grabbing area";
+		return o << "DCENCD cannot encode in time, try to reduce fps or grabbing area";
 	}
 	if (sigGreater (avgSendTime, avgGrabTime) && sigGreater (avgSendTime, avgScaleAndEncodeTime)) {
-		return o << "SEND cannot send in time, try to reduce bitrate";
+		return o << "DCSEND cannot send in time, try to reduce bitrate";
 	}
 	// unknown
-	return o << "UNKN cannot grab,encode and send in time, try to reduce fps and bitrate";
+	return o << "DCUNKN cannot grab,encode and send in time, try to reduce fps and bitrate";
 }
 
 volatile static bool gShutdown = false;
