@@ -8,6 +8,8 @@ endif()
 
 WIN32_RELATIVE_FOLDER (${src_files} ${header_files} ${objcpp_src_files})
 
+include (gitdescribe)
+
 add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${SCREENGRAB_LIBS} grabber videosend ${FFMPEG_LIBRARIES})
 

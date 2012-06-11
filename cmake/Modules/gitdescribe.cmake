@@ -7,13 +7,13 @@ find_package (Git REQUIRED)
 execute_process(
          COMMAND ${GIT_EXECUTABLE} describe --always
          OUTPUT_VARIABLE GIT_DESCRIBE OUTPUT_STRIP_TRAILING_WHITESPACE
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 
 message (STATUS "Git Describe Version: ${GIT_DESCRIBE}")
 
 # Generate gitdescribe/gitdescribe.h file
-file (MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/gitdescribe")
-file (WRITE "${CMAKE_BINARY_DIR}/gitdescribe/gitdescribe.h" "#define GIT_DESCRIBE \"${GIT_DESCRIBE}\"\n")
-include_directories (${CMAKE_BINARY_DIR}/gitdescribe)
+file (MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gitdescribe")
+file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/gitdescribe/gitdescribe.h" "#define GIT_DESCRIBE \"${GIT_DESCRIBE}\"\n")
+include_directories (${CMAKE_CURRENT_BINARY_DIR}/gitdescribe)

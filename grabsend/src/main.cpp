@@ -67,10 +67,14 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & o
 		const dz::VideoSender::Statistic * stat = sender->statistic();
 
 		std::cerr.precision(3);
-		if (options.statLevel >= 1 && stat) {
+		if (options.statLevel >= 1) {
 			// on each 10th frame print average information
 			if ((frame % 10) == 0 && frame > 0) {
-				printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
+				if (stat) {
+					printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
+				} else {
+					std::cerr << "Info: avg grab: " << (timeToGrabAvg * 1000) << "ms, no more information available" << std::endl;
+				}
 			}
 		}
 		if (options.statLevel >= 2) {

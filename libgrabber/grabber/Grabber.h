@@ -47,7 +47,7 @@ public:
 	virtual Rect combinedScreenResolution () const = 0;
     
     /// Enables cursor grabbing
-    virtual int setEnableGrabCursor (bool enable = true) { return GE_UNSUPPORTED; }
+    virtual int setEnableGrabCursor (bool enable = true) { return enable ? GE_UNSUPPORTED : GE_OK; }
 
 	/// Grab something into the destination buffer
 	virtual int grab (const Rect& rect, Buffer * destination) = 0;
