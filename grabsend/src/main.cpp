@@ -176,10 +176,10 @@ int main (int argc, char * argv[]) {
 		}
 	}
 
-	if (options.videoSenderOptions.correctAspect) {
+	if (options.videoSenderOptions.correctWidth) {
 		options.videoSenderOptions.width = (int)  ((float) grabRect.w / (float) grabRect.h * (float) options.videoSenderOptions.height);
+		std::cout << "Final video size after width correction: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
 	}
-	std::cout << "Final video size: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
 	
 	// Set Options again, as video width/height could be changed
 	grabbingPipeline.setOptions (
