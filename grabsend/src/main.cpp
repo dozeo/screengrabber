@@ -131,6 +131,21 @@ void installLineReader () {
 	boost::thread t (&lineReader);
 }
 
+/// Print statistic about last frame
+std::ostream& printLastFrame (std::ostream & o, const dz::VideoSender::Statistic & s) {
+	o
+		<< s.framesWritten << " sc:" << (s.lastScaleTime / 1000) << "ms e:" << (s.lastEncodeTime / 1000) << "ms tx: " << (s.lastSendTime / 1000) << "ms";
+	return o;
+}
+
+/// Print statistic about summarized timings
+std::ostream& printSum (std::ostream & o, const dz::VideoSender::Statistic & s) {
+	o
+		<< s.framesWritten << "(" << (s.bytesSent / 1024) << "kb)"
+		<< " sc:" << (s.sumScaleTime / 1000) << "ms e:" << (s.sumEncodeTime / 1000) << "ms tx: " << (s.sumSendTime / 1000) << "ms";
+	return o;
+}
+
 
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
@@ -175,7 +190,7 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, /*dz::Rect grabRect, cons
 		std::cerr << "Debug: dt=" << (dt) << "s grab=" << (timeToGrab * 1000) << "ms encode=" << (timeToEncodeAndSend * 1000) << "ms wait=" << (timeToWait * 1000) << "ms" << std::endl;
 		const dz::VideoSender::Statistic * stat = sender->statistic();
 		if (stat) {
-			std::cerr << "Debug: Statistics" << *stat << std::endl;
+			printLastFrame(std::cerr << "Debug Statistics " , *stat) << std::endl;
 		}
 		if (timeToWait < 0) {
 			std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;

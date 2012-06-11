@@ -237,14 +237,15 @@ int VideoStream::sendFrame(
 
 	int64_t t0 = av_gettime();
 	FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
+	// int64_t t1 = av_gettime();
 	sws_scale(
 		_convertContext,
 		_tempFrame->data, _tempFrame->linesize,
 		0,
 		imageSize.height,
 		_scaledFrame->data, _scaledFrame->linesize);
-	int64_t t1 = av_gettime();
-	_statistic.lastScaleTime += (t1 - t0);
+	int64_t t2 = av_gettime();
+	_statistic.lastScaleTime = (t2 - t0);
 	return sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
 }
 

@@ -44,14 +44,6 @@ void VideoSender::Statistic::frameWritten (int64_t bytes) {
 	sumSendTime    += lastSendTime;
 }
 
-
-std::ostream & operator << (std::ostream & o, const VideoSender::Statistic & s) {
-	o
-		<< s.framesWritten << "(" << (s.bytesSent / 1024) << "kb)"
-		<< " sc:" << (s.sumScaleTime / 1000) << "ms e:" << (s.sumEncodeTime / 1000) << "ms tx: " << (s.lastSendTime / 1000) << "ms";
-	return o;
-}
-
 }
 
 

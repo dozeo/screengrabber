@@ -90,8 +90,6 @@ public:
 	///@}
 };
 
-std::ostream & operator << (std::ostream & o, const VideoSender::Statistic & statistics);
-
 }
 
 
