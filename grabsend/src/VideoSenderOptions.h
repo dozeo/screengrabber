@@ -11,8 +11,8 @@ struct VideoSenderOptions {
 		kiloBitrate (100),
 		width (640),
 		height(480),
-		cutSize (false),
-		correctAspect (false),
+		cutSize (true),
+		correctAspect (true),
 		quality (dz::VQ_MEDIUM),
 		type (dz::VT_DEFAULT){}
 
