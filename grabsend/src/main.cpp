@@ -176,9 +176,22 @@ int main (int argc, char * argv[]) {
 		}
 	}
 
-	if (options.videoSenderOptions.correctWidth) {
-		options.videoSenderOptions.width = (int)  ((float) grabRect.w / (float) grabRect.h * (float) options.videoSenderOptions.height);
-		std::cout << "Final video size after width correction: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
+	if (options.videoSenderOptions.cutSize){
+		double aspect  = (double) grabRect.w / (double) grabRect.h;
+		double vaspect = (double) options.videoSenderOptions.width / (double) options.videoSenderOptions.height;
+		if (aspect > vaspect) {
+			// Letter Boxing up and down
+			int bh = (int) options.videoSenderOptions.width / aspect;
+			options.videoSenderOptions.height = dz::minimum (dz::toNextMultiple(bh, 16), options.videoSenderOptions.height);
+		} else {
+			// Letter Boxing left and right
+			int bw  = (int) options.videoSenderOptions.height * aspect;
+			options.videoSenderOptions.width = dz::minimum (dz::toNextMultiple (bw, 16), options.videoSenderOptions.width);
+		}
+		std::cout << "Final video size after cutting: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
+	}
+	if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0) {
+		std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
 	}
 	
 	// Set Options again, as video width/height could be changed
