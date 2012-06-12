@@ -159,7 +159,7 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 	codec->me_method = 7; //motion estimation algorithm
 	codec->me_subpel_quality = 4;
 	codec->delay = 0;
-	codec->thread_count = 1;
+	codec->thread_count = 0; // auto
 	codec->refs = 3;
 	codec->rc_buffer_size = 0;
 
