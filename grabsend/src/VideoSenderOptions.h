@@ -9,10 +9,10 @@ struct VideoSenderOptions {
 	VideoSenderOptions () :
 		fps (10.0f),
 		kiloBitrate (100),
-		cutSize (false),
-		correctAspect (false),
 		width (640),
 		height(480),
+		cutSize (false),
+		correctAspect (false),
 		quality (dz::VQ_MEDIUM),
 		type (dz::VT_DEFAULT){}
 
