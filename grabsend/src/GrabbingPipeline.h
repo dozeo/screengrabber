@@ -77,13 +77,14 @@ public:
 			}
 		}
 
+		int bufferWidth  (mGrabRect.w);
+		int bufferHeight (mGrabRect.h);
+		int letterX = 0;	///< Pillarbox (black left and right)
+		int letterY = 0;	///< Letterbox (black up and down)
+
 		if (mCorrectAspectToVideo) {
 			float aspect = (float) mVideoWidth  / (float) mVideoHeight;
 			int   bestWidth = aspect * mGrabRect.h;
-			int bufferWidth  (mGrabRect.w);
-			int bufferHeight (mGrabRect.h);
-			int letterX = 0;	///< Pillarbox (black left and right)
-			int letterY = 0;	///< Letterbox (black up and down)
 			if (bestWidth > mGrabRect.w) {
 				// increase width
 				bufferWidth = bestWidth;
@@ -99,13 +100,11 @@ public:
 					// we are probably already right
 				}
 			}
-			if (mDestinationBuffer.width != bufferWidth || mDestinationBuffer.height != bufferHeight) {
-				mDestinationBuffer.init (bufferWidth, bufferHeight);
-			}
-			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
-		} else {
-			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, 0, 0, mDestinationBuffer.width, mDestinationBuffer.height);
 		}
+		if (mDestinationBuffer.width != bufferWidth || mDestinationBuffer.height != bufferHeight) {
+			mDestinationBuffer.init (bufferWidth, bufferHeight);
+		}
+		mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
 		result = mGrabber->grab(mGrabRect, &mDestinationBufferBox);
 		return result;
 	}
