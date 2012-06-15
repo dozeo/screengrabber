@@ -4,6 +4,11 @@ cd $DIR                       # Go to scripts living directory
 export ABSDIR=`cd .;pwd`
 echo "ABSDIR=$ABSDIR"
 
+# If you want to debug
+# export FFMPEG_EXTRA="--enable-debug=2 --disable-stripping --disable-optimizations"
+# If you want to get some extra testcases running
+# export FFMPEG_EXTRA="$FFMPEG_EXTRA --enable-decoder=h264 --enable-decoder=flv --enable-demuxer=flv"
+
 # Fail on errors
 set -e
 
@@ -53,7 +58,7 @@ else
     export ADDPIC=""
     fi
 
-    ./configure $ADDPIC --enable-shared --enable-gpl --enable-libx264 --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=rtmp --enable-protocol=file --enable-protocol=tcp --enable-protocol=rtp --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp
+    ./configure $ADDPIC --enable-shared --enable-gpl --enable-libx264 --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=rtmp --enable-protocol=file --enable-protocol=tcp --enable-protocol=rtp --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp $FFMPEG_EXTRA
     make -j2
     make install
     cd ..
