@@ -102,7 +102,7 @@ int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
     updateDisplayInformation();
     int firstError = 0;
     for (uint32_t i = 0; i < mDisplayCount; i++) {
-        const Rect & displayRect (mDisplaySizes[i]);                
+        const Rect & displayRect (mDisplaySizes[i]);
         Rect intersection;
         if (rect.intersects (displayRect, &intersection)) {
             CGRect displayCoordinates;
@@ -112,7 +112,6 @@ int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
             displayCoordinates.size.height = intersection.h;
             Buffer subBuffer;
             subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
-            
             int code = subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
             firstError = firstError ? firstError : code;
         }
