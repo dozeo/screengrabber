@@ -183,7 +183,7 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 		av_opt_set(codec->priv_data, "preset", "medium", 0);
 		av_opt_set(codec->priv_data, "tune", "film", 0);
 	}
-}
+}		
 
 int VideoStream::openVideo(AVStream* stream) {
 	assert(stream != 0);
@@ -194,7 +194,7 @@ int VideoStream::openVideo(AVStream* stream) {
 		return VideoSender::VE_CODEC_NOT_FOUND;
 	}
 
-	if (avcodec_open(ctx, codec) < 0) {
+    if (avcodec_open2(ctx, codec, NULL)) {
 		return VideoSender::VE_FAILED_OPEN_STREAM;
 	}
 	
