@@ -19,7 +19,7 @@ int GrabberOSX::init () {
 
 void GrabberOSX::deinit () {
 }
-    
+
 int GrabberOSX::screenCount () const {
     updateDisplayInformation ();
     return mDisplayCount;
@@ -47,29 +47,49 @@ int GrabberOSX::setEnableGrabCursor (bool enable) {
     mEnableGrabCursor = enable;
     return GE_OK;
 }
-
-
+    
 /// Grabs a part of a specific display (in screen coordinates) into the destination
 static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer * destination) {
+
+#if defined(USE_COCOA_GRAB)
     CGImageRef image = CGDisplayCreateImageForRect (display, screenRect);
     if (!image) {
         std::cerr << "Could not grab screen!" << std::endl;
         return GrabberOSX::GE_COULD_NOT_GRAB;
     }
+#else
+    void* baseAddress = CGDisplayBaseAddress(display);
+    if (baseAddress == NULL) {
+        std::cerr << "Could not grab screen!" << std::endl;
+        return GrabberOSX::GE_COULD_NOT_GRAB;
+    }
+#endif
     
     CGColorSpaceRef bufferColorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef bufferContext = CGBitmapContextCreateWithData(destination->data, destination->width, destination->height, 8, destination->rowLength, bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);
+    CGContextRef bufferContext = CGBitmapContextCreateWithData(destination->data, destination->width, destination->height, 8, destination->rowLength, bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);    
     CGRect targetRect;
     targetRect.origin.x = 0;
     targetRect.origin.y = 0;
-    targetRect.size.width  = CGImageGetWidth (image);
-    targetRect.size.height = CGImageGetHeight (image); 
+    targetRect.size.width = screenRect.size.width;
+    targetRect.size.height = screenRect.size.height;
     
+#if defined(USE_COCOA_GRAB)
     CGContextDrawImage(bufferContext, targetRect, image);
-    
-    CGContextRelease (bufferContext);
-    CGColorSpaceRelease (bufferColorSpace);
     CGImageRelease(image);
+#else
+    int bytesPerPixel = 4;
+    int numBytesToCopy = bytesPerPixel * targetRect.size.width;
+    int sourceStride = CGDisplayBytesPerRow(display);
+    for (int y = 0; y < targetRect.size.height; y++) {
+        uint8_t* dest = destination->data + (y * destination->rowLength);
+        uint8_t* source = (uint8_t*)baseAddress + (y * sourceStride);
+        memcpy(dest, source, numBytesToCopy);
+    }    
+#endif
+
+    CGContextRelease(bufferContext);
+    CGColorSpaceRelease(bufferColorSpace);
+    
     return GrabberOSX::GE_OK;
 }
 
@@ -82,7 +102,7 @@ int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
     updateDisplayInformation();
     int firstError = 0;
     for (uint32_t i = 0; i < mDisplayCount; i++) {
-        const Rect & displayRect (mDisplaySizes[i]);
+        const Rect & displayRect (mDisplaySizes[i]);                
         Rect intersection;
         if (rect.intersects (displayRect, &intersection)) {
             CGRect displayCoordinates;
@@ -91,9 +111,9 @@ int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
             displayCoordinates.size.width  = intersection.w;
             displayCoordinates.size.height = intersection.h;
             Buffer subBuffer;
-            
             subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
-            int code  = subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
+            
+            int code = subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
             firstError = firstError ? firstError : code;
         }
     }
