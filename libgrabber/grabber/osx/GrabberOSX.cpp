@@ -50,7 +50,7 @@ int GrabberOSX::setEnableGrabCursor (bool enable) {
     
 /// Grabs a part of a specific display (in screen coordinates) into the destination
 static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer * destination) {
-
+        
 #if defined(USE_COCOA_GRAB)
     CGImageRef image = CGDisplayCreateImageForRect (display, screenRect);
     if (!image) {
@@ -58,7 +58,7 @@ static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, B
         return GrabberOSX::GE_COULD_NOT_GRAB;
     }
 #else
-    void* baseAddress = CGDisplayBaseAddress(display);
+    void* baseAddress = CGDisplayAddressForPosition(display, screenRect.origin.x, screenRect.origin.y);
     if (baseAddress == NULL) {
         std::cerr << "Could not grab screen!" << std::endl;
         return GrabberOSX::GE_COULD_NOT_GRAB;
@@ -66,12 +66,12 @@ static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, B
 #endif
     
     CGColorSpaceRef bufferColorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef bufferContext = CGBitmapContextCreateWithData(destination->data, destination->width, destination->height, 8, destination->rowLength, bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);    
+    CGContextRef bufferContext = CGBitmapContextCreateWithData(destination->data, destination->width, destination->height, 8, destination->rowLength, bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);
     CGRect targetRect;
     targetRect.origin.x = 0;
     targetRect.origin.y = 0;
-    targetRect.size.width = screenRect.size.width;
-    targetRect.size.height = screenRect.size.height;
+    targetRect.size.width = destination->width;
+    targetRect.size.height = destination->height;
     
 #if defined(USE_COCOA_GRAB)
     CGContextDrawImage(bufferContext, targetRect, image);
@@ -86,7 +86,7 @@ static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, B
         memcpy(dest, source, numBytesToCopy);
     }    
 #endif
-
+    
     CGContextRelease(bufferContext);
     CGColorSpaceRelease(bufferColorSpace);
     
