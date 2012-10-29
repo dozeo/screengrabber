@@ -8,7 +8,10 @@
 # Variables
 if (WIN32)
     # WIN32 will be set automatically
-elseif (APPLE)
+    add_definitions (-DWIN32)
+    add_definitions (-DUNICODE -D_UNICODE)
+endif ()
+if (APPLE)
     add_definitions (-DMAC_OSX -DUNIX)
     set (MAC_OSX TRUE)
 
@@ -16,39 +19,55 @@ elseif (APPLE)
     set (CMAKE_CXX_FLAGS_RELEASE "-O3")
     set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
     set (CMAKE_C_FLAGS_RELEASE "-O3")
+    list (APPEND CMAKE_C_FLAGS "-std=c99")
+    list (APPEND CMAKE_CXX_FLAGS "-std=c++0x")
 
     include (MacOSXVersion)
-
-else ()
+endif ()
+if (LINUX)
     add_definitions (-DLINUX -DUNIX)
     set (LINUX TRUE)
-	set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
-	set (CMAKE_C_FLAGS_DEBUG        "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -Wall")
-	set (CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
-	set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Wall")
+    set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
+    set (CMAKE_C_FLAGS_DEBUG        "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG -Wall")
+    set (CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+    set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Wall")
 endif()
+
+message (STATUS "C Compiler   ${CMAKE_C_COMPILER}")
+message (STATUS "C++ Compiler ${CMAKE_CXX_COMPILER}")
+
 
 
 # platform specific libraries
+set (SCREENGRAB_LIBS "")
+set (SCREENGRAB_OPEN_LIBS "")
+set (SCREENGRAB_INCLUDES "")
 if (LINUX)
-	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} X11 dl Xext Xrandr pthread)
-    SET(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
+    list (APPEND SCREENGRAB_LIBS X11 dl Xext Xrandr pthread)
+    set (CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
 endif()
 if (MAC_OSX)
-	find_library (APP_SERVICES ApplicationServices REQUIRED)
-	find_library (COCOA Cocoa REQUIRED)
-	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${COCOA} ${APP_SERVICES})
+    set (APPLE_FRAMEWORK_LIBS "")
+    find_library (COCOA_LIBRARY Cocoa REQUIRED)
+    find_library (FOUNDATION_LIBRARY Foundation REQUIRED)
+    find_library (APP_SERVICES ApplicationServices REQUIRED)
+    list (APPEND APPLE_FRAMEWORK_LIBS ${COCOA_LIBRARY})
+    list (APPEND APPLE_FRAMEWORK_LIBS ${FOUNDATION_LIBRARY})
+    list (APPEND APPLE_FRAMEWORK_LIBS ${APP_SERVICES})
+    list (APPEND SCREENGRAB_LIBS ${APPLE_FRAMEWORK_LIBS})
 endif()
 if (WIN32)
-	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} psapi) # Process information in libgrabber
+	list (APPEND SCREENGRAB_LIBS psapi) # Process information in libgrabber
 endif()
+message (STATUS "SCREENGRAB_LIBS : ${SCREENGRAB_LIBS}")
+
 
 # Qt
 find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
 if (QT4_FOUND)
 	include (${QT_USE_FILE})
-	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${QT_LIBRARIES})
-	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${QT_INCLUDE_DIR})
+	list (APPEND SCREENGRAB_LIBS ${QT_LIBRARIES})
+	list (APPEND SCREENGRAB_INCLUDES ${QT_INCLUDE_DIR})
 	if (WIN32)
 		set (QT_DLLS
 			${QT_BINARY_DIR}/QtGui4.dll
@@ -64,26 +83,26 @@ endif()
 # ffmpeg
 find_package (FFMPEG REQUIRED)
 if (FFMPEG_FOUND)
-	set (SCREENGRAB_OPEN_LIBS ${SCREENGRAB_OPEN_LIBS} ${FFMPEG_LIBRARIES})
-	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${FFMPEG_INCLUDE_DIRS})
+	list (APPEND SCREENGRAB_OPEN_LIBS ${FFMPEG_LIBRARIES})
+	list (APPEND SCREENGRAB_INCLUDES ${FFMPEG_INCLUDE_DIRS})
 endif ()
 
 # DirectX
 if (WIN32)
 	find_package (DIRECTX REQUIRED)
 	if (DIRECTX_FOUND)
-		set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${DIRECTX_LIBRARIES})
-		set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${DIRECTX_INCLUDE_DIRS})
+		list (APPEND SCREENGRAB_LIBS ${DIRECTX_LIBRARIES})
+		list (APPEND SCREENGRAB_INCLUDES ${DIRECTX_INCLUDE_DIRS})
 	endif ()
 endif ()
 
 # Boost
 find_package (Boost COMPONENTS program_options thread REQUIRED)
 if (Boost_FOUND)
-	set (SCREENGRAB_INCLUDES ${SCREENGRAB_INCLUDES} ${Boost_INCLUDE_DIRS})
+	list (APPEND SCREENGRAB_INCLUDES ${Boost_INCLUDE_DIRS})
 	if (NOT WIN32)
 		# Boost for windows finds its libraries by itself.
-		set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${Boost_LIBRARIES})
+		list (APPEND SCREENGRAB_LIBS ${Boost_LIBRARIES})
 	endif()
 	if (Boost_FOUND)
 		link_directories (${Boost_LIBRARY_DIRS})
