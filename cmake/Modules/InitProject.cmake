@@ -44,7 +44,7 @@ if (WIN32)
 endif()
 
 # Qt
-find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtXml)
+find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtNetwork REQUIRED)
 if (QT4_FOUND)
 	include (${QT_USE_FILE})
 	set (SCREENGRAB_LIBS ${SCREENGRAB_LIBS} ${QT_LIBRARIES})
@@ -53,10 +53,12 @@ if (QT4_FOUND)
 		set (QT_DLLS
 			${QT_BINARY_DIR}/QtGui4.dll
 			${QT_BINARY_DIR}/QtCore4.dll
+			${QT_BINARY_DIR}/QtNetwork4.dll
 		)
 		set (QT_DLLS_DEBUG
 			${QT_BINARY_DIR}/QtGuid4.dll
 			${QT_BINARY_DIR}/QtCored4.dll
+			${QT_BINARY_DIR}/QtNetworkd4.dll
 		)
 	endif()	
 endif()
