@@ -20,7 +20,8 @@ if (APPLE)
     set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
     set (CMAKE_C_FLAGS_RELEASE "-O3")
     list (APPEND CMAKE_C_FLAGS "-std=c99")
-    list (APPEND CMAKE_CXX_FLAGS "-std=c++0x")
+    # the following flag does not compile on OSX 10.6 build
+#    list (APPEND CMAKE_CXX_FLAGS "-std=c++0x")
 
     include (MacOSXVersion)
 endif ()
