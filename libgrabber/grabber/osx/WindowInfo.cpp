@@ -71,7 +71,7 @@ static WindowInfo toWindowInfo (CFDictionaryRef d) {
 }
 
 /*static*/ WindowInfo WindowInfo::about (int64_t wid) {
-    CGWindowID windowIds[1] = { wid };
+    CGWindowID windowIds[1] = { static_cast<CGWindowID>(wid) };
     CFArrayRef widArray = CFArrayCreate (NULL, (const void**) windowIds, 1, NULL);
     CFArrayRef windows = CGWindowListCreateDescriptionFromArray(widArray);
     
