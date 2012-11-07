@@ -67,6 +67,29 @@ else
     cd ../../
 fi
 
+
+# polarssl
+if [ -e $INSTALL_DIR/bin/polarssl ]; then
+    echo "polarssl seems to already exist"
+else
+    cd osx
+    if [ -d polarssl ]; then
+        echo "polarssl already downloaded"
+    else
+        svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
+    fi
+
+    echo "compiling polarssl"
+    cd polarssl
+
+    cmake . -DCMAKE_BUILD_TYPE:String="Release" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
+    make -j2
+    make install
+
+    cd ../../
+fi
+
+
 # rtmpdump
 if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
     echo "rtmpdump seems to already exist"
