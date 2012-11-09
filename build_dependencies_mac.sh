@@ -68,30 +68,32 @@ else
 fi
 
 
-# polarssl
-#if [ -e $INSTALL_DIR/bin/polarssl ]; then
-#    echo "polarssl seems to already exist"
-#else
-#    cd osx
-#    if [ -d polarssl ]; then
-#        echo "polarssl already downloaded"
-#    else
-#        svn co http://polarssl.org/repos/polarssl/polarssl/trunk/ polarssl
-#        #svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
-#    fi
-#
-#    echo "compiling polarssl"
-#    cd polarssl
-#
-#    #cmake . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_INSTALL_PREFIX:STRING=$INSTALL_DIR -DUSE_SHARED_POLARSSL_LIBRARY=ON
-#    make DESTDIR=$INSTALL_DIR PREFIX="" no_test -j2
-#    make DESTDIR=$INSTALL_DIR PREFIX="" install
-#
-#    cd ../../
-#fi
+# download and compile GMP, it is used by nettle! (LGPL)
+if [ -e $INSTALL_DIR/lib/libgmp.a ]; then
+    echo "gmp seems to already exist"
+else
+    cd osx
+
+    if [ -d gmp ]; then
+        echo "gmp seems to already exist"
+    else
+        curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5tar.bz2
+        tar -xzf gmp.5.0.5tar.bz2
+    fi
+
+    echo "Compiling gmp"
+    cd gmp-5.0.5
+
+    ./configure --enable-cxx --enable-shared --prefix=$INSTALL_DIR
+    make -j2
+    make install
+
+    cd ../../
+fi
 
 
-# download and build nettle, used by gnutls
+
+# download and build nettle, used by gnutls (LGPL)
 if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
     echo "nettle seems to already exist"
 else
@@ -107,7 +109,7 @@ else
     echo "Compiling nettle"
     cd nettle-2.5
 
-    ./configure --prefix=$INSTALL_DIR --disable-openssl CC="clang"
+    CFLAGS="-m64" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
     make -j2
     make install
 
@@ -115,16 +117,41 @@ else
 fi
 
 
+# compile and install gtk-doc which is obviously necessary by gnutls (LGPL)
+
+
+
 # gnu_tls
-#    cd osx
-#
-#    if [ -d gnu_tls ]; then
-#        echo "gnu_tls already downloaded"
-#    else
-#
-#    fi
-#
-#    cd ../../
+if [ -e $INSTALL_DIR/lib/libgnutls.a ]; then
+    echo "gnutls seems to already exist"
+else
+    cd osx
+
+    if [ -d gnutls-3.1.3 ]; then
+        echo "gnutls already downloaded";
+    else
+        curl -fL ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.1.3.tar.xz > gnutls-3.1.3.tar.xz
+        tar -xzf gnutls-3.1.3.tar.xz
+    fi
+
+    echo "Compiling gnutls"
+    cd gnutls-3.1.3
+    ./configure --prefix=$INSTALL_DIR CXXFLAGS="-m64" CFLAGS="-m64" PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
+    make -j2
+    make install
+
+    cd ../../
+fi
+
+
+#    cd gnutls
+#    aclocal
+#    autoconf
+#    automake --add-missing
+#    ./configure --disable-gtk-doc --prefix=$INSTALL_DIR LDFLAGS=-L$INSTALL_DIR/lib CXXFLAGS="-m64" CFLAGS="-m64" CC="clang"
+#    make -j2
+#    make install
+#    cd ..
 
 
 # rtmpdump
@@ -134,7 +161,7 @@ fi
     echo "Compiling rtmpdump"
     cd rtmpdump
     make clean
-    make SYS=darwin CRYPTO=POLARSSL CC="clang" prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+    make SYS=darwin CRYPTO=GNUTLS CC="clang" prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
     cd ..
 #fi
 
