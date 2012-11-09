@@ -18,6 +18,7 @@ echo "SRC_DIR:     $SRC_DIR"
 echo "INSTALL_DIR: $INSTALL_DIR"
 
 cd $SRC_DIR
+mkdir -p osx
 
 # pkgconfig
 # Download it by hand
@@ -26,7 +27,6 @@ cd $SRC_DIR
 if [ -e $INSTALL_DIR/bin/pkg-config ]; then
   echo "pkg-config seems to already exist"
 else
-  mkdir -p osx
   cd osx
   if [ -d pkg-config-0.25 ]; then
     echo "Pkg-Config already downloaded"
@@ -69,20 +69,45 @@ fi
 
 
 # polarssl
-if [ -e $INSTALL_DIR/bin/polarssl ]; then
-    echo "polarssl seems to already exist"
+#if [ -e $INSTALL_DIR/bin/polarssl ]; then
+#    echo "polarssl seems to already exist"
+#else
+#    cd osx
+#    if [ -d polarssl ]; then
+#        echo "polarssl already downloaded"
+#    else
+#        svn co http://polarssl.org/repos/polarssl/polarssl/trunk/ polarssl
+#        #svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
+#    fi
+#
+#    echo "compiling polarssl"
+#    cd polarssl
+#
+#    #cmake . -G "Unix Makefiles" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_INSTALL_PREFIX:STRING=$INSTALL_DIR -DUSE_SHARED_POLARSSL_LIBRARY=ON
+#    make DESTDIR=$INSTALL_DIR PREFIX="" no_test -j2
+#    make DESTDIR=$INSTALL_DIR PREFIX="" install
+#
+#    cd ../../
+#fi
+
+
+# download and build nettle, used by gnutls
+if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
+    echo "nettle seems to already exist"
 else
     cd osx
-    if [ -d polarssl ]; then
-        echo "polarssl already downloaded"
+
+    if [ -d nettle-2.5 ]; then
+        echo "nettle already downloaded"
     else
-        svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
+        curl -fL ftp://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz > nettle-2.5.tar.gz
+        tar -xzf nettle-2.5.tar.gz
     fi
 
-    echo "compiling polarssl"
-    cd polarssl
+    echo "Compiling nettle"
+    cd nettle-2.5
 
-    cmake . -DCMAKE_BUILD_TYPE:String="Release" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
+    ./configure --prefix=$INSTALL_DIR --disable-openssl CC="clang"
     make -j2
     make install
 
@@ -90,15 +115,30 @@ else
 fi
 
 
+# gnu_tls
+#    cd osx
+#
+#    if [ -d gnu_tls ]; then
+#        echo "gnu_tls already downloaded"
+#    else
+#
+#    fi
+#
+#    cd ../../
+
+
 # rtmpdump
-if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-    echo "rtmpdump seems to already exist"
-else
+#if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+#    echo "rtmpdump seems to already exist"
+#else
     echo "Compiling rtmpdump"
     cd rtmpdump
-    make SYS=darwin prefix=$INSTALL_DIR install
+    make clean
+    make SYS=darwin CRYPTO=POLARSSL CC="clang" prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
     cd ..
-fi
+#fi
+
+
 
 # libx264
 if [ -e $INSTALL_DIR/bin/x264 ]; then   
@@ -113,9 +153,9 @@ else
 fi
 
 # ffmpeg
-if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
-    echo "ffmpeg seems to already exist"
-else
+#if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
+#    echo "ffmpeg seems to already exist"
+#else
     echo "Compiling ffmpeg"
     cd ffmpeg
     #./configure --enable-shared --enable-gpl --enable-libx264 --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp --cc=clang
@@ -123,7 +163,7 @@ else
     make -j2
     make install
     cd ..
-fi
+#fi
 
 # gtest
 if [ -d gtest-1.6.0 ]; then
