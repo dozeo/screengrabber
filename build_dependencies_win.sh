@@ -84,13 +84,13 @@ fi
 
 
 # download and compile GMP, it is used by nettle! (LGPL)
-#if [ -e $INSTALL_DIR/lib/libgmp.dll ]; then
-#    echo "gmp seems to already exist"
-#else
+if [ -e $INSTALL_DIR/lib/libgmp.a ]; then
+    echo "gmp seems to already exist"
+else
     cd win32
 
     if [ -d gmp-5.0.5 ]; then
-        echo "gmp seems to already exist"
+        echo "gmp already downloaded"
     else
         echo "Downloading gmp"
         curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5.tar.bz2
@@ -100,23 +100,21 @@ fi
     echo "Compiling gmp"
     cd gmp-5.0.5
 
-    make clean
-    CC="gcc" ./configure --enable-cxx --prefix=$INSTALL_DIR \
-        --disable-static --disable-mpbsd \
+    ./configure --enable-cxx --enable-shared --disable-static --prefix=$INSTALL_DIR \
+        --build=i686-pc-mingw32 --host=i686-pc-mingw32 \
         CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin ABI=32
-    make -j2
+    make sys=mingw -j2
     make install
 
     cd ../../
-#fi
-
+fi
 
 
 
 # download and build nettle, used by gnutls (LGPL)
-#if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
-#    echo "nettle seems to already exist"
-#else
+if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
+    echo "nettle seems to already exist"
+else
     cd win32
 
     if [ -d nettle-2.5 ]; then
@@ -129,14 +127,16 @@ fi
     echo "Compiling nettle"
     cd nettle-2.5
 
-    make clean
-    CFLAGS="-m32" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl \
-         LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
+    LDFLAGS=-L$INSTALL_DIR/lib CFLAGS="-m32" LIBS="-lgmp" ./configure --enable-shared \
+        --prefix=$INSTALL_DIR CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
+        --build=i686-pc-mingw32 --host=i686-pc-mingw32 \
+        --disable-openssl --disable-assembler \
+        --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
     make -j2
     make install
 
     cd ../../
-#fi
+fi
 
 
 
@@ -156,39 +156,18 @@ fi
     echo "Compiling gnutls"
     cd gnutls-3.1.4
 
-    make clean
-    ./configure --build=i686-pc-mingw32 --enable-static \
-        --enable-threads=win32 --disable-guile --disable-nls
-        --disable-gtk-doc --with-gnu-ld --prefix=$INSTALL_DIR \
-        CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
+    ./configure --build=i686-pc-mingw32 --host=i686-pc-mingw32 --enable-shared --enable-threads=win32 \
+        --disable-guile --disable-gtk-doc --with-gnu-ld \
+        --prefix=$INSTALL_DIR CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
         LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
-    make sys=mingw -j2
-    make sys=mingw install
+    make -j2
+    make install
 
     cd ../../
 #fi
 
-
-# download gnu tls libraries
-#if [ -e $INSTALL_DIR/lib/libgnutls.dll.a ]; then
-#    echo "gnutls seems to already exist"
-#else
-#    cd win32
-#
-#    if [ -d gnutls-3.1.4-w32.zip ]; then
-#        echo "gnutls already downloaded"
-#    else
-#        curl -fL ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.1.4-w32.zip > gnutls-3.1.4-w32.zip
-#        unzip -o gnutls-3.1.4-w32.zip -d gnutls-3.1.4
-#    fi
-#
-#    cd gnutls-3.1.4
-#
-#    cp -rf * $INSTALL_DIR
-#
-#    cd ../../
-#fi
-
+echo "Exiting for now"
+exit
 
 # rtmpdump
 #if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
@@ -200,7 +179,7 @@ fi
 
     echo "Compiling rtmpdump ..."
     cd rtmpdump
-    make clean
+
     LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=mingw CRYPTO=GNUTLS prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib -j2
     LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=mingw CRYPTO=GNUTLS prefix=$INSTALL_DIR \
@@ -231,7 +210,6 @@ else
 	echo "Compiling ffmpeg ..."
 	
 	cd ffmpeg
-    make clean
 
     # ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
     ./configure --prefix=$INSTALL_DIR \
