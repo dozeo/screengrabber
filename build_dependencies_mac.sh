@@ -74,11 +74,11 @@ if [ -e $INSTALL_DIR/lib/libgmp.a ]; then
 else
     cd osx
 
-    if [ -d gmp ]; then
+    if [ -d gmp-5.0.5 ]; then
         echo "gmp seems to already exist"
     else
         curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5tar.bz2
-        tar -xzf gmp.5.0.5tar.bz2
+        tar -xzf gmp.5.0.5.tar.bz2
     fi
 
     echo "Compiling gmp"
@@ -142,16 +142,6 @@ else
 
     cd ../../
 fi
-
-
-#    cd gnutls
-#    aclocal
-#    autoconf
-#    automake --add-missing
-#    ./configure --disable-gtk-doc --prefix=$INSTALL_DIR LDFLAGS=-L$INSTALL_DIR/lib CXXFLAGS="-m64" CFLAGS="-m64" CC="clang"
-#    make -j2
-#    make install
-#    cd ..
 
 
 # rtmpdump
