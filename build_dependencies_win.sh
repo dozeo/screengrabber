@@ -10,9 +10,6 @@ set -e
 export SRC_DIR=$ABSDIR/dependencies_source
 export INSTALL_DIR=$ABSDIR/dependencies
 
-export PATH=$PATH:$INSTALL_DIR/bin
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
-
 # HACK determine installed Visual Studio, can differ for OS, 32 / 64 Bit
 if [ -d "/C/Program Files/Microsoft Visual Studio 9.0/VC" ]; then
 	echo "Using Visual Studio 2008"
@@ -31,7 +28,10 @@ else
 	exit 1
 fi
 
+export PATH=$PATH:$INSTALL_DIR/bin
 export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
+export PATH=$PATH:/C/MinGW/bin
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
 
 # create target directory where to compile tos
 echo "creating install dir"
@@ -87,33 +87,36 @@ fi
 #if [ -e $INSTALL_DIR/lib/libgmp.dll ]; then
 #    echo "gmp seems to already exist"
 #else
-#    cd win32
-#
-#    if [ -d gmp-5.0.5 ]; then
-#        echo "gmp seems to already exist"
-#    else
-#        echo "Downloading gmp"
-#        curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5.tar.bz2
-#        tar xjf gmp.5.0.5.tar.bz2
-#    fi
-#
-#    echo "Compiling gmp"
-#    cd gmp-5.0.5
-#
-#    ./configure --enable-cxx --prefix=$INSTALL_DIR --build=i586-mingw32msvc --host=i586-mingw32msvc --disable-static --enable-shared
-#    make -j2
-#    make install
-#
-#    cd ../../
+    cd win32
+
+    if [ -d gmp-5.0.5 ]; then
+        echo "gmp seems to already exist"
+    else
+        echo "Downloading gmp"
+        curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5.tar.bz2
+        tar xjf gmp.5.0.5.tar.bz2
+    fi
+
+    echo "Compiling gmp"
+    cd gmp-5.0.5
+
+    make clean
+    CC="gcc" ./configure --enable-cxx --prefix=$INSTALL_DIR \
+        --disable-static --disable-mpbsd \
+        CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin ABI=32
+    make -j2
+    make install
+
+    cd ../../
 #fi
 
 
 
 
 # download and build nettle, used by gnutls (LGPL)
-if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
-    echo "nettle seems to already exist"
-else
+#if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
+#    echo "nettle seems to already exist"
+#else
     cd win32
 
     if [ -d nettle-2.5 ]; then
@@ -126,12 +129,14 @@ else
     echo "Compiling nettle"
     cd nettle-2.5
 
-    CFLAGS="-m32" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
+    make clean
+    CFLAGS="-m32" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl \
+         LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
     make -j2
     make install
 
     cd ../../
-fi
+#fi
 
 
 
@@ -139,60 +144,69 @@ fi
 #if [ -e $INSTALL_DIR/lib/gnutls.dll ]; then
 #    echo "gnutls seems to already exist"
 #else
+    cd win32
+
+    if [ -d gnutls-3.1.4 ]; then
+        echo "gnutls already downloaded";
+    else
+        curl -fL ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.1.4.tar.xz > gnutls-3.1.4.tar.xz
+        tar xvf gnutls-3.1.4.tar.xz
+    fi
+
+    echo "Compiling gnutls"
+    cd gnutls-3.1.4
+
+    make clean
+    ./configure --build=i686-pc-mingw32 --enable-static \
+        --enable-threads=win32 --disable-guile --disable-nls
+        --disable-gtk-doc --with-gnu-ld --prefix=$INSTALL_DIR \
+        CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
+        LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
+    make sys=mingw -j2
+    make sys=mingw install
+
+    cd ../../
+#fi
+
+
+# download gnu tls libraries
+#if [ -e $INSTALL_DIR/lib/libgnutls.dll.a ]; then
+#    echo "gnutls seems to already exist"
+#else
 #    cd win32
 #
-#    if [ -d gnutls-3.1.4 ]; then
-#        echo "gnutls already downloaded";
+#    if [ -d gnutls-3.1.4-w32.zip ]; then
+#        echo "gnutls already downloaded"
 #    else
-#        curl -fL ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.1.4.tar.xz > gnutls-3.1.4.tar.xz
-#        tar xvf gnutls-3.1.4.tar.xz
+#        curl -fL ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.1.4-w32.zip > gnutls-3.1.4-w32.zip
+#        unzip -o gnutls-3.1.4-w32.zip -d gnutls-3.1.4
 #    fi
 #
-#    echo "Compiling gnutls"
 #    cd gnutls-3.1.4
 #
-#    ./configure --disable-guile --disable-gtk-doc --with-gnu-ld --prefix=$INSTALL_DIR CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
-#    make -j2
-#    make install
+#    cp -rf * $INSTALL_DIR
 #
 #    cd ../../
 #fi
 
 
-# download gnu tls libraries
-if [ -e $INSTALL_DIR/lib/libgnutls.dll.a ]; then
-    echo "gnutls seems to already exist"
-else
-    cd win32
-
-    if [ -d gnutls-3.1.4-w32.zip ]; then
-        echo "gnutls already downloaded"
-    else
-        curl -fL ftp://ftp.gnu.org/gnu/gnutls/w32/gnutls-3.1.4-w32.zip > gnutls-3.1.4-w32.zip
-        unzip -o gnutls-3.1.4-w32.zip -d gnutls-3.1.4
-    fi
-
-    cd gnutls-3.1.4
-
-    cp -rf * $INSTALL_DIR
-
-    cd ../../
-fi
-
-
 # rtmpdump
-if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-    echo "rtmpdump seems to already exist"
-else
+#if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+#    echo "rtmpdump seems to already exist"
+#else
 #    export XCFLAGS=-I$INSTALL_DIR/include
 #    export XLDFLAGS=-L$INSTALL_DIR/lib
 #    export LIB_GNUTLS="-lssl -lcrypto -ldl"
 
     echo "Compiling rtmpdump ..."
     cd rtmpdump
-    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=mingw CRYPTO=GNUTLS prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+    make clean
+    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=mingw CRYPTO=GNUTLS prefix=$INSTALL_DIR \
+        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib -j2
+    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=mingw CRYPTO=GNUTLS prefix=$INSTALL_DIR \
+        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
     cd ..
-fi
+#fi
 
 
 
@@ -203,7 +217,7 @@ else
 	echo "Compiling x264 ..."
 
 	cd x264
-	./configure --enable-shared --enable-static --prefix=$INSTALL_DIR
+	./configure --enable-shared --prefix=$INSTALL_DIR
 	make -j2
 	make install
 	cd ..
@@ -217,10 +231,17 @@ else
 	echo "Compiling ffmpeg ..."
 	
 	cd ffmpeg
-	# ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
-	./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
+    make clean
 
-	make clean
+    # ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
+    ./configure --prefix=$INSTALL_DIR \
+        --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
+        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
+        --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
+        --pkg-config=$INSTALL_DIR/bin/pkgconfig \
+        --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
+
 	make -j2
 	make install -k
 	cd ..
