@@ -68,6 +68,7 @@ else
 fi
 
 
+
 if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
     echo "pkgconfig seems to already exist"
 else
@@ -101,7 +102,7 @@ else
     cd gmp-5.0.5
 
     ./configure --enable-cxx --enable-shared --disable-static --prefix=$INSTALL_DIR \
-        --build=i686-pc-mingw32 --host=i686-pc-mingw32 \
+        --build=i686-pc-mingw32 --host=i686-pc-mingw32 --disable-assembler \
         CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin ABI=32
     make sys=mingw -j2
     make install
@@ -127,7 +128,7 @@ else
     echo "Compiling nettle"
     cd nettle-2.5
 
-    LDFLAGS=-L$INSTALL_DIR/lib CFLAGS="-m32" LIBS="-lgmp" ./configure --enable-shared \
+    LDFLAGS=-L$INSTALL_DIR/lib LIBS="-lgmp" ./configure --enable-shared \
         --prefix=$INSTALL_DIR CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
         --build=i686-pc-mingw32 --host=i686-pc-mingw32 \
         --disable-openssl --disable-assembler \
@@ -157,10 +158,10 @@ fi
     cd gnutls-3.1.4
 
     ./configure --build=i686-pc-mingw32 --host=i686-pc-mingw32 --enable-shared --enable-threads=win32 \
-        --disable-guile --disable-gtk-doc --with-gnu-ld \
+        --disable-guile --disable-gtk-doc --disable-static  --disable-nls --disable-assembler \
         --prefix=$INSTALL_DIR CXXFLAGS="-m32" CFLAGS="-m32" PKG_CONFIG=$INSTALL_DIR/bin \
-        LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
-    make -j2
+        LIBS="-lnettle" LDFLAGS=-L$INSTALL_DIR/lib
+    make sys=mingw -j2
     make install
 
     cd ../../
