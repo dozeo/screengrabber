@@ -150,9 +150,9 @@ fi
 
 
 # rtmpdump
-#if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-#    echo "rtmpdump seems to already exist"
-#else
+if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+    echo "rtmpdump seems to already exist"
+else
     echo "Compiling rtmpdump"
     cd rtmpdump
 
@@ -161,7 +161,7 @@ fi
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
 
     cd ..
-#fi
+fi
 
 
 
@@ -178,9 +178,9 @@ else
 fi
 
 # ffmpeg
-#if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
-#    echo "ffmpeg seems to already exist"
-#else
+if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
+    echo "ffmpeg seems to already exist"
+else
     echo "Compiling ffmpeg"
     cd ffmpeg
     #./configure --enable-shared --enable-gpl --enable-libx264 --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp --cc=clang
@@ -188,7 +188,7 @@ fi
     make -j2
     make install
     cd ..
-#fi
+fi
 
 # gtest
 if [ -d gtest-1.6.0 ]; then
