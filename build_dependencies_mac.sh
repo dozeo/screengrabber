@@ -42,8 +42,11 @@ else
   make install
   cd ../..
 fi
+
 export PATH=$PATH:$INSTALL_DIR/bin
-export PKG_CONFIG_PATH=$INSTALL_DIR/lib/pkgconfig:/usr/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
+
+
 
 # yasm
 # download by hand
@@ -93,14 +96,13 @@ else
 fi
 
 
-
 # download and build nettle, used by gnutls (LGPL)
 if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
     echo "nettle seems to already exist"
 else
     cd osx
 
-    if [ -d nettle-2.5 ]; then
+    if [ -d nettle-2.5.tar.gz ]; then
         echo "nettle already downloaded"
     else
         curl -fL ftp://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz > nettle-2.5.tar.gz
@@ -110,15 +112,15 @@ else
     echo "Compiling nettle"
     cd nettle-2.5
 
-    CFLAGS="-m32" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
+    CFLAGS="-m64" CC=clang ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl \
+        LIBS="-lgmp" --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib \
+        --disable-assembler
+
     make -j2
     make install
 
     cd ../../
 fi
-
-
-# compile and install gtk-doc which is obviously necessary by gnutls (LGPL)
 
 
 
@@ -138,12 +140,13 @@ else
 
     echo "Compiling gnutls"
     cd ${GNUTLS_VER}
-    ./configure --prefix=$INSTALL_DIR PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
+    CC=clang ./configure --prefix=$INSTALL_DIR PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS="-L$INSTALL_DIR/lib"
     make -j2
     make install
 
     cd ../../
 fi
+
 
 
 # rtmpdump
@@ -152,8 +155,11 @@ fi
 #else
     echo "Compiling rtmpdump"
     cd rtmpdump
+
     make clean
-    make SYS=darwin CRYPTO=GNUTLS CC="clang" prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=GNUTLS prefix=$INSTALL_DIR \
+        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+
     cd ..
 #fi
 
@@ -165,8 +171,8 @@ if [ -e $INSTALL_DIR/bin/x264 ]; then
 else
     echo "Compiling x264"
     cd x264
-    ./configure --enable-shared --prefix=$INSTALL_DIR CFLAGS="-m64"
-    make -j2
+    ./configure --enable-shared --prefix=$INSTALL_DIR --extra-ldflags="-L$INSTALL_DIR/lib" --extra-cflags="-I$INSTALL_DIR/include"
+    make sys=darwin CC="clang" -j2
     make install
     cd ..
 fi
