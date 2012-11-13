@@ -74,15 +74,16 @@ if [ -e $INSTALL_DIR/lib/libgmp.a ]; then
 else
     cd osx
 
-    if [ -d gmp-5.0.5 ]; then
+    export GMP_VER=gmp-5.0.5
+    if [ -d ${GMP_VER} ]; then
         echo "gmp seems to already exist"
     else
-        curl -fL ftp://ftp.gmplib.org/pub/gmp-5.0.5/gmp-5.0.5.tar.bz2 > gmp.5.0.5tar.bz2
-        tar -xzf gmp.5.0.5.tar.bz2
+        curl -fL ftp://ftp.gmplib.org/pub/${GMP_VER}/${GMP_VER}.tar.bz2 > ${GMP_VER}.tar.bz2
+        tar -xzf ${GMP_VER}.tar.bz2
     fi
 
     echo "Compiling gmp"
-    cd gmp-5.0.5
+    cd ${GMP_VER}
 
     ./configure --enable-cxx --enable-shared --prefix=$INSTALL_DIR
     make -j2
@@ -109,7 +110,7 @@ else
     echo "Compiling nettle"
     cd nettle-2.5
 
-    CFLAGS="-m64" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
+    CFLAGS="-m32" ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl LIBS=-lgmp --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib
     make -j2
     make install
 
@@ -127,16 +128,17 @@ if [ -e $INSTALL_DIR/lib/libgnutls.a ]; then
 else
     cd osx
 
-    if [ -d gnutls-3.1.3 ]; then
+    export GNUTLS_VER=gnutls-3.1.3
+    if [ -d ${GNUTLS_VER} ]; then
         echo "gnutls already downloaded";
     else
-        curl -fL ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.1.3.tar.xz > gnutls-3.1.3.tar.xz
-        tar -xzf gnutls-3.1.3.tar.xz
+        curl -fL ftp://ftp.gnu.org/gnu/gnutls/${GNUTLS_VER}.tar.xz > ${GNUTLS_VER}.tar.xz
+        tar -xzf ${GNUTLS_VER}.tar.xz
     fi
 
     echo "Compiling gnutls"
-    cd gnutls-3.1.3
-    ./configure --prefix=$INSTALL_DIR CXXFLAGS="-m64" CFLAGS="-m64" PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
+    cd ${GNUTLS_VER}
+    ./configure --prefix=$INSTALL_DIR PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS=-L$INSTALL_DIR/lib
     make -j2
     make install
 
@@ -163,7 +165,7 @@ if [ -e $INSTALL_DIR/bin/x264 ]; then
 else
     echo "Compiling x264"
     cd x264
-    ./configure --enable-shared --prefix=$INSTALL_DIR
+    ./configure --enable-shared --prefix=$INSTALL_DIR CFLAGS="-m64"
     make -j2
     make install
     cd ..
