@@ -20,6 +20,35 @@ echo "INSTALL_DIR: $INSTALL_DIR"
 cd $SRC_DIR
 mkdir -p osx
 
+
+if [ -e $INSTALL_DIR/bin/xz ]; then
+    echo "xz utils already downloaded"
+else
+    cd osx
+
+    XZ_VER=xz-5.0.4
+
+    #http://tukaani.org/xz/xz-5.0.4.tar.gz
+
+    if [ -e ${XZ_VER}.tar.gz ]; then
+        echo "xz utils already downloaded"
+    else
+        curl -fL http://tukaani.org/xz/${XZ_VER}.tar.gz > ${XZ_VER}.tar.gz
+        tar -xzf ${XZ_VER}.tar.gz
+    fi
+    echo "Compiling xz utils"
+
+    cd ${XZ_VER}
+
+    ./configure --prefix=$INSTALL_DIR CC=clang
+    make -j2
+    make install
+
+    cd ../..
+fi
+
+
+
 # pkgconfig
 # Download it by hand
 # Note: 0.25 is the last version which included GObject
@@ -135,7 +164,8 @@ else
         echo "gnutls already downloaded";
     else
         curl -fL ftp://ftp.gnu.org/gnu/gnutls/${GNUTLS_VER}.tar.xz > ${GNUTLS_VER}.tar.xz
-        tar -xzf ${GNUTLS_VER}.tar.xz
+        $INSTALL_DIR/bin/unxz ${GNUTLS_VER}.tar.xz
+        tar -xf ${GNUTLS_VER}.tar
     fi
 
     echo "Compiling gnutls"
