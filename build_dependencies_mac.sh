@@ -131,7 +131,7 @@ if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
 else
     cd osx
 
-    if [ -d nettle-2.5.tar.gz ]; then
+    if [ -d nettle-2.5 ]; then
         echo "nettle already downloaded"
     else
         curl -fL ftp://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz > nettle-2.5.tar.gz
