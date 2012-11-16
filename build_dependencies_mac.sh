@@ -21,33 +21,6 @@ cd $SRC_DIR
 mkdir -p osx
 
 
-if [ -e $INSTALL_DIR/bin/xz ]; then
-    echo "xz utils already downloaded"
-else
-    cd osx
-
-    XZ_VER=xz-5.0.4
-
-    #http://tukaani.org/xz/xz-5.0.4.tar.gz
-
-    if [ -e ${XZ_VER}.tar.gz ]; then
-        echo "xz utils already downloaded"
-    else
-        curl -fL http://tukaani.org/xz/${XZ_VER}.tar.gz > ${XZ_VER}.tar.gz
-        tar -xzf ${XZ_VER}.tar.gz
-    fi
-    echo "Compiling xz utils"
-
-    cd ${XZ_VER}
-
-    ./configure --prefix=$INSTALL_DIR CC=clang
-    make -j2
-    make install
-
-    cd ../..
-fi
-
-
 
 # pkgconfig
 # Download it by hand
@@ -100,79 +73,23 @@ else
 fi
 
 
-# download and compile GMP, it is used by nettle! (LGPL)
-if [ -e $INSTALL_DIR/lib/libgmp.a ]; then
-    echo "gmp seems to already exist"
+
+# download and install polarssl
+if [ -e $INSTALL_DIR/bin/polarssl ]; then
+    echo "polarssl seems to already exist"
 else
     cd osx
-
-    export GMP_VER=gmp-5.0.5
-    if [ -d ${GMP_VER} ]; then
-        echo "gmp seems to already exist"
+    if [ -d polarssl ]; then
+        echo "polarssl already downloaded"
     else
-        curl -fL ftp://ftp.gmplib.org/pub/${GMP_VER}/${GMP_VER}.tar.bz2 > ${GMP_VER}.tar.bz2
-        tar -xzf ${GMP_VER}.tar.bz2
+        svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
     fi
 
-    echo "Compiling gmp"
-    cd ${GMP_VER}
+    echo "compiling polarssl"
+    cd polarssl
 
-    ./configure --enable-cxx --enable-shared --prefix=$INSTALL_DIR
-    make -j2
-    make install
-
-    cd ../../
-fi
-
-
-# download and build nettle, used by gnutls (LGPL)
-if [ -e $INSTALL_DIR/lib/libnettle.a ]; then
-    echo "nettle seems to already exist"
-else
-    cd osx
-
-    if [ -d nettle-2.5 ]; then
-        echo "nettle already downloaded"
-    else
-        curl -fL ftp://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz > nettle-2.5.tar.gz
-        tar -xzf nettle-2.5.tar.gz
-    fi
-
-    echo "Compiling nettle"
-    cd nettle-2.5
-
-    CFLAGS="-m64" CC=clang ./configure --enable-shared --prefix=$INSTALL_DIR --disable-openssl \
-        LIBS="-lgmp" --with-include-path=$INSTALL_DIR/include --with-lib-path=$INSTALL_DIR/lib \
-        --disable-assembler
-
-    make -j2
-    make install
-
-    cd ../../
-fi
-
-
-
-# gnu_tls
-if [ -e $INSTALL_DIR/lib/libgnutls.a ]; then
-    echo "gnutls seems to already exist"
-else
-    cd osx
-
-    export GNUTLS_VER=gnutls-3.1.3
-    if [ -d ${GNUTLS_VER} ]; then
-        echo "gnutls already downloaded";
-    else
-        curl -fL ftp://ftp.gnu.org/gnu/gnutls/${GNUTLS_VER}.tar.xz > ${GNUTLS_VER}.tar.xz
-        $INSTALL_DIR/bin/unxz ${GNUTLS_VER}.tar.xz
-        tar -xf ${GNUTLS_VER}.tar
-    fi
-
-    echo "Compiling gnutls"
-    cd ${GNUTLS_VER}
-    CC=clang ./configure --prefix=$INSTALL_DIR PKG_CONFIG=$INSTALL_DIR/bin LIBS=-lnettle LDFLAGS="-L$INSTALL_DIR/lib"
-    make -j2
-    make install
+    CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR lib
+    CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR install
 
     cd ../../
 fi
@@ -186,8 +103,7 @@ else
     echo "Compiling rtmpdump"
     cd rtmpdump
 
-    make clean
-    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=GNUTLS prefix=$INSTALL_DIR \
+    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=POLARSSL prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
 
     cd ..
@@ -201,24 +117,34 @@ if [ -e $INSTALL_DIR/bin/x264 ]; then
 else
     echo "Compiling x264"
     cd x264
-    ./configure --enable-shared --prefix=$INSTALL_DIR --extra-ldflags="-L$INSTALL_DIR/lib" --extra-cflags="-I$INSTALL_DIR/include"
+
+    ./configure --enable-shared --prefix=$INSTALL_DIR \
+        --extra-ldflags="-L$INSTALL_DIR/lib" --extra-cflags="-I$INSTALL_DIR/include"
+
     make sys=darwin CC="clang" -j2
     make install
     cd ..
 fi
 
-# ffmpeg
+
+# ffmpeg, is available as submodule
 if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
     echo "ffmpeg seems to already exist"
 else
     echo "Compiling ffmpeg"
     cd ffmpeg
-    #./configure --enable-shared --enable-gpl --enable-libx264 --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp --cc=clang
-    ./configure --enable-shared --enable-gpl --enable-libx264 --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --enable-librtmp --cc=clang
+
+    ./configure --prefix=$INSTALL_DIR --enable-shared \
+        --enable-gpl --enable-librtmp --enable-libx264 \
+        --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps \
+        --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file \
+        --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include
+
     make -j2
     make install
     cd ..
 fi
+
 
 # gtest
 if [ -d gtest-1.6.0 ]; then
@@ -228,3 +154,4 @@ else
     unzip gtest-1.6.0.zip
     rm gtest-1.6.0.zip
 fi
+
