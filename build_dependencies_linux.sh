@@ -40,7 +40,7 @@ else
 
     echo "Compiling PolarSSL"
     cd polarssl
-    git checkout 
+    git checkout polarssl-1.2.0
     
     make SYS=posix DESTDIR=$INSTALL_DIR SHARED=1 lib
     make SYS=posix DESTDIR=$INSTALL_DIR install
