@@ -74,7 +74,7 @@ fi
 
 
 
-# download and install polarssl
+# checkout and compile polarssl
 if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
     echo "polarssl seems to already exist"
 else
@@ -82,11 +82,13 @@ else
     if [ -d polarssl ]; then
         echo "polarssl already downloaded"
     else
-        svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
+        git clone https://github.com/polarssl/polarssl polarssl
     fi
 
     echo "compiling polarssl"
     cd polarssl
+
+    git checkout polarssl-1.2.0
 
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR lib
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR install
