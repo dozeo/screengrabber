@@ -9,7 +9,6 @@
 if (WIN32)
     # WIN32 will be set automatically
     add_definitions (-DWIN32)
-
     # currently on Windows this does not work because of std::string
     #add_definitions (-DUNICODE -D_UNICODE)
 elseif (APPLE)

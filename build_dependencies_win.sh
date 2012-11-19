@@ -10,9 +10,6 @@ set -e
 export SRC_DIR=$ABSDIR/dependencies_source
 export INSTALL_DIR=$ABSDIR/dependencies
 
-export PATH=$PATH:$INSTALL_DIR/bin
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
-
 # HACK determine installed Visual Studio, can differ for OS, 32 / 64 Bit
 if [ -d "/C/Program Files/Microsoft Visual Studio 9.0/VC" ]; then
 	echo "Using Visual Studio 2008"
@@ -31,7 +28,10 @@ else
 	exit 1
 fi
 
+export PATH=$PATH:$INSTALL_DIR/bin
 export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
+export PATH=$PATH:/C/MinGW/bin
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
 
 # create target directory where to compile tos
 echo "creating install dir"
@@ -42,6 +42,7 @@ echo "SRC_DIR:     $SRC_DIR"
 echo "INSTALL_DIR: $INSTALL_DIR"
 
 cd $SRC_DIR
+mkdir -p win32
 
 # yasm
 # download by hand
@@ -49,80 +50,74 @@ cd $SRC_DIR
 if [ -e $INSTALL_DIR/bin/yasm ]; then
     echo "yasm seems to already exist"
 else
+    cd win32
+
     if [ -d yasm-1.2.0 ]; then
-		echo "Yasm already downloaded"
+        echo "Yasm already downloaded"
     else
-		curl -fL http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz > yasm-1.2.0.tar.gz
-		tar -xzf yasm-1.2.0.tar.gz
+        curl -fL http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz > yasm-1.2.0.tar.gz
+        tar -xzf yasm-1.2.0.tar.gz
     fi
-	echo "Compiling yasm ..."
+    echo "Compiling yasm ..."
 
     cd yasm-1.2.0
     ./configure --prefix=$INSTALL_DIR
     make -j2
     make install
+    cd ../../
+fi
+
+
+
+if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
+    echo "pkgconfig seems to already exist"
+else
+    echo "Fetching pkgconfig"
+    cd win32
+    curl -fL http://sflx.net/files/pkg-config-lite/pkg-config-lite-0.26-1_bin-win32.zip > pkg-config-lite-0.26-1_bin-win32.zip
+    unzip pkg-config-lite-0.26-1_bin-win32.zip
+    cp -rf pkg-config-lite-0.26-1/* $INSTALL_DIR/
+    rm -r pkg-config-lite-0.26-1
+    rm pkg-config-lite-0.26-1_bin-win32.zip
     cd ..
 fi
 
-if [ -e $INSTALL_DIR/bin/openssl ]; then
-	echo "OpenSSL seems to already exist"
+
+# download gnutls library and copy to install directory
+if [ -e $INSTALL_DIR/lib/gnutls.dll ]; then
+    echo "gnutls seems to already exist"
 else
-	echo "Fetching OpenSSL"
-	curl -fL http://sflx.net/files/openssl/openssl_1.0.1b_win32.zip > openssl_1.0.1b_win32.zip
-	unzip openssl_1.0.1b_win32.zip
-	cp -rf openssl/* $INSTALL_DIR/
-	rm openssl_1.0.1b_win32.zip
-	rm -r openssl
+    cd win32
 
-	mkdir -p $INSTALL_DIR/lib/pkgconfig
-echo "Name: OpenSSL-libcrypto
-Description: OpenSSL cryptography library
-Version: 1.0.1a
-Requires: 
-Libs: -lcrypto
-Libs.private: -lws2_32 -lgdi32 -lcrypt32
-Cflags: 
-" > $INSTALL_DIR/lib/pkgconfig/libcrypto.pc
+    GNU_VER=gnutls-3.1.4
+    if [ -e ${GNU_VER} ]; then
+        echo "gnutls already downloaded"
+    else
+        curl -fL ftp://ftp.gnu.org/gnu/gnutls/w32/${GNU_VER}-w32.zip > ${GNU_VER}-w32.zip
+        unzip -d ${GNU_VER} -o ${GNU_VER}-w32.zip
+    fi
 
-echo "Name: OpenSSL
-Description: Secure Sockets Layer and cryptography libraries
-Version: 1.0.1a
-Requires: 
-Libs: -lssl -lcrypto
-Libs.private: -lws2_32 -lgdi32 -lcrypt32
-Cflags: 
-" > $INSTALL_DIR/lib/pkgconfig/libssl.pc
-	
-	cp ${INSTALL_DIR}/lib/libeay32.lib ${INSTALL_DIR}/lib/crypto.lib
-	cp ${INSTALL_DIR}/lib/ssleay32.lib ${INSTALL_DIR}/lib/ssl.lib
+    cd ${GNU_VER}
+
+    cp -r * $INSTALL_DIR
+
+    cd ../../
 fi
 
-if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
-	echo "pkgconfig seems to already exist"
-else
-	echo "Fetching pkgconfig"
-	curl -fL http://sflx.net/files/pkg-config-lite/pkg-config-lite-0.26-1_bin-win32.zip > pkg-config-lite-0.26-1_bin-win32.zip
-	unzip pkg-config-lite-0.26-1_bin-win32.zip
-	cp -rf pkg-config-lite-0.26-1/* $INSTALL_DIR/
-	rm -r pkg-config-lite-0.26-1
-	rm pkg-config-lite-0.26-1_bin-win32.zip
-fi
+
 
 # rtmpdump
 if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-	echo "rtmpdump seems to already exist"
+    echo "rtmpdump seems to already exist"
 else
-	echo "Compiling rtmpdump ..."
+    echo "Compiling rtmpdump ..."
+    cd rtmpdump
 
-	export XCFLAGS=-I$INSTALL_DIR/include
-	export XLDFLAGS=-L$INSTALL_DIR/lib
-	export LIB_OPENSSL="-lssl -lcrypto -ldl"
-	
-	cd rtmpdump
-	make SYS=mingw prefix=$INSTALL_DIR -j2
-	make SYS=mingw prefix=$INSTALL_DIR install
-	cd ..
+    LIB_GNUTLS="-lssl -lcrypto -ldl" make CRYPTO=GNUTLS SYS=mingw prefix=$INSTALL_DIR \
+        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib -j2 install
+    cd ..
 fi
+
 
 
 # lib x264 needs to get build!
@@ -132,7 +127,7 @@ else
 	echo "Compiling x264 ..."
 
 	cd x264
-	./configure --enable-shared --enable-static --prefix=$INSTALL_DIR
+	./configure --enable-shared --prefix=$INSTALL_DIR
 	make -j2
 	make install
 	cd ..
@@ -146,11 +141,21 @@ else
 	echo "Compiling ffmpeg ..."
 	
 	cd ffmpeg
-	# ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
- 	./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
 
-	make clean
-	make -j2
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig"
+#    export PKG_CONFIG="$INSTALL_DIR/bin/pkg-config"
+
+    # ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
+    ./configure --prefix=$INSTALL_DIR \
+        --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
+        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
+        --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
+        --pkg-config=$INSTALL_DIR/bin/pkg-config \
+        --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include \
+        --extra-ldflags="-L$INSTALL_DIR/lib -L$INSTALL_DIR/bin" --extra-libs="-lrtmp"
+
+	make -j4
 	make install -k
 	cd ..
 fi
@@ -162,7 +167,7 @@ if [ -d gtest-1.6.0 ]; then
 else
     curl -fL http://googletest.googlecode.com/files/gtest-1.6.0.zip > gtest-1.6.0.zip
     unzip gtest-1.6.0.zip
-	rm gtest-1.6.0.zip
+    rm gtest-1.6.0.zip
 fi
 
 # Checks if a given .DLL file is already from $PATH, if not, then copy (from Mingw, which is in $PATH)

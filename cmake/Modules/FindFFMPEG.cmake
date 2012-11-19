@@ -78,8 +78,8 @@ if (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FO
 			${FFMPEG_ROOT_DIR}/bin/librtmp.dll
 			${FFMPEG_ROOT_DIR}/bin/libz-1.dll
 			${FFMPEG_ROOT_DIR}/bin/libx264-125.dll
-			${FFMPEG_ROOT_DIR}/bin/libeay32.dll
-			${FFMPEG_ROOT_DIR}/bin/ssleay32.dll
+#			${FFMPEG_ROOT_DIR}/bin/libeay32.dll
+#			${FFMPEG_ROOT_DIR}/bin/ssleay32.dll
 			${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll
 			${FFMPEG_ROOT_DIR}/bin/libgcc_s_dw2-1.dll
 		)
