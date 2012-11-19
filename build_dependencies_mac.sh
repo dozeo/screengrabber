@@ -74,19 +74,21 @@ fi
 
 
 
-# download and install polarssl
-if [ -e $INSTALL_DIR/bin/polarssl ]; then
+# checkout and compile polarssl
+if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
     echo "polarssl seems to already exist"
 else
     cd osx
     if [ -d polarssl ]; then
         echo "polarssl already downloaded"
     else
-        svn co http://polarssl.org/repos/polarssl/polarssl/tags/polarssl-1.2.0/ polarssl
+        git clone https://github.com/polarssl/polarssl polarssl
     fi
 
     echo "compiling polarssl"
     cd polarssl
+
+    git checkout polarssl-1.2.0
 
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR lib
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR install
@@ -103,7 +105,7 @@ else
     echo "Compiling rtmpdump"
     cd rtmpdump
 
-    LIB_GNUTLS="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=POLARSSL prefix=$INSTALL_DIR \
+    LIBZ="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=POLARSSL prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
 
     cd ..
