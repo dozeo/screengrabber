@@ -28,38 +28,32 @@ mkdir -p linux
 
 
 # download and install polarssl
-if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
-    echo "PolarSSL already seems to exist"
-else
-    cd linux
-    if [ -d polarssl ]; then
-        echo "PolarSSL already downloaded"
-    else
-        git clone git://github.com/polarssl/polarssl.git polarssl
-    fi
-
+#if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
+#    echo "PolarSSL already seems to exist"
+#else
     echo "Compiling PolarSSL"
+
     cd polarssl
     git checkout polarssl-1.2.0
-    
-    make SYS=posix DESTDIR=$INSTALL_DIR SHARED=1 lib
+    make clean
+    make SYS=posix DESTDIR=$INSTALL_DIR SHARED=1 CC="gcc -fPIC" lib
     make SYS=posix DESTDIR=$INSTALL_DIR install
 
-    cd ../../
-fi
+    cd ../
+#fi
 
 
 
 # rtmpdump
-if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-    echo "rtmpdump seems to already exist"
-else
+#if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+#    echo "rtmpdump seems to already exist"
+#else
     cd rtmpdump
     make clean
     LIBZ="-lssl -lcrypto -ldl" make SYS=posix CRYPTO=POLARSSL prefix=$INSTALL_DIR \
-        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+        XCFLAGS="-I$INSTALL_DIR/include -fPIC" XLDFLAGS=-L$INSTALL_DIR/lib install
     cd ..
-fi
+#fi
 
 
 
@@ -68,7 +62,7 @@ if [ -e $INSTALL_DIR/bin/x264 ]; then
     echo "x264 seems to already exist"
 else
     cd x264
-    ./configure --enable-shared --prefix=$INSTALL_DIR --extra-ldflags="-L$INSTALL_DIR/lib -lpolarssl" --extra-clfags="-I$INSTALL_DIR/include"
+    ./configure --enable-shared --prefix=$INSTALL_DIR --extra-ldflags="-L$INSTALL_DIR/lib" --extra-clfags="-I$INSTALL_DIR/include"
     make -j2
     make install
     cd ..
@@ -94,7 +88,7 @@ else
     ./configure $ADDPIC --enable-shared --enable-gpl --enable-libx264 --disable-everything \
         --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=rtmp \
         --enable-protocol=file --enable-protocol=tcp --enable-protocol=rtp --enable-librtmp \
-        --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-libs="-lrtmp -lpolarssl" --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include $FFMPEG_EXTRA
+        --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-libs="-lrtmp -lpolarssl" --extra-cflags="-I$INSTALL_DIR/include" --extra-cxxflags=-I$INSTALL_DIR/include $FFMPEG_EXTRA
     make -j2
     make install
     cd ..

@@ -83,27 +83,19 @@ else
 fi
 
 
-# download gnutls library and copy to install directory
-if [ -e $INSTALL_DIR/lib/gnutls.dll ]; then
-    echo "gnutls seems to already exist"
+# compile polarssl
+if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
+    echo "polarssl seems to already exist"
 else
-    cd win32
 
-    GNU_VER=gnutls-3.1.4
-    if [ -e ${GNU_VER} ]; then
-        echo "gnutls already downloaded"
-    else
-        curl -fL ftp://ftp.gnu.org/gnu/gnutls/w32/${GNU_VER}-w32.zip > ${GNU_VER}-w32.zip
-        unzip -d ${GNU_VER} -o ${GNU_VER}-w32.zip
-    fi
+    cd polarssl
 
-    cd ${GNU_VER}
+#    make clean
+    make SYS=posix DESTDIR=$INSTALL_DIR lib
+    make SYS=posix DESTDIR=$INSTALL_DIR install
 
-    cp -r * $INSTALL_DIR
-
-    cd ../../
+    cd ../
 fi
-
 
 
 # rtmpdump
@@ -113,7 +105,7 @@ else
     echo "Compiling rtmpdump ..."
     cd rtmpdump
 
-    LIB_GNUTLS="-lssl -lcrypto -ldl" make CRYPTO=GNUTLS SYS=mingw prefix=$INSTALL_DIR \
+    LIBZ="-lssl -lcrypto -ldl" make CRYPTO=POLARSSL SYS=mingw prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib -j2 install
     cd ..
 fi
