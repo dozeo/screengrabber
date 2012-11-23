@@ -44,6 +44,26 @@ echo "INSTALL_DIR: $INSTALL_DIR"
 cd $SRC_DIR
 mkdir -p win32
 
+
+# yeah we need wget for our purposes here, it supports https
+if [ -e $INSTALL_DIR/bin/wget ]; then
+    echo "wget seems to already exist"
+else
+    cd win32
+    if [ -d wget.exe ]; then
+        echo "wget already downloaded"
+    else
+        curl -fL http://users.ugent.be/~bpuype/cgi-bin/fetch.pl?dl=wget/wget.exe > wget.exe
+    fi
+
+    mkdir -p $INSTALL_DIR/bin/
+    cp -f wget.exe $INSTALL_DIR/bin/
+
+    cd ../
+fi
+
+
+
 # yasm
 # download by hand
 # git version doesn't work, as no autoconf is installed by default
