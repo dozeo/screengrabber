@@ -60,7 +60,8 @@ else
     if [ -d yasm-1.2.0 ]; then
         echo "Yasm already downloaded"
     else
-        wget --no-check-certificate https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz -O yasm-1.2.0.tar.gz
+        #wget --no-check-certificate https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz -O yasm-1.2.0.tar.gz
+        curl -fL https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz > yasm-1.2.0.tar.gz 
         tar -xzf yasm-1.2.0.tar.gz
     fi
 
