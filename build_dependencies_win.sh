@@ -89,19 +89,36 @@ else
 fi
 
 
+# on some Windows machines the command line tool unzip does not work properly
+# and shows a notification stating zip file is corrupt
+if [ -e $INSTALL_DIR/bin/unzip.exe ]; then
+    echo "unzip seems to already exist"
+else
+    echo "Fetching unzip"
+    cd win32
+
+    wget http://stahlworks.com/dev/unzip.exe -O unzip.exe
+    cp unzip.exe $INSTALL_DIR/bin
+    rm unzip.exe
+
+    cd ..
+fi
+
+
 
 if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
     echo "pkgconfig seems to already exist"
 else
     echo "Fetching pkgconfig"
     cd win32
-    curl -fL http://sflx.net/files/pkg-config-lite/pkg-config-lite-0.26-1_bin-win32.zip > pkg-config-lite-0.26-1_bin-win32.zip
-    unzip pkg-config-lite-0.26-1_bin-win32.zip
+    wget http://sflx.net/files/pkg-config-lite/pkg-config-lite-0.26-1_bin-win32.zip -O pkg-config-lite-0.26-1_bin-win32.zip
+    $INSTALL_DIR/bin/unzip pkg-config-lite-0.26-1_bin-win32.zip
     cp -rf pkg-config-lite-0.26-1/* $INSTALL_DIR/
     rm -r pkg-config-lite-0.26-1
     rm pkg-config-lite-0.26-1_bin-win32.zip
     cd ..
 fi
+
 
 
 # compile polarssl
