@@ -79,22 +79,14 @@ fi
 if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
     echo "polarssl seems to already exist"
 else
-    cd osx
-    if [ -d polarssl ]; then
-        echo "polarssl already downloaded"
-    else
-        git clone https://github.com/polarssl/polarssl polarssl
-    fi
-
-    echo "compiling polarssl"
     cd polarssl
+    echo "compiling polarssl"
 
-    git checkout polarssl-1.2.0
-
+    #make clean
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR lib
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR install
 
-    cd ../../
+    cd ../
 fi
 
 
@@ -106,6 +98,7 @@ else
     echo "Compiling rtmpdump"
     cd rtmpdump
 
+    #make clean
     LIBZ="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=POLARSSL prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
 
