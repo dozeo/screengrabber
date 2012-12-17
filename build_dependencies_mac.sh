@@ -79,22 +79,14 @@ fi
 if [ -e $INSTALL_DIR/lib/libpolarssl.a ]; then
     echo "polarssl seems to already exist"
 else
-    cd osx
-    if [ -d polarssl ]; then
-        echo "polarssl already downloaded"
-    else
-        git clone https://github.com/polarssl/polarssl polarssl
-    fi
-
-    echo "compiling polarssl"
     cd polarssl
+    echo "compiling polarssl"
 
-    git checkout polarssl-1.2.0
-
+    #make clean
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR lib
     CC=clang make SYS=darwin DESTDIR=$INSTALL_DIR install
 
-    cd ../../
+    cd ../
 fi
 
 
@@ -106,6 +98,7 @@ else
     echo "Compiling rtmpdump"
     cd rtmpdump
 
+    #make clean
     LIBZ="-lssl -lcrypto -ldl" make SYS=darwin CC=clang CRYPTO=POLARSSL prefix=$INSTALL_DIR \
         XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
 
@@ -139,8 +132,10 @@ else
 
     ./configure --prefix=$INSTALL_DIR --enable-shared \
         --enable-gpl --enable-librtmp --enable-libx264 \
-        --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps \
-        --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file \
+        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        --enable-protocol=rtmps --enable-protocol=rtp --enable-protocol=rtmp \
+        --enable-protocol=rtmpte --enable-protocol=rtmpts \
+        --enable-protocol=tcp --enable-protocol=file \
         --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include
 
     make -j2
