@@ -13,7 +13,7 @@ NullVideoSender::~NullVideoSender() {
 
 }
 
-int NullVideoSender::setVideoSettings (int w, int h, float fps, int bitRate, enum VideoQualityLevel quality) {
+int NullVideoSender::setVideoSettings (int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality) {
 	return 0;
 }
 

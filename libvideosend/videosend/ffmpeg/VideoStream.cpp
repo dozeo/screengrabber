@@ -42,14 +42,14 @@ VideoStream::~VideoStream()
 	close();
 }
 
-int VideoStream::openUrl(const std::string& url, float frameRate, int bitRate, enum VideoQualityLevel level)
+int VideoStream::openUrl(const std::string& url, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 {
-	return open(url, CM_RTP, frameRate, bitRate, level);
+	return open(url, CM_RTP, frameRate, bitRate, keyframe, level);
 }
 
-int VideoStream::openFile(const std::string& filename, float frameRate, int bitRate, enum VideoQualityLevel level)
+int VideoStream::openFile(const std::string& filename, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 {
-	return open(filename, CM_FILE, frameRate, bitRate, level);
+	return open(filename, CM_FILE, frameRate, bitRate, keyframe, level);
 }
 
 int VideoStream::open(
@@ -57,6 +57,7 @@ int VideoStream::open(
 	enum ConnectionMode mode,
 	float frameRate,
 	int bitRate,
+	int keyframe,
 	enum VideoQualityLevel level)
 {
 	int result = 0;
@@ -71,7 +72,7 @@ int VideoStream::open(
 
 	// add video stream
 	if (_videoCodec != CODEC_ID_NONE) {
-		_videoStream = addVideoStream(_videoCodec, bitRate, frameRate, destPixFormat, level);
+		_videoStream = addVideoStream(_videoCodec, bitRate, keyframe, frameRate, destPixFormat, level);
 		if (_videoStream == 0) {
 			close();
 			return VideoSender::VE_FAILED_OPEN_STREAM;
@@ -104,6 +105,7 @@ int VideoStream::open(
 AVStream* VideoStream::addVideoStream(
 	enum CodecID codecId,
 	int bitRate,
+	int keyframe,
 	float fps,
 	enum PixelFormat pixFormat,
 	enum VideoQualityLevel level)
@@ -124,7 +126,7 @@ AVStream* VideoStream::addVideoStream(
 
 	avcodec_get_context_defaults3(context, codec);
 	
-	setBasicSettings(context, bitRate, fps, codecId, pixFormat);
+	setBasicSettings(context, bitRate, keyframe, fps, codecId, pixFormat);
 	setVideoQualitySettings(context, level);
 
 	if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -136,6 +138,7 @@ AVStream* VideoStream::addVideoStream(
 void VideoStream::setBasicSettings(
 	AVCodecContext* codec,
 	int bitRate,
+	int keyframe,
 	float fps,
 	enum CodecID codecId,
 	enum PixelFormat pixFormat)
@@ -151,16 +154,17 @@ void VideoStream::setBasicSettings(
 	codec->codec_id      = codecId;
 	codec->time_base.den = fps;
 	codec->time_base.num = 1;
-	codec->gop_size      = 10;  // max key frames
+	codec->gop_size      = 2 * keyframe; // max key frames
+	codec->keyint_min    = keyframe;     // minimum number of keyframes
 }
 
 void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQualityLevel level) {
 
-	codec->me_method = 7; //motion estimation algorithm
+	codec->me_method      = 0; //motion estimation algorithm
 	codec->me_subpel_quality = 4;
-	codec->delay = 0;
-	codec->thread_count = 0; // auto
-	codec->refs = 3;
+	codec->delay          = 0;
+	codec->thread_count   = 0; // determines the number of threads automatically
+	codec->refs           = 3;
 	codec->rc_buffer_size = 0;
 
 	std::cout << "Video Quality: " << level << std::endl;

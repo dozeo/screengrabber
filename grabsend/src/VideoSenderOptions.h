@@ -9,6 +9,7 @@ struct VideoSenderOptions {
 	VideoSenderOptions () :
 		fps (10.0f),
 		kiloBitrate (100),
+		keyframe (10),
 		width (640),
 		height(480),
 		cutSize (true),
@@ -17,7 +18,7 @@ struct VideoSenderOptions {
 		type (dz::VT_DEFAULT){}
 
 	std::ostream & operator<< (std::ostream & s) const {
-		s << "fps: " << fps << "  kiloBitrate: " << kiloBitrate << " vsize: " << width << "x" << height;
+		s << "fps: " << fps << " kiloBitrate: " << kiloBitrate << " keyframe: " << keyframe << " vsize: " << width << "x" << height;
 		if (!url.empty()) {
 			s << " url: " << url;
 		} else {
@@ -33,6 +34,7 @@ struct VideoSenderOptions {
 
 	float fps; ///< fps rate to send
 	int kiloBitrate; ///< bitrate in kiloBit
+	int keyframe; ///< keyframe, the number of frames the next keyframe is sent
 	int width, height; ///< Width/Height of the video
 	bool cutSize;  ///< Cut down the video size so that it matches the source
 	bool correctAspect; ///< Correct the aspect of width/height
@@ -88,6 +90,8 @@ inline std::vector<std::string> VideoSenderOptions::packCommandLine () const {
 	result.push_back (boost::lexical_cast<std::string> (width) + "," + boost::lexical_cast<std::string> (height));
 	result.push_back ("--bitrate");
 	result.push_back (boost::lexical_cast<std::string> (kiloBitrate));
+	result.push_back ("--keyframe");
+	result.push_back (boost::lexical_cast<std::string> (keyframe));
 	result.push_back ("--fps");
 	result.push_back (boost::lexical_cast<std::string> (fps));
 	if (!file.empty()){
@@ -116,11 +120,12 @@ struct VideoSenderOptionsParser {
 				("quality", boost::program_options::value<std::string>(), "Quality Level (Low|Medium|High)")
 				("fps", boost::program_options::value<float>(&target->fps)->default_value (10.0f), "Frames per Second")
 				("bitrate", boost::program_options::value<int>(&target->kiloBitrate)->default_value(100), "Bitrate in kbit/s")
+				("keyframe", boost::program_options::value<int>(&target->keyframe)->default_value(10), "Keyframe, number of frames the next keyframe is sent")
 				("url", boost::program_options::value<std::string>(&target->url),
 					"URL where to send, e.g.\n"
 					"  RTMP: rtmp://[host]/[app]/[playpath]"
 					"        rtmp://[host]/[app] playpath=test"
-					"        rtmp://[host] app=appname playpath=1234/1234/1234"
+					"        rtmp://[host] app=appname/1234 playpath=1234/1234"
 					"  TCP: tcp://[host]:[port]/[app]/[playpath]")
 				("file", boost::program_options::value<std::string>(&target->file)->default_value ("screencast.flv"), "File where to write out (when no URL is set)");
 	}
@@ -152,6 +157,9 @@ struct VideoSenderOptionsParser {
 		}
 		if (target->kiloBitrate < 10) {
 			throw boost::program_options::invalid_option_value ("Invalid bitrate");
+		}
+		if (target->keyframe < 2 || target->keyframe > 100) {
+			throw boost::program_options::invalid_option_value ("Invalid keyframe, must be between 2 and 100");
 		}
 	}
 

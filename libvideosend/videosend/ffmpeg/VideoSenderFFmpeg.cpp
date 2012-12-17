@@ -8,6 +8,7 @@ VideoSenderFFmpeg::VideoSenderFFmpeg()
 : _frameSize(Dimension2(600, 400))
 , _fps(10)
 , _bitRate(300000)
+, _keyframe(10)
 , _videoStream(0)
 , _quality(VQ_MEDIUM)
 , _mode(OM_FILE)
@@ -21,11 +22,12 @@ VideoSenderFFmpeg::~VideoSenderFFmpeg()
 	uninitLog();
 }
 
-int VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, enum VideoQualityLevel quality)
+int VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
 {
 	_frameSize = Dimension2(w, h);
 	_fps = fps;
 	_bitRate = bitRate;
+	_keyframe = keyframe;
 	_quality = quality;
 	return 0;
 }
@@ -52,11 +54,11 @@ int VideoSenderFFmpeg::open()
 	_videoStream = new VideoStream(_frameSize, CODEC_ID_H264);
 	if (_mode == OM_FILE)
 	{
-		result = _videoStream->openFile(_url, _fps, _bitRate, _quality);
+		result = _videoStream->openFile(_url, _fps, _bitRate, _keyframe, _quality);
 	}
 	else if (_mode == OM_URL)
 	{
-		result = _videoStream->openUrl(_url, _fps, _bitRate, _quality);
+		result = _videoStream->openUrl(_url, _fps, _bitRate, _keyframe, _quality);
 	}
 
 	return result;
