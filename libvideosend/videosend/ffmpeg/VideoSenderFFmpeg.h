@@ -11,7 +11,7 @@ public:
 	VideoSenderFFmpeg();
 	virtual ~VideoSenderFFmpeg();
 
-	virtual int setVideoSettings(int w, int h, float fps, int bitRate, enum VideoQualityLevel quality);
+	virtual int setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality);
 	virtual int setTargetFile(const std::string & filename);
 	virtual int setTargetUrl(const std::string & url);
 	virtual int open();
@@ -38,6 +38,7 @@ private:
 	Dimension2   _frameSize;
 	float        _fps;
 	int          _bitRate;
+	int          _keyframe;
 	VideoQualityLevel _quality;
 	int          _defaultLogLevel;
 };

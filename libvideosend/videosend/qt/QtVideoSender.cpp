@@ -13,24 +13,24 @@ void DrawingArea::paintEvent(QPaintEvent *) {
 
 QtVideoSender::QtVideoSender () {
 	mDrawingArea = 0;
-	mWidth   = 0;
-	mHeight  = 0;
-	mFps     = 0;
-	mBitRate = 0;
+	mWidth    = 0;
+	mHeight   = 0;
+	mFps      = 0;
+	mBitRate  = 0;
+	mKeyframe = 0;
 }
 
 QtVideoSender::~QtVideoSender () {
-
 }
 
-
-int QtVideoSender::setVideoSettings(int w, int h, float fps, int bitRate, enum VideoQualityLevel quality) {
+int QtVideoSender::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality) {
 	assert (!mDrawingArea && "already started?");
 	if (w < 1 || h < 0 || fps < 0.1 || bitRate < 1) return VE_INVALID_RESOLUTION;
-	mWidth   = w;
-	mHeight  = h;
-	mFps     = fps;
-	mBitRate = bitRate;
+	mWidth    = w;
+	mHeight   = h;
+	mFps      = fps;
+	mKeyframe = keyframe;
+	mBitRate  = bitRate;
 	return 0;
 }
 

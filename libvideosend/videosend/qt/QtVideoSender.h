@@ -20,7 +20,7 @@ public:
 	virtual ~QtVideoSender ();
 
 	// Implementation
-	virtual int setVideoSettings (int w, int h, float fps, int bitRate, enum VideoQualityLevel quality);
+	virtual int setVideoSettings (int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality);
 	virtual int setTargetFile (const std::string & filename);
 	virtual int setTargetUrl (const std::string & url);
 	virtual int open ();
@@ -32,6 +32,7 @@ private:
 	int  mWidth, mHeight;
 	float mFps;
 	int  mBitRate;
+	int mKeyframe;
 	std::string mTargetFile;
 	std::string mTargetUrl;
 
