@@ -34,7 +34,7 @@ public:
 	static VideoSender* create (VideoSenderType type = VT_DEFAULT);
 
 	/// Usage: at first call setters and then init
-	virtual int setVideoSettings (int w, int h, float fps, int bitRate, enum VideoQualityLevel quality = VQ_MEDIUM) = 0;
+	virtual int setVideoSettings (int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality = VQ_MEDIUM) = 0;
 
 	/// Sets a target file
 	virtual int setTargetFile (const std::string & filename) = 0;
