@@ -206,6 +206,7 @@ int main (int argc, char * argv[]) {
 			options.videoSenderOptions.height,
 			options.videoSenderOptions.fps,
 			options.videoSenderOptions.kiloBitrate * 1000,
+			options.videoSenderOptions.keyframe,
 			options.videoSenderOptions.quality);
 	if (result) {
 		std::cerr << "Error: Could not set video sender settings (w,h,fps,bitrate) " << result << std::endl;
