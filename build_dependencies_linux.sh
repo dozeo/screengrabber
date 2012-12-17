@@ -87,6 +87,7 @@ else
     echo "Compiling ffmpeg"
     ./configure $ADDPIC --enable-shared --enable-gpl --enable-libx264 --disable-everything \
         --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps --enable-protocol=rtmp \
+        --enable-protocol=rtmpte --enable-protocol=rtmpts \
         --enable-protocol=file --enable-protocol=tcp --enable-protocol=rtp --enable-librtmp \
         --prefix=$INSTALL_DIR --extra-ldflags=-L$INSTALL_DIR/lib --extra-libs="-lrtmp -lpolarssl" --extra-cflags="-I$INSTALL_DIR/include" --extra-cxxflags=-I$INSTALL_DIR/include $FFMPEG_EXTRA
     make -j2

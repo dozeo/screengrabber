@@ -139,8 +139,10 @@ else
 
     ./configure --prefix=$INSTALL_DIR --enable-shared \
         --enable-gpl --enable-librtmp --enable-libx264 \
-        --disable-everything --enable-encoder=libx264 --enable-muxer=flv --enable-protocol=rtmps \
-        --enable-protocol=tcp --enable-protocol=rtp --enable-protocol=rtmp --enable-protocol=file \
+        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        --enable-protocol=rtmps --enable-protocol=rtp --enable-protocol=rtmp \
+        --enable-protocol=rtmpte --enable-protocol=rtmpts \
+        --enable-protocol=tcp --enable-protocol=file \
         --extra-ldflags=-L$INSTALL_DIR/lib --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include
 
     make -j2
