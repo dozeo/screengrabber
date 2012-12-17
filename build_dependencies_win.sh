@@ -180,6 +180,7 @@ else
         --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
         --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
         --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
+        --enable-protocol=rtmpte --enable-protocol=rtmpts \
         --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
         --pkg-config=$INSTALL_DIR/bin/pkg-config \
         --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include \
