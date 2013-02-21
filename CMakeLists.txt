@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 
 OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
 
-# Additional tools
+# Set directories for the screengrabber folder and grabsend program
 set (SCREENGRABBER_DIRECTORY ${CMAKE_SOURCE_DIR})
+set (GRABSEND_INSTALL_DIRECTORY bin)
+
+# Additional tools
 set     (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SCREENGRABBER_DIRECTORY}/cmake/Modules/")
 include (Win32RelativeFolder)
 include (InitProject)
