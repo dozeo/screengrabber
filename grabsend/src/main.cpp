@@ -25,6 +25,9 @@ namespace po = boost::program_options;
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
 int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender) {
+	installSigHandler ();
+	installLineReader ();
+
 	int result = sender->open();
 	if (result) {
 		std::cerr << "Error: Could not open output stream " << result << std::endl;
@@ -32,8 +35,6 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & o
 	}
 	double t0 = microtime();
 	double timeToGrabSum = 0;
-	installSigHandler ();
-	installLineReader ();
 	int frame = 0;
 	while (!shutDownLoop()) {
 		double t1 = microtime();
