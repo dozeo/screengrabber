@@ -112,12 +112,12 @@ else
     echo "Fetching pkgconfig"
     cd win32
 
-    pkg_filename=pkg-config_0.26-1_win32.zip
-    pkg_url=http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/pkg-config_0.26-1_win32.zip
+    pkg_filename=pkg-config_0.28-1_bin-win32.zip
+    pkg_url=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
     wget $pkg_url -O $pkg_filename
-    $INSTALL_DIR/bin/unzip $pkg_filename
-    cp -rf pkg-config_0.26-1/* $INSTALL_DIR/
-    rm -r pkg-config_0.26-1
+    $INSTALL_DIR/bin/unzip -o $pkg_filename
+    cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
+    rm -r pkg-config-lite-0.28-1
     rm $pkg_filename
     cd ..
 fi
