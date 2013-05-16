@@ -111,11 +111,14 @@ if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
 else
     echo "Fetching pkgconfig"
     cd win32
-    wget http://downloads.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fpkgconfiglite%2F&ts=1368656245&use_mirror=surfnet -O pkg-config-lite.zip
-    $INSTALL_DIR/bin/unzip pkg-config-lite.zip
-    cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
-    rm -r pkg-config-lite-0.28-1
-    rm pkg-config-lite.zip
+
+    pkg_filename=pkg-config_0.26-1_win32.zip
+    pkg_url=http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/pkg-config_0.26-1_win32.zip
+    wget $pkg_url -O $pkg_filename
+    $INSTALL_DIR/bin/unzip $pkg_filename
+    cp -rf pkg-config_0.26-1/* $INSTALL_DIR/
+    rm -r pkg-config_0.26-1
+    rm $pkg_filename
     cd ..
 fi
 
