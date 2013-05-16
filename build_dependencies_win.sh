@@ -116,8 +116,9 @@ else
     pkg_url=http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/pkg-config_0.26-1_win32.zip
     wget $pkg_url -O $pkg_filename
     $INSTALL_DIR/bin/unzip $pkg_filename
-    cp -rf pkg-config_0.26-1/* $INSTALL_DIR/
-    rm -r pkg-config_0.26-1
+    cp -rf bin/pkg-config.exe $INSTALL_DIR/
+    rm -r bin/pkg-config.exe
+    rm -r manifest/*
     rm $pkg_filename
     cd ..
 fi
