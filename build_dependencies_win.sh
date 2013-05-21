@@ -111,11 +111,14 @@ if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
 else
     echo "Fetching pkgconfig"
     cd win32
-    wget http://sflx.net/files/pkg-config-lite/pkg-config-lite-0.26-1_bin-win32.zip -O pkg-config-lite-0.26-1_bin-win32.zip
-    $INSTALL_DIR/bin/unzip pkg-config-lite-0.26-1_bin-win32.zip
-    cp -rf pkg-config-lite-0.26-1/* $INSTALL_DIR/
-    rm -r pkg-config-lite-0.26-1
-    rm pkg-config-lite-0.26-1_bin-win32.zip
+
+    pkg_filename=pkg-config_0.28-1_bin-win32.zip
+    pkg_url=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
+    wget $pkg_url -O $pkg_filename
+    $INSTALL_DIR/bin/unzip -o $pkg_filename
+    cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
+    rm -r pkg-config-lite-0.28-1
+    rm $pkg_filename
     cd ..
 fi
 
