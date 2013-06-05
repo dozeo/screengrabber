@@ -16,7 +16,7 @@ target_link_libraries (grabsend ${SCREENGRAB_LIBS} grabber videosend ${FFMPEG_LI
 install (
     TARGETS grabsend
     BUNDLE DESTINATION . COMPONENT Runtime
-    RUNTIME DESTINATION ${GRABSEND_INSTALL_DIRECTORY} COMPONENT Runtime
+    RUNTIME DESTINATION bin COMPONENT Runtime
 )
 
 if (WIN32)
