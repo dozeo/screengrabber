@@ -13,13 +13,17 @@ include (gitdescribe)
 add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${SCREENGRAB_LIBS} grabber videosend ${FFMPEG_LIBRARIES})
 
-install (
-    TARGETS grabsend
-    BUNDLE DESTINATION . COMPONENT Runtime
-    RUNTIME DESTINATION bin COMPONENT Runtime
-)
-
+if (APPLE)
+    install (
+        TARGETS grabsend
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION ${GRABSEND_INSTALL_DIRECTORY} COMPONENT Runtime)
+endif ()
 if (WIN32)
+    install (
+        TARGETS grabsend
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION bin COMPONENT Runtime)
     install (
         FILES ${FFMPEG_DLLS}
         DESTINATION bin COMPONENT Runtime)
