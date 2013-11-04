@@ -1,6 +1,6 @@
 [submodule "dependencies_source/zlib"]
 	path = dependencies_source/zlib
-	url = git@github.com:madler/zlib.git
+	url = git@github.com:dozeo/zlib.git
 [submodule "dependencies_source/rtmpdump"]
 	path = dependencies_source/rtmpdump
 	url = git://github.com/justahero/rtmpdump.git
