@@ -194,6 +194,18 @@ else
 	cd ..
 fi
 
+# zlib
+if [ -e $INSTALL_DIR/bin/zlib1.dll ]; then
+	echo "zlib1.dll exists"
+else
+	echo "Compiling zlib1.dll"
+	
+	cd zlib
+	
+	make -f win32/Makefile.gcc
+	cp zlib1.dll $INSTALL_DIR/bin
+fi
+
 
 # gtest (just fetching, will be build via CMake)
 if [ -d gtest-1.6.0 ]; then
@@ -217,6 +229,6 @@ function CheckDLL {
 	fi
 }
 
-CheckDLL libz-1.dll "Zlib DLL"
+#CheckDLL libz-1.dll "Zlib DLL"
 CheckDLL libgcc_s_dw2-1.dll "GCC Support Library"
 CheckDLL pthreadGC2.dll "Pthread"
