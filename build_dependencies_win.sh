@@ -44,7 +44,6 @@ echo "INSTALL_DIR: $INSTALL_DIR"
 cd $SRC_DIR
 mkdir -p win32
 
-
 # yeah we need wget for our purposes here, it supports https
 if [ -e $INSTALL_DIR/bin/wget ]; then
     echo "wget seems to already exist"
@@ -122,7 +121,11 @@ else
     cd ..
 fi
 
-
+# check source dependencies
+if [ ! -d ./polarssl ] || [ ! -d ./rtmpdump ] || [ ! -d ./x264 ] || [ ! -d ./ffmpeg ]; then
+	echo "some dependencies sources seems to be missing. Forgot to 'git submodule update --init'?"
+	exit 1
+fi
 
 # compile polarssl
 if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
@@ -194,6 +197,21 @@ else
 	cd ..
 fi
 
+# zlib
+ZLIBFILE=libz-1.dll
+ZLIBPATH=$INSTALL_DIR/bin/$ZLIBFILE
+
+if [ -e $ZLIBPATH ]; then
+	echo "$ZLIBFILE exists"
+else
+	echo "Compiling $ZLIBFILE"
+	
+	cd zlib
+	
+	make -f win32/Makefile.gcc
+	cp zlib1.dll $ZLIBPATH
+fi
+
 
 # gtest (just fetching, will be build via CMake)
 if [ -d gtest-1.6.0 ]; then
@@ -217,6 +235,6 @@ function CheckDLL {
 	fi
 }
 
-CheckDLL libz-1.dll "Zlib DLL"
+#CheckDLL libz-1.dll "Zlib DLL"
 CheckDLL libgcc_s_dw2-1.dll "GCC Support Library"
 CheckDLL pthreadGC2.dll "Pthread"
