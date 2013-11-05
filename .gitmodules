@@ -1,9 +1,6 @@
 [submodule "dependencies_source/rtmpdump"]
 	path = dependencies_source/rtmpdump
 	url = git://github.com/justahero/rtmpdump.git
-[submodule "dependencies_source/ffmpeg"]
-	path = dependencies_source/ffmpeg
-	url = git://source.ffmpeg.org/ffmpeg.git
 [submodule "dependencies_source/polarssl"]
 	path = dependencies_source/polarssl
 	url = git@github.com:polarssl/polarssl
