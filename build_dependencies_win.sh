@@ -44,7 +44,6 @@ echo "INSTALL_DIR: $INSTALL_DIR"
 cd $SRC_DIR
 mkdir -p win32
 
-
 # yeah we need wget for our purposes here, it supports https
 if [ -e $INSTALL_DIR/bin/wget ]; then
     echo "wget seems to already exist"
@@ -122,7 +121,11 @@ else
     cd ..
 fi
 
-
+# check source dependencies
+if [ ! -d ./polarssl ] || [ ! -d ./rtmpdump ] || [ ! -d ./x264 ] || [ ! -d ./ffmpeg ]; then
+	echo "some dependencies sources seems to be missing. Forgot to 'git submodule update --init'?"
+	exit 1
+fi
 
 # compile polarssl
 if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
@@ -195,15 +198,18 @@ else
 fi
 
 # zlib
-if [ -e $INSTALL_DIR/bin/zlib1.dll ]; then
-	echo "zlib1.dll exists"
+ZLIBFILE=libz-1.dll
+ZLIBPATH=$INSTALL_DIR/bin/$ZLIBFILE
+
+if [ -e $ZLIBPATH ]; then
+	echo "$ZLIBFILE exists"
 else
-	echo "Compiling zlib1.dll"
+	echo "Compiling $ZLIBFILE"
 	
 	cd zlib
 	
 	make -f win32/Makefile.gcc
-	cp zlib1.dll $INSTALL_DIR/bin
+	cp zlib1.dll $ZLIBPATH
 fi
 
 
