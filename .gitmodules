@@ -7,3 +7,6 @@
 [submodule "dependencies_source/polarssl"]
 	path = dependencies_source/polarssl
 	url = git@github.com:polarssl/polarssl
+[submodule "dependencies_source/x264"]
+	path = dependencies_source/x264
+	url = git@github.com:dozeo/x264.git
