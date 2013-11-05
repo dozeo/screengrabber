@@ -10,3 +10,6 @@
 [submodule "dependencies_source/zlib"]
 	path = dependencies_source/zlib
 	url = git@github.com:dozeo/zlib.git
+[submodule "dependencies_source/ffmpeg"]
+	path = dependencies_source/ffmpeg
+	url = git@github.com:dozeo/ffmpeg.git
