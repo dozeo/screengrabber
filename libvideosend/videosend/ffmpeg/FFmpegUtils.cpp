@@ -6,7 +6,7 @@
 
 namespace dz {
 
-AVFormatContext* FFmpegUtils::createFormatContext(const std::string& outputType, enum CodecID codecId)
+AVFormatContext* FFmpegUtils::createFormatContext(const std::string& outputType, enum AVCodecID codecId)
 {
 	AVFormatContext* formatContext = 0;
 

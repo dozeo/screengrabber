@@ -13,7 +13,7 @@ namespace dz {
 class FFmpegUtils
 {
 public:
-	static AVFormatContext* createFormatContext(const std::string& outputType, enum CodecID codecId);
+	static AVFormatContext* createFormatContext(const std::string& outputType, enum AVCodecID codecId);
 
 	static void copyRgbaToFrame(const uint8_t* rgba, const Dimension2& sourceSize, uint32_t stride, AVFrame* destFrame);
 

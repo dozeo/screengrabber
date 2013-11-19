@@ -83,7 +83,7 @@ else
 
     cd yasm-1.2.0
     ./configure --prefix=$INSTALL_DIR
-    make -j2
+    make
     make install
     cd ../../
 fi
@@ -147,7 +147,7 @@ else
     cd rtmpdump
 
     LIBZ="-lssl -lcrypto -ldl" make CRYPTO=POLARSSL SYS=mingw prefix=$INSTALL_DIR \
-        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib -j2 install
+        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
     cd ..
 fi
 
@@ -161,7 +161,8 @@ else
 
 	cd x264
 	./configure --enable-shared --prefix=$INSTALL_DIR
-	make -j2
+	#--enable-debug --disable-asm --enable-win32thread
+	make
 	make install
 	cd ..
 fi
@@ -179,17 +180,21 @@ else
 #    export PKG_CONFIG="$INSTALL_DIR/bin/pkg-config"
 
     # ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
-    ./configure --prefix=$INSTALL_DIR \
-        --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
-        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
-        --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
-        --enable-protocol=rtmpte --enable-protocol=rtmpts \
-        --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
-        --pkg-config=$INSTALL_DIR/bin/pkg-config \
-        --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include \
-        --extra-ldflags="-L$INSTALL_DIR/lib -L$INSTALL_DIR/bin" --extra-libs="-lrtmp"
+    # ./configure --prefix=$INSTALL_DIR \
+        # --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
+        # --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        # --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
+        # --enable-protocol=rtmpte --enable-protocol=rtmpts \
+        # --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
+        # --pkg-config=$INSTALL_DIR/bin/pkg-config \
+        # --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include \
+        # --extra-ldflags="-L$INSTALL_DIR/lib -L$INSTALL_DIR/bin" --extra-libs="-lrtmp"
 
-	make -j4
+	./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-encoder=libx264\
+		--enable-protocol=rtmp --enable-protocol=rtmps --enable-protocol=rtmpts --enable-protocol=rtmpte \
+		--enable-protocol=tcp --enable-protocol=file
+		
+	make
 	make install -k
 	cd ..
 fi

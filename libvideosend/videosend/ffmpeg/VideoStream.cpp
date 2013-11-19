@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "VideoStream.h"
 #include "FFmpegUtils.h"
@@ -6,12 +7,21 @@
 #include <assert.h>
 #include <string>
 
+void ffmpeg_log(void*, int line, const char* msg, va_list list)
+{
+	char buffer[2048];
+	vsprintf(buffer, msg, list);
+	std::cout << "[FFMPEG] - " << buffer;
+}
+
+//void av_log_set_callback(void (*callback)(void*, int, const char*, va_list));
+
 namespace dz {
 
 const std::string VideoStream::StreamProtocol     = std::string("flv");
 bool              VideoStream::AVCodecInitialized = false;
 
-VideoStream::VideoStream(const Dimension2& videoSize, enum CodecID videoCodec)
+VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec)
 : _formatContext(NULL)
 , _convertContext(NULL)
 , _videoStream(NULL)
@@ -31,6 +41,9 @@ VideoStream::VideoStream(const Dimension2& videoSize, enum CodecID videoCodec)
 		avformat_network_init();
 		AVCodecInitialized = true;
 	}
+
+	av_log_set_callback(ffmpeg_log);
+	av_log_set_level(AV_LOG_DEBUG);
 
 	_videoFrameSize.width  = videoSize.width  - (videoSize.width % 4);
 	_videoFrameSize.height = videoSize.height - (videoSize.height % 4);
@@ -103,7 +116,7 @@ int VideoStream::open(
 }
 
 AVStream* VideoStream::addVideoStream(
-	enum CodecID codecId,
+	enum AVCodecID codecId,
 	int bitRate,
 	int keyframe,
 	float fps,
@@ -140,7 +153,7 @@ void VideoStream::setBasicSettings(
 	int bitRate,
 	int keyframe,
 	float fps,
-	enum CodecID codecId,
+	enum AVCodecID codecId,
 	enum PixelFormat pixFormat)
 {
 	// set up properties
@@ -152,7 +165,7 @@ void VideoStream::setBasicSettings(
 	codec->pix_fmt     = pixFormat;
 
 	codec->codec_id      = codecId;
-	codec->time_base.den = fps;
+	codec->time_base.den = (int)fps;
 	codec->time_base.num = 1;
 	codec->gop_size      = 2 * keyframe; // max key frames
 	codec->keyint_min    = keyframe;     // minimum number of keyframes
@@ -169,7 +182,7 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 
 	std::cout << "Video Quality: " << level << std::endl;
 
-	if (level == VQ_LOW) {
+	/*if (level == VQ_LOW) {
 		codec->max_b_frames = 0;
 	
 		av_opt_set(codec->priv_data, "profile", "baseline", 0);
@@ -186,7 +199,7 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 		av_opt_set(codec->priv_data, "profile", "main", 0);
 		av_opt_set(codec->priv_data, "preset", "medium", 0);
 		av_opt_set(codec->priv_data, "tune", "film", 0);
-	}
+	}*/
 }		
 
 int VideoStream::openVideo(AVStream* stream) {

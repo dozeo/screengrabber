@@ -1,6 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <grabber/Grabber.h>
+#include <boost/program_options.hpp>
 #include <ostream>
 #include <vector>
 #include <stdio.h>

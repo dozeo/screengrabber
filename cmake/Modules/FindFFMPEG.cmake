@@ -71,13 +71,13 @@ if (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FO
 	
 	if (WIN32)
 		set (FFMPEG_DLLS 
-			${FFMPEG_ROOT_DIR}/bin/avformat-53.dll
-			${FFMPEG_ROOT_DIR}/bin/avcodec-53.dll
-			${FFMPEG_ROOT_DIR}/bin/avutil-51.dll
+			${FFMPEG_ROOT_DIR}/bin/avformat-55.dll
+			${FFMPEG_ROOT_DIR}/bin/avcodec-55.dll
+			${FFMPEG_ROOT_DIR}/bin/avutil-52.dll
 			${FFMPEG_ROOT_DIR}/bin/swscale-2.dll
 			${FFMPEG_ROOT_DIR}/bin/librtmp-0.dll
 			${FFMPEG_ROOT_DIR}/bin/libz-1.dll
-			${FFMPEG_ROOT_DIR}/bin/libx264-125.dll
+			${FFMPEG_ROOT_DIR}/bin/libx264-140.dll
 #			${FFMPEG_ROOT_DIR}/bin/libeay32.dll
 #			${FFMPEG_ROOT_DIR}/bin/ssleay32.dll
 			${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll

@@ -14,7 +14,7 @@ namespace dz {
 class VideoStream
 {
 public:
-	VideoStream(const Dimension2& videoSize, enum CodecID videoCodec);
+	VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec);
 	virtual ~VideoStream();
 
 	int openUrl(const std::string& url, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level);
@@ -40,10 +40,10 @@ private:
 		int keyframe,
 		enum VideoQualityLevel level);
 
-	AVStream* addVideoStream(enum CodecID codecId, int bitRate, int keyframe, float fps, enum PixelFormat pixFormat, enum VideoQualityLevel level);
+	AVStream* addVideoStream(enum AVCodecID codecId, int bitRate, int keyframe, float fps, enum PixelFormat pixFormat, enum VideoQualityLevel level);
 	int openVideo(AVStream* stream);
 
-	void setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum CodecID codecId, enum PixelFormat pixFormat);
+	void setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat);
 	void setVideoQualitySettings(AVCodecContext* codec, enum VideoQualityLevel level);
 
 	int setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize);
@@ -71,7 +71,7 @@ private:
 
 	Dimension2   _videoFrameSize;
 	Dimension2   _scalingImageSize;
-	enum CodecID _videoCodec;
+	enum AVCodecID _videoCodec;
 
 	uint64_t _lastTimeStamp;
 	bool _waitForFirstFrame;
