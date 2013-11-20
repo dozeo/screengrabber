@@ -10,3 +10,6 @@
 [submodule "dependencies_source/ffmpeg"]
 	path = dependencies_source/ffmpeg
 	url = git@github.com:dozeo/ffmpeg.git
+[submodule "dependencies_source/rtmpdump"]
+	path = dependencies_source/rtmpdump
+	url = git@github.com:justahero/rtmpdump.git
