@@ -1,8 +1,6 @@
 #!/bin/bash
 
-DIR=`dirname $0`
-cd $DIR
-ABSDIR=`pwd`
+ABSDIR=`(cd $(dirname $0); pwd)`
 
 # Fail on errors
 set -e
@@ -11,7 +9,7 @@ set -e
 SRC_DIR=$ABSDIR/dependencies_source
 INSTALL_DIR=$ABSDIR/dependencies
 
-export PATH=$PATH:/C/MinGW/bin
+export PATH=/C/MinGW/bin:$PATH
 export PATH=$PATH:$INSTALL_DIR/bin
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
 
@@ -57,13 +55,12 @@ else
 		PKG_FILENAME=pkg-config_0.28-1_bin-win32.zip
 		PKG_URL=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
 
-		cd $SRC_DIR/win32
+		cd $INSTALL_DIR/bin/
 
 		wget $PKG_URL -O $PKG_FILENAME
 		unzip -o $PKG_FILENAME
-		cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
-		rm -r pkg-config-lite-0.28-1
-		rm $PKG_FILENAME
+		cp -rf pkg-config-lite-0.28-1/* .
+		rm -rf pkg-config-lite-0.28-1/ $PKG_FILENAME
 	)
 fi
 # =================================================================
@@ -76,8 +73,8 @@ if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
 else
 
     (
-		cd $SRC_DIR/polarssl && 
-		make SYS=posix DESTDIR=$INSTALL_DIR lib &&
+		cd $SRC_DIR/polarssl
+		make SYS=posix DESTDIR=$INSTALL_DIR lib
 		make SYS=posix DESTDIR=$INSTALL_DIR install
 	)
 		
@@ -97,24 +94,6 @@ else
 		export LIBZ="-lssl -lcrypto -ldl" 
 		make CRYPTO=POLARSSL SYS=mingw prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
     )
-fi
-# =================================================================
-
-
-# lib x264 needs to get build!
-# =================================================================
-if [ -e $INSTALL_DIR/bin/x264 ]; then
-	echo "libx264 seems to already exist"
-else
-	echo "Compiling x264 ..."
-
-	(
-		cd $SRC_DIR/x264
-		./configure --enable-shared --prefix=$INSTALL_DIR
-		#--enable-debug --disable-asm --enable-win32thread
-		make install
-	)
-	#make install
 fi
 # =================================================================
 
@@ -155,9 +134,27 @@ fi
 # =================================================================
 
 
+# lib x264 needs to get build!
+# =================================================================
+if [ -e $INSTALL_DIR/bin/x264 ]; then
+    echo "libx264 seems to already exist"
+else
+    echo "Compiling x264 ..."
+
+    (
+        cd $SRC_DIR/x264
+        ./configure --enable-shared --prefix=$INSTALL_DIR
+        #--enable-debug --disable-asm --enable-win32thread
+        make install
+    )
+    #make install
+fi
+# =================================================================
+
+
 # enable VSDIR here
 # =================================================================
-export PATH="$VSDIR/VC/bin":"$VSDIR/Common7/IDE":$PATH
+export PATH=$PATH:$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
 # HACK determine installed Visual Studio, can differ for OS, 32 / 64 Bit
 if [ -d "/C/Program Files/Microsoft Visual Studio 9.0/VC" ]; then
 	echo "Using Visual Studio 2008"
