@@ -28,10 +28,13 @@ else
 	exit 1
 fi
 
-export PATH=$PATH:$INSTALL_DIR/bin
-export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
 export PATH=$PATH:/C/MinGW/bin
+export PATH=$PATH:$INSTALL_DIR/bin
+
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
+
+echo "Fetching all dependencies"
+./get_dependencies.sh
 
 # create target directory where to compile tos
 echo "creating install dir"
@@ -90,18 +93,18 @@ fi
 
 # on some Windows machines the command line tool unzip does not work properly
 # and shows a notification stating zip file is corrupt
-if [ -e $INSTALL_DIR/bin/unzip.exe ]; then
-    echo "unzip seems to already exist"
-else
-    echo "Fetching unzip"
-    cd win32
-
-    wget http://stahlworks.com/dev/unzip.exe -O unzip.exe
-    cp unzip.exe $INSTALL_DIR/bin
-    rm unzip.exe
-
-    cd ..
-fi
+# if [ -e $INSTALL_DIR/bin/unzip.exe ]; then
+#    echo "unzip seems to already exist"
+#else
+#    echo "Fetching unzip"
+#    cd win32
+#
+#    wget http://stahlworks.com/dev/unzip.exe -O unzip.exe
+#    cp unzip.exe $INSTALL_DIR/bin
+#    rm unzip.exe
+#
+#    cd ..
+#fi
 
 
 
@@ -114,17 +117,11 @@ else
     pkg_filename=pkg-config_0.28-1_bin-win32.zip
     pkg_url=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
     wget $pkg_url -O $pkg_filename
-    $INSTALL_DIR/bin/unzip -o $pkg_filename
+    unzip -o $pkg_filename
     cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
     rm -r pkg-config-lite-0.28-1
     rm $pkg_filename
     cd ..
-fi
-
-# check source dependencies
-if [ ! -d ./polarssl ] || [ ! -d ./rtmpdump ] || [ ! -d ./x264 ] || [ ! -d ./ffmpeg ]; then
-	echo "some dependencies sources seems to be missing. Forgot to 'git submodule update --init'?"
-	exit 1
 fi
 
 # compile polarssl
@@ -171,6 +168,10 @@ else
 fi
 
 
+# enable vs here
+export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
+
+
 # ffmpeg
 if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
 	echo "ffmpeg seems to already exist"
@@ -201,6 +202,8 @@ else
 	make install -k
 	cd ..
 fi
+
+#export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
 
 # zlib
 ZLIBFILE=libz-1.dll
