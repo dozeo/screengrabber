@@ -1,15 +1,163 @@
-#!/bin/sh
-export DIR=`dirname $0`
+#!/bin/bash
+
+DIR=`dirname $0`
 cd $DIR
-export ABSDIR=`cd .;pwd`
+ABSDIR=`pwd`
 
 # Fail on errors
 set -e
 
 # define directories
-export SRC_DIR=$ABSDIR/dependencies_source
-export INSTALL_DIR=$ABSDIR/dependencies
+SRC_DIR=$ABSDIR/dependencies_source
+INSTALL_DIR=$ABSDIR/dependencies
 
+export PATH=$PATH:/C/MinGW/bin
+export PATH=$PATH:$INSTALL_DIR/bin
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
+
+echo "Fetching all dependencies"
+./get_dependencies.sh
+
+# create target directory where to compile tos
+echo "creating install dir"
+mkdir -p $INSTALL_DIR/bin
+mkdir -p $SRC_DIR/win32
+
+
+echo "SRC_DIR:     $SRC_DIR"
+echo "INSTALL_DIR: $INSTALL_DIR"
+
+
+# yasm
+# download by hand
+# git version doesn't work, as no autoconf is installed by default
+if [ -e $INSTALL_DIR/bin/yasm ]; then
+    echo "yasm seems to already exist"
+else
+    if [ -d $SRC_DIR/yasm-1.2.0 ]; then
+        echo "Yasm already downloaded"
+    else
+		(cd $SRC_DIR && wget --no-check-certificate https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz -O yasm-1.2.0.tar.gz && tar zxvf yasm-1.2.0.tar.gz && rm yasm-1.2.0.tar.gz)
+    fi
+	
+    echo "Compiling yasm ..."
+
+    (cd $SRC_DIR/yasm-1.2.0 && ./configure --prefix=$INSTALL_DIR && make install)
+fi
+
+
+# ffmpeg requires pkg-config
+# =================================================================
+if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
+    echo "pkgconfig seems to already exist"
+else
+    echo "Fetching pkgconfig"
+	
+	(
+		PKG_FILENAME=pkg-config_0.28-1_bin-win32.zip
+		PKG_URL=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
+
+		cd $SRC_DIR/win32
+
+		wget $PKG_URL -O $PKG_FILENAME
+		unzip -o $PKG_FILENAME
+		cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
+		rm -r pkg-config-lite-0.28-1
+		rm $PKG_FILENAME
+	)
+fi
+# =================================================================
+
+
+# compile polarssl
+# =================================================================
+if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
+    echo "polarssl seems to already exist"
+else
+
+    (
+		cd $SRC_DIR/polarssl && 
+		make SYS=posix DESTDIR=$INSTALL_DIR lib &&
+		make SYS=posix DESTDIR=$INSTALL_DIR install
+	)
+		
+fi
+# =================================================================
+
+
+# rtmpdump
+# =================================================================
+if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+    echo "rtmpdump seems to already exist"
+else
+    echo "Compiling rtmpdump ..."
+	
+	(
+		cd $SRC_DIR/rtmpdump
+		export LIBZ="-lssl -lcrypto -ldl" 
+		make CRYPTO=POLARSSL SYS=mingw prefix=$INSTALL_DIR XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
+    )
+fi
+# =================================================================
+
+
+# lib x264 needs to get build!
+# =================================================================
+if [ -e $INSTALL_DIR/bin/x264 ]; then
+	echo "libx264 seems to already exist"
+else
+	echo "Compiling x264 ..."
+
+	(
+		cd $SRC_DIR/x264
+		./configure --enable-shared --prefix=$INSTALL_DIR
+		#--enable-debug --disable-asm --enable-win32thread
+		make install
+	)
+	#make install
+fi
+# =================================================================
+
+
+# zlib
+# =================================================================
+ZLIBFILE=libz-1.dll
+ZLIBPATH=$INSTALL_DIR/bin/$ZLIBFILE
+
+if [ -e $ZLIBPATH ]; then
+	echo "$ZLIBFILE exists"
+else
+	echo "Compiling $ZLIBFILE"
+	
+	cd $SRC_DIR/zlib
+	
+	make -f win32/Makefile.gcc
+	cp -rf zlib1.dll $ZLIBPATH
+fi
+# =================================================================
+
+
+# gtest (just fetching, will be build via CMake)
+# =================================================================
+GTESTNAME=gtest-1.6.0
+GTESTPATH=$SRC_DIR
+GTESTURL=http://googletest.googlecode.com/files/gtest-1.6.0.zip
+if [ -d $SRC_DIR/$GTESTNAME ]; then
+    echo "gtest seems already downloaded"
+else
+	(
+		cd $SRC_DIR
+		wget $GTESTURL -O $GTESTNAME.zip
+		unzip $GTESTNAME.zip
+		rm $GTESTNAME.zip
+	)
+fi
+# =================================================================
+
+
+# enable VSDIR here
+# =================================================================
+export PATH="$VSDIR/VC/bin":"$VSDIR/Common7/IDE":$PATH
 # HACK determine installed Visual Studio, can differ for OS, 32 / 64 Bit
 if [ -d "/C/Program Files/Microsoft Visual Studio 9.0/VC" ]; then
 	echo "Using Visual Studio 2008"
@@ -27,213 +175,35 @@ else
 	echo "Fatal: No visual studio found, ffmpeg won't link correctly without lib.exe"
 	exit 1
 fi
-
-export PATH=$PATH:/C/MinGW/bin
-export PATH=$PATH:$INSTALL_DIR/bin
-
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
-
-echo "Fetching all dependencies"
-./get_dependencies.sh
-
-# create target directory where to compile tos
-echo "creating install dir"
-mkdir -p $INSTALL_DIR
-
-echo "VSDIR:       $VSDIR"
-echo "SRC_DIR:     $SRC_DIR"
-echo "INSTALL_DIR: $INSTALL_DIR"
-
-cd $SRC_DIR
-mkdir -p win32
-
-# yeah we need wget for our purposes here, it supports https
-if [ -e $INSTALL_DIR/bin/wget ]; then
-    echo "wget seems to already exist"
-else
-    cd win32
-    if [ -d wget.exe ]; then
-        echo "wget already downloaded"
-    else
-        curl -fL http://users.ugent.be/~bpuype/cgi-bin/fetch.pl?dl=wget/wget.exe > wget.exe
-    fi
-
-    mkdir -p $INSTALL_DIR/bin/
-    cp -f wget.exe $INSTALL_DIR/bin/
-
-    cd ../
-fi
-
-
-
-# yasm
-# download by hand
-# git version doesn't work, as no autoconf is installed by default
-if [ -e $INSTALL_DIR/bin/yasm ]; then
-    echo "yasm seems to already exist"
-else
-    cd win32
-
-    if [ -d yasm-1.2.0 ]; then
-        echo "Yasm already downloaded"
-    else
-        #curl -fL http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz > yasm-1.2.0.tar.gz
-        wget --no-check-certificate https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz -O yasm-1.2.0.tar.gz
-        tar -xzf yasm-1.2.0.tar.gz
-    fi
-    echo "Compiling yasm ..."
-
-    cd yasm-1.2.0
-    ./configure --prefix=$INSTALL_DIR
-    make
-    make install
-    cd ../../
-fi
-
-
-# on some Windows machines the command line tool unzip does not work properly
-# and shows a notification stating zip file is corrupt
-# if [ -e $INSTALL_DIR/bin/unzip.exe ]; then
-#    echo "unzip seems to already exist"
-#else
-#    echo "Fetching unzip"
-#    cd win32
-#
-#    wget http://stahlworks.com/dev/unzip.exe -O unzip.exe
-#    cp unzip.exe $INSTALL_DIR/bin
-#    rm unzip.exe
-#
-#    cd ..
-#fi
-
-
-
-if [ -e $INSTALL_DIR/bin/pkg-config.exe ]; then
-    echo "pkgconfig seems to already exist"
-else
-    echo "Fetching pkgconfig"
-    cd win32
-
-    pkg_filename=pkg-config_0.28-1_bin-win32.zip
-    pkg_url=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
-    wget $pkg_url -O $pkg_filename
-    unzip -o $pkg_filename
-    cp -rf pkg-config-lite-0.28-1/* $INSTALL_DIR/
-    rm -r pkg-config-lite-0.28-1
-    rm $pkg_filename
-    cd ..
-fi
-
-# compile polarssl
-if [ -e $INSTALL_DIR/lib/polarssl.dll ]; then
-    echo "polarssl seems to already exist"
-else
-
-    cd polarssl
-
-#    make clean
-    make SYS=posix DESTDIR=$INSTALL_DIR lib
-    make SYS=posix DESTDIR=$INSTALL_DIR install
-
-    cd ../
-fi
-
-
-# rtmpdump
-if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
-    echo "rtmpdump seems to already exist"
-else
-    echo "Compiling rtmpdump ..."
-    cd rtmpdump
-
-    LIBZ="-lssl -lcrypto -ldl" make CRYPTO=POLARSSL SYS=mingw prefix=$INSTALL_DIR \
-        XCFLAGS=-I$INSTALL_DIR/include XLDFLAGS=-L$INSTALL_DIR/lib install
-    cd ..
-fi
-
-
-
-# lib x264 needs to get build!
-if [ -e $INSTALL_DIR/bin/x264 ]; then
-	echo "libx264 seems to already exist"
-else
-	echo "Compiling x264 ..."
-
-	cd x264
-	./configure --enable-shared --prefix=$INSTALL_DIR
-	#--enable-debug --disable-asm --enable-win32thread
-	make
-	make install
-	cd ..
-fi
-
-
-# enable vs here
-export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
+echo "VSDIR: $VSDIR"
+# =================================================================
 
 
 # ffmpeg
-if [ -e $INSTALL_DIR/bin/ffmpeg ]; then
+# =================================================================
+if [ -e $INSTALL_DIR/bin/ffmpeg.exe ]; then
 	echo "ffmpeg seems to already exist"
 else
 	echo "Compiling ffmpeg ..."
 	
-	cd ffmpeg
+	(
+		cd $SRC_DIR/ffmpeg
 
-    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig"
-#    export PKG_CONFIG="$INSTALL_DIR/bin/pkg-config"
-
-    # ./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-memalign-hack --pkg-config=$INSTALL_DIR/bin/pkg-config --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include --extra-ldflags=-L$INSTALL_DIR/lib
-    # ./configure --prefix=$INSTALL_DIR \
-        # --enable-shared --enable-libx264 --enable-gpl --enable-librtmp \
-        # --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
-        # --enable-protocol=rtmps --enable-protocol=tcp --enable-protocol=rtp \
-        # --enable-protocol=rtmpte --enable-protocol=rtmpts \
-        # --enable-protocol=rtmp --enable-protocol=file --enable-memalign-hack \
-        # --pkg-config=$INSTALL_DIR/bin/pkg-config \
-        # --extra-cflags=-I$INSTALL_DIR/include --extra-cxxflags=-I$INSTALL_DIR/include \
-        # --extra-ldflags="-L$INSTALL_DIR/lib -L$INSTALL_DIR/bin" --extra-libs="-lrtmp"
-
-	./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-encoder=libx264\
-		--enable-protocol=rtmp --enable-protocol=rtmps --enable-protocol=rtmpts --enable-protocol=rtmpte \
-		--enable-protocol=tcp --enable-protocol=file
+		./configure --prefix=$INSTALL_DIR --enable-shared --enable-libx264 --enable-gpl --enable-librtmp --enable-encoder=libx264 --enable-protocol=rtmp --enable-protocol=rtmps --enable-protocol=rtmpts --enable-protocol=rtmpte --enable-protocol=tcp --enable-protocol=file
 		
-	make
-	make install -k
-	cd ..
-fi
-
-#export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
-
-# zlib
-ZLIBFILE=libz-1.dll
-ZLIBPATH=$INSTALL_DIR/bin/$ZLIBFILE
-
-if [ -e $ZLIBPATH ]; then
-	echo "$ZLIBFILE exists"
-else
-	echo "Compiling $ZLIBFILE"
+		make
+		make install -k
+	)
 	
-	cd zlib
-	
-	make -f win32/Makefile.gcc
-	cp zlib1.dll $ZLIBPATH
 fi
+# =================================================================
 
-
-# gtest (just fetching, will be build via CMake)
-if [ -d gtest-1.6.0 ]; then
-    echo "gtest seems already downloaded"
-else
-    curl -fL http://googletest.googlecode.com/files/gtest-1.6.0.zip > gtest-1.6.0.zip
-    unzip gtest-1.6.0.zip
-    rm gtest-1.6.0.zip
-fi
 
 # Checks if a given .DLL file is already from $PATH, if not, then copy (from Mingw, which is in $PATH)
 # Param $1: dll Name
 # Param $2: Human readable name
-function CheckDLL {
+#function 
+CheckDLL() {
 	if [ -e $INSTALL_DIR/bin/$1 ]; then
 		echo "$2 ($1) already exists."
 	else
