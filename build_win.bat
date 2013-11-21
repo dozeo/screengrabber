@@ -12,4 +12,4 @@
 @call "%VS90COMNTOOLS%vsvars32.bat"
 @bash %CURDIR%build_win.sh %*
 
-pause
+@rem - pause
