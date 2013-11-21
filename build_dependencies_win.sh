@@ -194,6 +194,8 @@ else
 		
 		make
 		make install -k
+		git clean -df
+		git checkout -- .
 	)
 	
 fi
