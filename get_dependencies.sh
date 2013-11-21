@@ -14,7 +14,9 @@ checkout() {
 		git clone $2 --no-checkout $DEPSRC/$1
 	fi
 	
-	(cd $DEPSRC/$1 && git checkout $3) || return 1;
+	# check out the correct SHA but also get rid of all build artifacts that the project might have
+	# because we might want to rebuild it
+	(cd $DEPSRC/$1 && git checkout $3 && git clean -dffx && git checkout -- .) || return 1;
 	
 	return 0;
 }
