@@ -59,7 +59,7 @@ else
 		PKG_FILENAME=pkg-config_0.28-1_bin-win32.zip
 		PKG_URL=http://kent.dl.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip
 
-		cd $INSTALL_DIR/bin/
+		cd $INSTALL_DIR/
 
 		wget $PKG_URL -O $PKG_FILENAME
 		unzip -o $PKG_FILENAME
@@ -175,7 +175,7 @@ else
 	echo "Fatal: No visual studio found, ffmpeg won't link correctly without lib.exe"
 	exit 1
 fi
-export PATH=$PATH:$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
+export PATH=$PATH:"$VSDIR/VC/bin":"$VSDIR/Common7/IDE"
 echo "VSDIR: $VSDIR"
 # =================================================================
 
