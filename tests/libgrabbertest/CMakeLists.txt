@@ -1,8 +1,31 @@
-file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} grabber/*.cpp)
-file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} grabber/*.h)
+cmake_minimum_required(VERSION 2.8)
 
-WIN32_RELATIVE_FOLDER (${src_files} ${header_files})
+project(libgrabbertest CXX)
 
+file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
+file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
+
+add_subdirectory (../../cmake/external/gtest ${CMAKE_CURRENT_SOURCE_DIR}/build/gtest/)
+
+include_directories (../../dependencies_source/gtest-1.6.0/include)
+include_directories (../..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR})  # Place of UIC Files
+
+if (NOT TARGET libgrabber)
+	add_subdirectory(../../libgrabber ${CMAKE_CURRENT_SOURCE_DIR}/build/libgrabber/)
+endif()
+
+if (WIN32)
+	set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules/")
+	find_package (DirectX REQUIRED)
+
+	set (PLATFORMLIBS "psapi")
+	set (PLATFORMLIBS ${PLATFORMLIBS} ${DIRECTX_LIBRARIES})
+endif()
+
 add_executable (libgrabbertest ${src_files} ${header_files})
-target_link_libraries (libgrabbertest ${SCREENGRAB_LIBS} grabber ${GTEST_LIBRARY})
+target_link_libraries (libgrabbertest libgrabber gtest ${PLATFORMLIBS})
+
+enable_testing()
+
+add_test(libgrabbertest libgrabbertest)

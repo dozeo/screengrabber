@@ -1,5 +1,5 @@
 #pragma once
-#include <videosend/VideoSender.h>
+#include <libvideosend/src/VideoSender.h>
 #include <boost/program_options.hpp>
 #include <ostream>
 #include <vector>

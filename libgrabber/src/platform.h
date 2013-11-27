@@ -1,5 +1,7 @@
 #pragma once
 
+#if 0
+
 // Visual Studio doesn't have <stdint.h>
 #ifdef WIN32
 #if (_MSC_VER < 1300)
@@ -29,4 +31,6 @@
 #else
 #define __STDC_CONSTANT_MACROS
 #include <stdint.h>
+#endif
+
 #endif

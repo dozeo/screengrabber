@@ -2,15 +2,15 @@
 
 set -e
 
-DIR=`dirname $0`
-CURDIR=`cd $DIR; pwd`
-
-cd $CURDIR
+ABSDIR=`(cd $(dirname $0); pwd)`
 
 if [ "$1" == "clean" ] || [ "$1" == "rebuild" ]; then
-	echo "Cleaning build/ and install/"
-	rm -rf build/
-	rm -rf install/
+	(
+		cd $ABSDIR
+		echo "Cleaning build/ and install/"
+		rm -rf build/
+		rm -rf install/
+	)
 fi
 
 if [ "$1" == "clean" ]; then
@@ -18,7 +18,9 @@ if [ "$1" == "clean" ]; then
 	exit 0
 fi
 
-mkdir -p build/
-cd build/
-cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CURDIR/install
-nmake install
+(
+	mkdir -p $ABSDIR/build/
+	cd $ABSDIR/build/
+	../vs10env 'cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release'
+	../vs10env 'nmake install'
+)

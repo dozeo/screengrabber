@@ -5,24 +5,25 @@
 # FFMPEG_LIBRARIES
 # FFMPEG_DEFINITIONS
 
-
-if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
-	set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
-endif ()
-if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/include/libavutil)
-	# directly compiled into dependencies folder
-	set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies)
+if (NOT FFMPEG_ROOT_DIR)
+	if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
+		set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies/ffmpeg)
+	endif ()
+	if (IS_DIRECTORY ${SCREENGRABBER_DIRECTORY}/dependencies/include/libavutil)
+		# directly compiled into dependencies folder
+		set (FFMPEG_ROOT_DIR ${SCREENGRABBER_DIRECTORY}/dependencies)
+	endif()
 endif()
 
 
 macro (FFMPEG_FIND varname libname headername)
 	find_path (FFMPEG_${varname}_INCLUDE_DIR lib${libname}/${headername}
 		PATHS
-		${FFMPEG_ROOT_DIR}/include
-		$ENV{FFMPEG_HOME}/include
-		/usr/local/ffmpeg/include
-		/usr/local/include
-		/usr/include
+			${FFMPEG_ROOT_DIR}/include
+			$ENV{FFMPEG_HOME}/include
+			/usr/local/ffmpeg/include
+			/usr/local/include
+			/usr/include
 		PATH_SUFFIXES ffmpeg
 		NO_DEFAULT_PATH
 	)
@@ -30,12 +31,12 @@ macro (FFMPEG_FIND varname libname headername)
 	find_library (FFMPEG_${varname}_LIBRARY
 		NAMES ${libname} lib${libname}
 		PATHS
-		${FFMPEG_ROOT_DIR}/bin # windows searches here
-		${FFMPEG_ROOT_DIR}/lib
-		$ENV{FFMPEG_HOME}/lib
-		/usr/local/ffmpeg/lib
-		/usr/local/lib
-		/usr/lib
+			${FFMPEG_ROOT_DIR}/bin # windows searches here
+			${FFMPEG_ROOT_DIR}/lib
+			$ENV{FFMPEG_HOME}/lib
+			/usr/local/ffmpeg/lib
+			/usr/local/lib
+			/usr/lib
 		NO_DEFAULT_PATH
 	)
 
@@ -48,12 +49,14 @@ macro (FFMPEG_FIND varname libname headername)
 
 endmacro ()
 
+#message("ffmpeg using root ${FFMPEG_ROOT_DIR}")
 
 FFMPEG_FIND (LIBAVFORMAT avformat avformat.h)
 FFMPEG_FIND (LIBAVCODEC  avcodec  avcodec.h)
 FFMPEG_FIND (LIBAVUTIL   avutil   avutil.h)
 FFMPEG_FIND (LIBSWSCALE  swscale  swscale.h)
 
+#message("ffmpeg include dir: ${FFMPEG_LIBAVFORMAT_INCLUDE_DIR}")
 
 if (FFMPEG_LIBAVFORMAT_FOUND AND FFMPEG_LIBAVCODEC_FOUND AND FFMPEG_LIBAVUTIL_FOUND AND FFMPEG_LIBSWSCALE_FOUND)
 	set (FFMPEG_INCLUDE_DIRS

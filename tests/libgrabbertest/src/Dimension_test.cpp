@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <grabber/Dimension.h>
+#include <libgrabber/src/Dimension.h>
 
 using dz::Dimension2;
 

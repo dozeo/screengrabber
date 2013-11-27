@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <string>
 #include <stdio.h>
 #include <iostream>
@@ -8,7 +6,7 @@
 #include "Tools.h"
 #include "GrabbingPipeline.h"
 
-#include <videosend/VideoSender.h>
+#include <libvideosend/src/VideoSender.h>
 #include "GrabSendOptions.h"
 #include <gitdescribe.h>
 
@@ -107,7 +105,7 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & o
 int main (int argc, char * argv[]) {
 	GrabSendOptions options;
 
-	int result = options.parse (argc, argv);
+	int result = options.parse(argc, argv);
 	if (result) return result;
 
 	if (options.printHelp) {

@@ -1,8 +1,8 @@
 #ifndef LINUX
 
 #include <gtest/gtest.h>
-#include <grabber/WindowInfo.h>
-#include <grabber/ProcessInfo.h>
+#include <libgrabber/src/WindowInfo.h>
+#include <libgrabber/src/ProcessInfo.h>
 
 class EnumerateWindowsTest : public testing::Test {
 protected:

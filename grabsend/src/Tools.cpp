@@ -7,8 +7,8 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <stdio.h>
-#include <grabber/WindowInfo.h>
-#include <grabber/ProcessInfo.h>
+#include <libgrabber/src/WindowInfo.h>
+#include <libgrabber/src/ProcessInfo.h>
 #include <assert.h>
 #include <signal.h>
 #include "Tools.h"

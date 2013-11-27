@@ -1,4 +1,4 @@
-#include <grabber/Grabber.h>
+#include <libgrabber/src/Grabber.h>
 #include <gtest/gtest.h>
 
 class GrabberTest : public testing::Test {

@@ -1,6 +1,7 @@
+#include <cstdint>
 #include "FFmpegUtils.h"
 
-#include <grabber/Math.h>
+#include <libgrabber/src/Math.h>
 
 #include <assert.h>
 

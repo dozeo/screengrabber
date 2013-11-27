@@ -1,9 +1,7 @@
 #pragma once
 
-#include <grabber/platform.h>
-#include <grabber/Dimension.h>
-
-#include "../VideoSender.h"
+#include <libgrabber/src/Dimension.h>
+#include "VideoSender.h"
 #include "ffmpeg_includes.h"
 
 #include <iostream>

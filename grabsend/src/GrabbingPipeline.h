@@ -1,7 +1,8 @@
 #pragma once
 #include "GrabberOptions.h"
-#include <grabber/WindowInfo.h>
-#include <grabber/ProcessInfo.h>
+
+#include <libgrabber/src/WindowInfo.h>
+#include <libgrabber/src/ProcessInfo.h>
 #include <iostream>
 
 /// Manages the whole grabbing pipeline + configuration

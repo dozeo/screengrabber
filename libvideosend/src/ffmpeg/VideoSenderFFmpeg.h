@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../VideoSender.h"
+#include "VideoSender.h"
 #include "VideoStream.h"
-#include <grabber/Dimension.h>
+#include <libgrabber/src/Dimension.h>
 
 namespace dz {
 

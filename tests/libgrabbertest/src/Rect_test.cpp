@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <grabber/Rect.h>
+#include <libgrabber/src/Rect.h>
 
 using dz::Rect;
 
