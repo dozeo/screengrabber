@@ -23,6 +23,9 @@ $ABSDIR/build_dependencies_win.sh
 (
 	mkdir -p $ABSDIR/build/
 	cd $ABSDIR/build/
-	../vs10env 'cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release'
-	../vs10env 'nmake install'
+	rm -f screengrabber.tar.gz 
+	rm -rf install/
+	../vs10env 'cmake .. -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release'
+	../vs10env 'msbuild INSTALL.vcxproj /p:Configuration=Release'
+	cd install && tar -c * | gzip - > ../screengrabber.tar.gz
 )
