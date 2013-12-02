@@ -27,5 +27,6 @@ $ABSDIR/build_dependencies_win.sh
 	rm -rf install/
 	../vs10env 'cmake .. -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release'
 	../vs10env 'msbuild INSTALL.vcxproj /p:Configuration=Release'
+	echo "compressing binaries to screengrabber.tar.gz"
 	cd install && tar -c * | gzip - > ../screengrabber.tar.gz
 )
