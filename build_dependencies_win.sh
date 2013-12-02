@@ -24,7 +24,7 @@ export PATH=$PATH:$INSTALL_DIR/bin
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR/lib/pkgconfig
 
 echo "Fetching all dependencies"
-./get_dependencies.sh
+$ABSDIR/get_dependencies.sh
 
 # create target directory where to compile tos
 echo "creating install dir"
