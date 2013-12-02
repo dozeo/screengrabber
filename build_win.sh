@@ -18,6 +18,8 @@ if [ "$1" == "clean" ]; then
 	exit 0
 fi
 
+$ABSDIR/build_dependencies_win.sh
+
 (
 	mkdir -p $ABSDIR/build/
 	cd $ABSDIR/build/

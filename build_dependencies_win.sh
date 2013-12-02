@@ -104,7 +104,7 @@ fi
 
 # rtmpdump
 # =================================================================
-if [ -e $INSTALL_DIR/bin/rtmpdump ]; then
+if [ -e $INSTALL_DIR/bin/librtmp-0.dll ]; then
 	echo "rtmpdump seems to already exist"
 else
 	echo "Compiling rtmpdump ..."
