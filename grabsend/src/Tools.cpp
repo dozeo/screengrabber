@@ -1,9 +1,12 @@
+#include "Tools.h"
+
 #ifndef WIN32
-#include <unistd.h>
-#include <sys/time.h>
+	#include <unistd.h>
+	#include <sys/time.h>
 #else
-#include <windows.h>
+	#include <windows.h>
 #endif
+
 #include <iostream>
 #include <boost/thread.hpp>
 #include <stdio.h>
@@ -11,9 +14,10 @@
 #include <libgrabber/src/ProcessInfo.h>
 #include <assert.h>
 #include <signal.h>
-#include "Tools.h"
 
-void millisleep (int timeMs) {
+
+void millisleep (int timeMs)
+{
 #ifdef WIN32
 	::Sleep (timeMs);
 #else
@@ -21,7 +25,8 @@ void millisleep (int timeMs) {
 #endif
 }
 
-double microtime (){
+double microtime()
+{
 	// Note: following snippet is from Schneeflocke (github.com/nob13/schneeflocke)
 	// I hereby license this as public domain (Norbert Schultz)
 #ifdef WIN32

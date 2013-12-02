@@ -126,7 +126,7 @@ macro(add_ffmpeg)
 			${FFMPEG_ROOT_DIR}/bin/avcodec-55.dll
 			${FFMPEG_ROOT_DIR}/bin/avutil-52.dll
 			${FFMPEG_ROOT_DIR}/bin/swscale-2.dll
-			${FFMPEG_ROOT_DIR}/bin/librtmp-1.dll
+			${FFMPEG_ROOT_DIR}/bin/librtmp-0.dll
 			${FFMPEG_ROOT_DIR}/bin/libx264-140.dll
 			${FFMPEG_ROOT_DIR}/bin/pthreadGC2.dll
 			${FFMPEG_ROOT_DIR}/bin/libgcc_s_dw2-1.dll)

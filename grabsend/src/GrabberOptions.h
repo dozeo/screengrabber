@@ -122,6 +122,7 @@ struct GrabberOptionsParser  {
         if (po.count ("gcursor") > 0) {
             target->grabCursor = true;
         }
+		//target->grabberType = dz::GT_NULL;
 		if (po.count ("gtype") > 0) {
 			std::string type = po["gtype"].as<std::string>();
 			if (type == "Null") target->grabberType = dz::GT_NULL;

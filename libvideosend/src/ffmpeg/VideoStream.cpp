@@ -41,7 +41,8 @@ VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec)
 	}
 
 	av_log_set_callback(ffmpeg_log);
-	av_log_set_level(AV_LOG_DEBUG);
+	//av_log_set_level(AV_LOG_DEBUG);
+	av_log_set_level(AV_LOG_ERROR);
 
 	_videoFrameSize.width  = videoSize.width  - (videoSize.width % 4);
 	_videoFrameSize.height = videoSize.height - (videoSize.height % 4);
@@ -165,7 +166,7 @@ void VideoStream::setBasicSettings(
 	codec->codec_id      = codecId;
 	codec->time_base.den = (int)fps;
 	codec->time_base.num = 1;
-	codec->gop_size      = 2 * keyframe; // max key frames
+	codec->gop_size      = 2*keyframe; // max key frames
 	codec->keyint_min    = keyframe;     // minimum number of keyframes
 }
 
@@ -176,7 +177,12 @@ void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQuali
 	codec->delay          = 0;
 	codec->thread_count   = 0; // determines the number of threads automatically
 	codec->refs           = 3;
+	codec->max_b_frames = 0;
 	codec->rc_buffer_size = 0;
+
+	av_opt_set(codec->priv_data, "tune", "zerolatency", 0);
+	av_opt_set(codec->priv_data, "profile", "high", 0);
+	av_opt_set(codec->priv_data, "preset", "slower", 0);
 
 	std::cout << "Video Quality: " << level << std::endl;
 
