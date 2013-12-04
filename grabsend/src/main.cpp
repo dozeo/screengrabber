@@ -24,39 +24,51 @@ namespace po = boost::program_options;
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
-int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender) {
-	installSigHandler ();
-	installLineReader ();
+int grabbingLoop(GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender)
+{
+	installSigHandler();
+	installLineReader();
 
 	int result = sender->open();
-	if (result) {
+	if (result)
+	{
 		std::cerr << "Error: Could not open output stream " << result << std::endl;
 		return 1;
 	}
+
 	double t0 = microtime();
 	double timeToGrabSum = 0;
 	int frame = 0;
-	while (!shutDownLoop()) {
+
+	while (!shutDownLoop())
+	{
 		double t1 = microtime();
 		double dt = t1 - t0;
 		result = grabbingPipeline->grab();
 		double t2 = microtime ();
-		if (result) {
+
+		if (result)
+		{
 			std::cerr << "Error: could not grab " << result << std::endl;
 			return 1;
 		}
+
 		const dz::Buffer * buffer = grabbingPipeline->buffer();
 		result = sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
-		if (result) {
+		if (result)
+		{
 			std::cerr << "Error: could not send " << result << std::endl;
 			return 1;
 		}
+
 #if QT_GUI_LIB
-		if (QApplication::instance()){
+		if (QApplication::instance())
+		{
             QApplication::processEvents();
             QApplication::sendPostedEvents();
         }
 #endif
+
 		frame++;
 		double t3 = microtime ();
 		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - t1);
@@ -102,16 +114,19 @@ int grabbingLoop (GrabbingPipeline * grabbingPipeline, const GrabSendOptions & o
 	return 0;
 }
 
-int main (int argc, char * argv[]) {
+int main (int argc, char * argv[])
+{
 	GrabSendOptions options;
 
 	int result = options.parse(argc, argv);
 	if (result) return result;
 
-	if (options.printHelp) {
+	if (options.printHelp)
+	{
 		options.doPrintHelp();
 		return 1;
 	}
+
 	// Debug!
 	std::cout << "Version: " << GIT_DESCRIBE << std::endl;
 	std::cout << "GrabberOptions:     " << options.grabberOptions << std::endl;
@@ -124,34 +139,46 @@ int main (int argc, char * argv[]) {
 			options.videoSenderOptions.width,
 			options.videoSenderOptions.height);
 	result = grabbingPipeline.reinit();
-	if (result) {
+	if (result)
+	{
 		std::cerr << "Error: could not initialize grabbing pipeline " << result << std::endl;
 		return 1;
 	}
 
 	bool doQuitImmediately = false;
-	if (options.printScreens) {
+	if (options.printScreens)
+	{
 		printScreens (grabbingPipeline.grabber());
 		doQuitImmediately = true;
 	}
-	if (options.printWindows) {
+	
+	if (options.printWindows)
+	{
 		printWindows (grabbingPipeline.grabber());
 		doQuitImmediately = true;
 	}
-	if (options.printProcesses) {
+	
+	if (options.printProcesses)
+	{
 		printProcesses (grabbingPipeline.grabber());
 		doQuitImmediately = true;
 	}
-	if (doQuitImmediately) return 0;
+
+	if (doQuitImmediately)
+		return 0;
+
 #ifdef QT_GUI_LIB
     boost::scoped_ptr<QApplication> qApplication;
-	if (options.videoSenderOptions.type == dz::VT_QT) {
+	if (options.videoSenderOptions.type == dz::VT_QT)
+	{
         qApplication.reset (new QApplication (argc, argv));
-    } else {
-#ifdef MAC_OSX
-        initalizeNSApplication();
-#endif
     }
+	#ifdef MAC_OSX
+	else
+	{
+        initalizeNSApplication();
+    }
+	#endif
 #endif
 
 	boost::scoped_ptr<dz::VideoSender> sender (dz::VideoSender::create (options.videoSenderOptions.type));
@@ -177,7 +204,8 @@ int main (int argc, char * argv[]) {
 		}
 	}
 
-	if (options.videoSenderOptions.cutSize){
+	if (options.videoSenderOptions.cutSize)
+	{
 		double aspect  = (double) grabRect.w / (double) grabRect.h;
 		double vaspect = (double) options.videoSenderOptions.width / (double) options.videoSenderOptions.height;
 		if (aspect > vaspect) {
@@ -191,7 +219,9 @@ int main (int argc, char * argv[]) {
 		}
 		std::cout << "Final video size after cutting: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
 	}
-	if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0) {
+
+	if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0)
+	{
 		std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
 	}
 	
