@@ -81,7 +81,8 @@ endmacro()
 
 macro(add_boost)
 	set(Boost_USE_STATIC_LIBS ON)
-	find_package (Boost 1.47 COMPONENTS program_options thread date_time REQUIRED)
+	find_package (Boost 1.47 COMPONENTS program_options thread date_time system chrono REQUIRED)
+	# add_definitions(${Boost_LIB_DIAGNOSTIC_DEFINITIONS})
 	# ${Boost_INCLUDE_DIRS}
 	# ${Boost_LIBRARIES}
 	include_directories (${Boost_INCLUDE_DIRS})

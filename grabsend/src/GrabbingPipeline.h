@@ -36,78 +36,99 @@ public:
 
 	// (Re-) initializes grabber
 	// You need this only if you want early error codes
-	int reinit () {
-		if (!mGrabber || mGrabberOptions->grabberType != mCurrentGrabberType) {
+	int reinit()
+	{
+		if (!mGrabber || mGrabberOptions->grabberType != mCurrentGrabberType)
+		{
 			mGrabber = dz::Grabber::create(mGrabberOptions->grabberType);
-			int result = mGrabber->init ();
-			if (result) return result;
+			int result = mGrabber->init();
+			if (result)
+				return result;
+
 			mCurrentGrabberType = mGrabberOptions->grabberType;
 
-			mGrabRect = calcGrabRect ();
-			if (mGrabRect.empty()) {
+			mGrabRect = calcGrabRect();
+			if (mGrabRect.empty())
+			{
 				std::cerr << "Error: Invalid grabbing rect" << std::endl;
 				return 1;
 			}
+
 			mDestinationBuffer.init (mGrabRect.w, mGrabRect.h);
 			mDestinationBuffer.clear();
 			result = mGrabber->setEnableGrabCursor(mGrabberOptions->grabCursor);
-            if (result) {
-            	// Do not count this as an error
-            	std::cerr << "Warning: Could not enable cursor grabbing " << result << std::endl;
-            }
+			if (result)
+			{
+				// Do not count this as an error
+				std::cerr << "Warning: Could not enable cursor grabbing " << result << std::endl;
+			}
 		}
+
 		// nothing to do
 		return 0;
 	}
 
 	/// Grab one image; you can get the image using the buffer, returns 0 on success
-	int grab () {
-		int result = reinit ();
-		if (result) return result;
+	int grab()
+	{
+		int result = reinit();
+		if (result)
+			return result;
 
-		if (mGrabberOptions->grabFollow) {
-			dz::Rect r = calcGrabRect ();
-			if (!(mGrabRect == r)) {
+		if (mGrabberOptions->grabFollow)
+		{
+			dz::Rect r = calcGrabRect();
+			if (!(mGrabRect == r))
+			{
 				// otherwise we could get artefacts.
 				mDestinationBuffer.clear();
 			}
+
 			mGrabRect = r;
-			if (mGrabRect.empty()){
+			if (mGrabRect.empty())
+			{
 				std::cerr << "Error: could not get grabbing rect" << std::endl;
 				return 1;
 			}
 		}
 
-		int bufferWidth  (mGrabRect.w);
-		int bufferHeight (mGrabRect.h);
+		int bufferWidth(mGrabRect.w);
+		int bufferHeight(mGrabRect.h);
 		int letterX = 0;	///< Pillarbox (black left and right)
 		int letterY = 0;	///< Letterbox (black up and down)
 
 		if (mCorrectAspectToVideo) {
-			float aspect = (float) mVideoWidth  / (float) mVideoHeight;
+			float aspect = (float) mVideoWidth / (float) mVideoHeight;
 			int   bestWidth = aspect * mGrabRect.h;
-			if (bestWidth > mGrabRect.w) {
+			if (bestWidth > mGrabRect.w)
+			{
 				// increase width
 				bufferWidth = bestWidth;
 				letterX = (bestWidth - mGrabRect.w) / 2;
-			} else {
+			}
+			else
+			{
 				// increase height
 				int bestHeight = mGrabRect.w / aspect;
-				if (bestHeight > mGrabRect.h) {
+				if (bestHeight > mGrabRect.h)
+				{
 					bufferHeight = bestHeight;
 					letterY = (bestHeight - mGrabRect.h) / 2;
-				} else {
+				}
+				else
+				{
 					// huh?  rounding errors?
 					// we are probably already right
 				}
 			}
 		}
-		if (mDestinationBuffer.width != bufferWidth || mDestinationBuffer.height != bufferHeight) {
-			mDestinationBuffer.init (bufferWidth, bufferHeight);
-		}
+
+		if (mDestinationBuffer.width != bufferWidth || mDestinationBuffer.height != bufferHeight)
+			mDestinationBuffer.init(bufferWidth, bufferHeight);
+
 		mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
-		result = mGrabber->grab(mGrabRect, &mDestinationBufferBox);
-		return result;
+
+		return mGrabber->grab(mGrabRect, &mDestinationBufferBox);
 	}
 
 	// Returns the image of the last grab

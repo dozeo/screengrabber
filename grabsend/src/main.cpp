@@ -64,9 +64,9 @@ int grabbingLoop(GrabbingPipeline * grabbingPipeline, const GrabSendOptions & op
 #if QT_GUI_LIB
 		if (QApplication::instance())
 		{
-            QApplication::processEvents();
-            QApplication::sendPostedEvents();
-        }
+			QApplication::processEvents();
+			QApplication::sendPostedEvents();
+		}
 #endif
 
 		frame++;
@@ -134,10 +134,10 @@ int main (int argc, char * argv[])
 
 	GrabbingPipeline grabbingPipeline;
 	grabbingPipeline.setOptions(
-			&options.grabberOptions,
-			options.videoSenderOptions.correctAspect,
-			options.videoSenderOptions.width,
-			options.videoSenderOptions.height);
+		&options.grabberOptions,
+		options.videoSenderOptions.correctAspect,
+		options.videoSenderOptions.width,
+		options.videoSenderOptions.height);
 	result = grabbingPipeline.reinit();
 	if (result)
 	{
@@ -151,13 +151,13 @@ int main (int argc, char * argv[])
 		printScreens (grabbingPipeline.grabber());
 		doQuitImmediately = true;
 	}
-	
+
 	if (options.printWindows)
 	{
 		printWindows (grabbingPipeline.grabber());
 		doQuitImmediately = true;
 	}
-	
+
 	if (options.printProcesses)
 	{
 		printProcesses (grabbingPipeline.grabber());
@@ -168,17 +168,17 @@ int main (int argc, char * argv[])
 		return 0;
 
 #ifdef QT_GUI_LIB
-    boost::scoped_ptr<QApplication> qApplication;
+	boost::scoped_ptr<QApplication> qApplication;
 	if (options.videoSenderOptions.type == dz::VT_QT)
 	{
-        qApplication.reset (new QApplication (argc, argv));
-    }
-	#ifdef MAC_OSX
+		qApplication.reset (new QApplication (argc, argv));
+	}
+#ifdef MAC_OSX
 	else
 	{
-        initalizeNSApplication();
-    }
-	#endif
+		initalizeNSApplication();
+	}
+#endif
 #endif
 
 	boost::scoped_ptr<dz::VideoSender> sender (dz::VideoSender::create (options.videoSenderOptions.type));
@@ -188,8 +188,8 @@ int main (int argc, char * argv[])
 	}
 
 	dz::Rect grabRect = grabbingPipeline.grabRect();
-    std::cout << "Final grabRect: " << grabRect << std::endl;
-    
+	std::cout << "Final grabRect: " << grabRect << std::endl;
+
 	if (!options.videoSenderOptions.url.empty()) {
 		result = sender->setTargetUrl(options.videoSenderOptions.url);
 		if (result) {
@@ -224,7 +224,7 @@ int main (int argc, char * argv[])
 	{
 		std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
 	}
-	
+
 	// Set Options again, as video width/height could be changed
 	grabbingPipeline.setOptions (
 		&options.grabberOptions, 
@@ -233,21 +233,25 @@ int main (int argc, char * argv[])
 		options.videoSenderOptions.height);
 
 	result = sender->setVideoSettings(
-			options.videoSenderOptions.width,
-			options.videoSenderOptions.height,
-			options.videoSenderOptions.fps,
-			options.videoSenderOptions.kiloBitrate * 1000,
-			options.videoSenderOptions.keyframe,
-			options.videoSenderOptions.quality);
-	if (result) {
+		options.videoSenderOptions.width,
+		options.videoSenderOptions.height,
+		options.videoSenderOptions.fps,
+		options.videoSenderOptions.kiloBitrate * 1000,
+		options.videoSenderOptions.keyframe,
+		options.videoSenderOptions.quality);
+
+	if (result)
+	{
 		std::cerr << "Error: Could not set video sender settings (w,h,fps,bitrate) " << result << std::endl;
 		return 1;
 	}
 
-	result = grabbingLoop (&grabbingPipeline, options, sender.get());
-	if (result) {
+	result = grabbingLoop(&grabbingPipeline, options, sender.get());
+	if (result)
+	{
 		std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
 		return result;
 	}
+
 	return 0;
 }
