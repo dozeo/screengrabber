@@ -1,4 +1,4 @@
-set (GTEST_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}}/../../../dependencies_source/gtest-1.6.0)
+set (GTEST_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../dependencies_source/gtest-1.6.0)
 
 if (IS_DIRECTORY ${GTEST_DIRECTORY})
 	message (STATUS "Building own gtest")

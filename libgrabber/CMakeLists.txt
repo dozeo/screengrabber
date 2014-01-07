@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 
 project(libgrabber CXX)
 
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
+include (Common)
+include (FindAllExternals)
 #set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
 #include (Win32RelativeFolder)
 

@@ -36,6 +36,16 @@ if (WIN32)
 	set(LIBS ${LIBS} "psapi")
 endif()
 
+#=============================================================
+
+#macro(apple_framework)
+if (MAC_OSX)
+	find_library (COCOA_LIBRARY Cocoa REQUIRED)
+	find_library (FOUNDATION_LIBRARY Foundation REQUIRED)
+	find_library (APP_SERVICES ApplicationServices REQUIRED)
+	set(LIBS ${LIBS} ${COCOA_LIBRARY} ${FOUNDATION_LIBRARY} ${APP_SERVICES})  
+endif()
+#endmacro()
 
 #=============================================================
 # Macros for adding subprojects and external to your project (adds libs and include directories too)

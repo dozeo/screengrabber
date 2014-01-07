@@ -22,3 +22,5 @@ if (APPLE)
 		set (MAC_OSX_VERSION 0)
 	endif ()
 endif ()
+
+message(STATUS "OSX Version ${MAC_OSX_VERSION}")

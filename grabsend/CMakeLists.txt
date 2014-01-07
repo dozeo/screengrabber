@@ -5,13 +5,14 @@ project(grabsend CXX)
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
-if (MAC_OSX)
+if (APPLE)
 	file (GLOB_RECURSE objcpp_src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.mm)
 else()
 	set (objcpp_src_files "")
 endif()
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
+include (Common)
 include (FindAllExternals)
 include (gitdescribe)
 
@@ -21,6 +22,11 @@ add_boost()
 add_ffmpeg()
 add_qt()
 add_directx()
+
+if (APPLE)
+	file (GLOB_RECURSE ${objcpp_src_files} RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.mm)
+	set (src_files ${src_files} ${additional})
+endif()
 
 add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${LIBS})
@@ -34,7 +40,7 @@ set_target_properties (grabsend PROPERTIES
 if (APPLE)
 	install (TARGETS grabsend
 		BUNDLE DESTINATION . COMPONENT Runtime
-		RUNTIME DESTINATION ${GRABSEND_INSTALL_DIRECTORY} COMPONENT Runtime)
+		RUNTIME DESTINATION . COMPONENT Runtime)
 endif()
 
 if (WIN32)

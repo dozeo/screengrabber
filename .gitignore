@@ -2,3 +2,4 @@ dependencies/
 dependencies_source/
 build/
 install/
+.DS_Store
