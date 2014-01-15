@@ -101,6 +101,13 @@ endmacro()
 
 macro(add_qt)
 	find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtNetwork REQUIRED)
+	# find_package(Qt5 COMPONENTS QtMain QtCore QtGui QtNetwork REQUIRED)
+	# set(CMAKE_INCLUDE_CURRENT_DIR ON)
+	# set(CMAKE_AUTOMOC ON)
+	# find_package(QtMain REQUIRED)
+	# find_package(QtCore REQUIRED)
+	# find_package(Qt5Gui REQUIRED)
+	# find_package(Qt5Network REQUIRED)
 	include (${QT_USE_FILE})
 	if (WIN32)
 		set (QT_DLLS

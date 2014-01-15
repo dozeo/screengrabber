@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <tr1/cstdint>
 
 namespace dz
 {

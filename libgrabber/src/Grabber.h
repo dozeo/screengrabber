@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <tr1/cstdint>
 #include "platform.h"
 #include "Rect.h"
 #include "Buffer.h"

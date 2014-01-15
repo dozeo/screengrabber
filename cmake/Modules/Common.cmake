@@ -2,6 +2,7 @@ if (APPLE)
     add_definitions (-DMAC_OSX -DUNIX)
     set (MAC_OSX TRUE)
 
+	add_definitions("-std=c++11")
     set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
     set (CMAKE_CXX_FLAGS_RELEASE "-O3")
     set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
@@ -20,6 +21,8 @@ if (APPLE)
 	list(APPEND APPLE_FRAMEWORK_LIBS ${COCOA_LIBRARY})
 	list(APPEND APPLE_FRAMEWORK_LIBS ${FOUNDATION_LIBRARY})
 	list(APPEND APPLE_FRAMEWORK_LIBS ${APP_SERVICES})	
+
+#	add_definitions("--stdlib=libc++")
 
 else ()
     add_definitions (-DLINUX -DUNIX)
