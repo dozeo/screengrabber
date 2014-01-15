@@ -2,6 +2,12 @@
 
 #include <assert.h>
 
+#ifdef _DEBUG
+ #define FFMPEG_LOG_LEVEL (AV_LOG_VERBOSE)
+#else
+ #define FFMPEG_LOG_LEVEL (AV_LOG_WARNING)
+#endif
+
 namespace dz
 {
 	VideoSenderFFmpeg::VideoSenderFFmpeg()
@@ -106,7 +112,7 @@ namespace dz
 	void VideoSenderFFmpeg::initLog()
 	{
 		_defaultLogLevel = ::av_log_get_level ();
-		::av_log_set_level(AV_LOG_VERBOSE);
+		::av_log_set_level(FFMPEG_LOG_LEVEL);
 	}
 
 
