@@ -7,6 +7,8 @@ echo "ABSDIR=$ABSDIR"
 # Fail on errors
 set -e
 
+./get_dependencies.sh
+
 # Directories
 export SRC_DIR=$ABSDIR/dependencies_source
 export INSTALL_DIR=$ABSDIR/dependencies
@@ -144,11 +146,11 @@ fi
 
 
 # gtest
-if [ -d gtest-1.6.0 ]; then
-    echo "gtest seems already downloaded"
+if [ -d gtest-1.7.0 ]; then
+    echo "gtest 1.7.0 seems already downloaded"
 else
-    curl -fL http://googletest.googlecode.com/files/gtest-1.6.0.zip > gtest-1.6.0.zip
-    unzip gtest-1.6.0.zip
-    rm gtest-1.6.0.zip
+    curl -fL http://googletest.googlecode.com/files/gtest-1.7.0.zip > gtest-1.7.0.zip
+    unzip gtest-1.7.0.zip
+    rm gtest-1.7.0.zip
 fi
 

@@ -5,6 +5,8 @@ set -e
 ABSDIR=`(cd $(dirname $0); pwd)`
 DEPSRC=$ABSDIR/dependencies_source
 
+echo "Dependencies will be checkout in '$DEPSRC'"
+
 # $1 = path name
 # $2 = git url
 # $3 = git commit sha1

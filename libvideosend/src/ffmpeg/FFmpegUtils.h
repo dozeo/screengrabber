@@ -3,7 +3,7 @@
 #include <libgrabber/src/Dimension.h>
 #include "ffmpeg_includes.h"
 
-#include <tr1/cstdint>
+#include <cstdint>
 #include <iostream>
 
 namespace dz

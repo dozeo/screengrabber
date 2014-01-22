@@ -7,7 +7,7 @@
  *
  */
 
-#include <tr1/cstdint>
+#include <cstdint>
 #include <string>
 
 namespace dz

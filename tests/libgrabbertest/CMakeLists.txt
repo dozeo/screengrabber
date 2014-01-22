@@ -5,9 +5,14 @@ project(libgrabbertest CXX)
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
-add_subdirectory (../../cmake/external/gtest ${CMAKE_CURRENT_SOURCE_DIR}/build/gtest/)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/Modules/")
+include (Common)
 
-include_directories (../../dependencies_source/gtest-1.6.0/include)
+add_subdirectory (../../cmake/external/gtest ${CMAKE_CURRENT_SOURCE_DIR}/build/gtest/)
+#set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
+#include(
+
+include_directories (../../dependencies_source/gtest-1.7.0/include)
 include_directories (../..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR})  # Place of UIC Files
 
@@ -24,7 +29,7 @@ if (WIN32)
 endif()
 
 add_executable (libgrabbertest ${src_files} ${header_files})
-target_link_libraries (libgrabbertest libgrabber gtest ${PLATFORMLIBS})
+target_link_libraries (libgrabbertest libgrabber gtest ${PLATFORMLIBS} ${APPLE_FRAMEWORK_LIBS})
 
 enable_testing()
 

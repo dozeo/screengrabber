@@ -1,7 +1,7 @@
-set (GTEST_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../dependencies_source/gtest-1.6.0)
+set (GTEST_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../dependencies_source/gtest-1.7.0)
 
 if (IS_DIRECTORY ${GTEST_DIRECTORY})
-	message (STATUS "Building own gtest")
+	message (STATUS "Building with our own gtest")
 	include_directories (${GTEST_DIRECTORY}/include)
 	include_directories (${GTEST_DIRECTORY})
 	add_library (gtest ${GTEST_DIRECTORY}/src/gtest-all.cc)
