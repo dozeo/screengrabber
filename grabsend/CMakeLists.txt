@@ -33,9 +33,9 @@ target_link_libraries (grabsend ${LIBS})
 set_target_properties (grabsend PROPERTIES
 	FOLDER /app)
 
-set_target_properties (grabsend PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
+#set_target_properties (grabsend PROPERTIES
+#	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}
+#	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 
 if (APPLE)
 	install (TARGETS grabsend
