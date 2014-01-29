@@ -23,8 +23,7 @@ if (APPLE)
 	list(APPEND APPLE_FRAMEWORK_LIBS ${APP_SERVICES})	
 
 #	add_definitions("--stdlib=libc++")
-
-else ()
+elseif (LINUX)
     add_definitions (-DLINUX -DUNIX)
     set (LINUX TRUE)
     set (CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -Wall")	
