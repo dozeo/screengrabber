@@ -138,9 +138,9 @@ fi
 
 # gtest (just fetching, will be build via CMake)
 # =================================================================
-GTESTNAME=gtest-1.6.0
+GTESTNAME=gtest-1.7.0
 GTESTPATH=$SRC_DIR
-GTESTURL=http://googletest.googlecode.com/files/gtest-1.6.0.zip
+GTESTURL=http://googletest.googlecode.com/files/gtest-1.7.0.zip
 if [ -d $SRC_DIR/$GTESTNAME ]; then
 	echo "gtest seems already downloaded"
 else
