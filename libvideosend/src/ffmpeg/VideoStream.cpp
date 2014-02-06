@@ -40,7 +40,7 @@ namespace dz
 			AVCodecInitialized = true;
 		}
 
-		::av_log_set_callback(ffmpeg_log);
+		//::av_log_set_callback(ffmpeg_log);
 		//av_log_set_level(AV_LOG_DEBUG);
 		::av_log_set_level(AV_LOG_ERROR);
 

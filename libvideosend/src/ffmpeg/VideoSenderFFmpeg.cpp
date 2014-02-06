@@ -92,7 +92,13 @@ namespace dz
 	void * gLogCallbackUser = 0;
 	VideoSender::LogCallback gLogCallback = 0;
 
-	static void avUtillogHandler (void * avcl, int level, const char* format, va_list list) {
+	static void avUtillogHandler (void * avcl, int level, const char* format, va_list list)
+	{
+#if NDEBUG
+		if (level == AV_LOG_INFO)
+			return;
+#endif // _DEBUG
+
 		char buffer[1024];
 		buffer[sizeof(buffer)-1] = 0;
 
