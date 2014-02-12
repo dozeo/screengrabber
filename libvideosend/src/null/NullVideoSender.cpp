@@ -1,39 +1,22 @@
 #include "NullVideoSender.h"
 #include "../qt/QtVideoSender.h"
 
-namespace dz {
+namespace dz
+{
+	NullVideoSender::NullVideoSender () {}
 
+	NullVideoSender::~NullVideoSender() {}
 
+	void NullVideoSender::setVideoSettings (int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality) {}
 
-NullVideoSender::NullVideoSender () {
+	void NullVideoSender::setTargetFile (const std::string & filename) {}
 
-}
+	void NullVideoSender::setTargetUrl (const std::string & url) {}
 
-NullVideoSender::~NullVideoSender() {
+	void NullVideoSender::OpenVideoStream() {}
 
-}
+	void NullVideoSender::putFrame (const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec) {}
 
-int NullVideoSender::setVideoSettings (int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality) {
-	return 0;
-}
-
-int NullVideoSender::setTargetFile (const std::string & filename) {
-	return 0;
-}
-
-int NullVideoSender::setTargetUrl (const std::string & url) {
-	return 0;
-}
-
-int NullVideoSender::open () {
-	return 0;
-}
-
-int NullVideoSender::putFrame (const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec) {
-	return 0;
-}
-
-void NullVideoSender::close () {
-}
-
+	void NullVideoSender::close () {
+	}
 }

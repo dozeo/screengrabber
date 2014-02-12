@@ -2,8 +2,12 @@
 #include "FFmpegUtils.h"
 #include "../VideoSender.h"
 
+#include <dzlib/dzexception.h>
+
 #include <assert.h>
 #include <string>
+
+#pragma warning(disable:4996)
 
 void ffmpeg_log(void*, int line, const char* msg, va_list list)
 {
@@ -17,7 +21,7 @@ void ffmpeg_log(void*, int line, const char* msg, va_list list)
 namespace dz
 {
 	const std::string VideoStream::StreamProtocol     = std::string("flv");
-	bool              VideoStream::AVCodecInitialized = false;
+	bool  VideoStream::AVCodecInitialized = false;
 
 	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec)
 	: _formatContext(NULL)
@@ -33,7 +37,8 @@ namespace dz
 	, _waitForFirstFrame(true)
 	, _isStreamOpen(false)
 	{
-		if (!AVCodecInitialized) {
+		if (!AVCodecInitialized)
+		{
 			av_register_all();
 			avcodec_register_all();
 			avformat_network_init();
@@ -54,23 +59,17 @@ namespace dz
 		close();
 	}
 
-	int VideoStream::openUrl(const std::string& url, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
+	void VideoStream::openUrl(const std::string& url, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 	{
-		return open(url, CM_RTP, frameRate, bitRate, keyframe, level);
+		OpenVideoStream(url, CM_RTP, frameRate, bitRate, keyframe, level);
 	}
 
-	int VideoStream::openFile(const std::string& filename, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
+	void VideoStream::openFile(const std::string& filename, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 	{
-		return open(filename, CM_FILE, frameRate, bitRate, keyframe, level);
+		OpenVideoStream(filename, CM_FILE, frameRate, bitRate, keyframe, level);
 	}
 
-	int VideoStream::open(
-		const std::string& fileUrl,
-		enum ConnectionMode mode,
-		float frameRate,
-		int bitRate,
-		int keyframe,
-		enum VideoQualityLevel level)
+	void VideoStream::OpenVideoStream(const std::string& fileUrl, enum ConnectionMode mode, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 	{
 		int result = 0;
 		_lastTimeStamp = 0;
@@ -78,40 +77,22 @@ namespace dz
 
 		PixelFormat destPixFormat = PIX_FMT_YUV420P;
 		_formatContext = FFmpegUtils::createFormatContext(StreamProtocol, _videoCodec);
-		if (_formatContext == 0) {
-			return VideoSender::VE_CODEC_NOT_FOUND;
-		}
+		if (_formatContext == 0)
+			throw exception(strstream() << "VideoCodec not found. _videoCodec = " << _videoCodec);
 
 		// add video stream
-		if (_videoCodec != CODEC_ID_NONE) {
+		if (_videoCodec != CODEC_ID_NONE)
+		{
 			_videoStream = addVideoStream(_videoCodec, bitRate, keyframe, frameRate, destPixFormat, level);
-			if (_videoStream == 0) {
-				close();
-				return VideoSender::VE_FAILED_OPEN_STREAM;
-			}
-			result = openVideo(_videoStream);
-			if (result != VideoSender::VE_OK) {
-				close();
-				return result;
-			}
+			openVideo(_videoStream);
 		}
 
-		result = setupScaleContext(_scalingImageSize, _videoFrameSize);
-		if (result) {
-			close();
-			return result;
-		}
+		setupScaleContext(_scalingImageSize, _videoFrameSize);
 
 		_scaledFrame = FFmpegUtils::createVideoFrame(destPixFormat, _videoFrameSize);
-		result = openStream(_formatContext, fileUrl, mode);
-		if (result) {
-			close();
-			return result;
-		}
+		openStream(_formatContext, fileUrl, mode);
 
 		_isStreamOpen = true;
-
-		return VideoSender::VE_OK;
 	}
 
 	AVStream* VideoStream::addVideoStream(
@@ -126,14 +107,13 @@ namespace dz
 		assert(codecId != CODEC_ID_NONE);
 
 		AVCodec* codec = avcodec_find_encoder(_videoCodec);
-		if (codec < 0) {
-			return NULL;
-		}
+		if (!codec)
+			throw exception(strstream() << "avcodec_find_encoder in addVideoStream failed to find the encoder with id " << _videoCodec);
 
 		AVStream* stream = avformat_new_stream(_formatContext, codec);
-		if (stream == 0) {
-			return NULL;
-		}
+		if (!stream)
+			throw exception(strstream() << "avformat_new_stream in addVideoStream failed");
+
 		AVCodecContext* context = stream->codec;
 
 		avcodec_get_context_defaults3(context, codec);
@@ -141,9 +121,9 @@ namespace dz
 		setBasicSettings(context, bitRate, keyframe, fps, codecId, pixFormat);
 		setVideoQualitySettings(context, level);
 
-		if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER) {
+		if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER)
 			context->flags |= CODEC_FLAG_GLOBAL_HEADER;
-		}
+
 		return stream;
 	}
 
@@ -206,23 +186,20 @@ namespace dz
 		}*/
 	}		
 
-	int VideoStream::openVideo(AVStream* stream) {
+	void VideoStream::openVideo(AVStream* stream)
+	{
 		assert(stream != 0);
 
 		AVCodecContext* ctx = stream->codec;
 		AVCodec* codec = avcodec_find_encoder(ctx->codec_id);
-		if (!codec) {
-			return VideoSender::VE_CODEC_NOT_FOUND;
-		}
+		if (!codec)
+			throw exception(strstream() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
 
-		if (avcodec_open2(ctx, codec, NULL)) {
-			return VideoSender::VE_FAILED_OPEN_STREAM;
-		}
+		if (avcodec_open2(ctx, codec, NULL))
+			throw exception(strstream() << "avcodec_open2 failed to find the open the stream");
 	
 		_frameBufferSize = avpicture_get_size(ctx->pix_fmt, ctx->width, ctx->height);
 		_frameBuffer = (uint8_t*)av_malloc(_frameBufferSize);
-
-		return VideoSender::VE_OK;
 	}
 
 	void VideoStream::close()
@@ -244,7 +221,7 @@ namespace dz
 		_isStreamOpen = false;
 	}
 
-	int VideoStream::sendFrame(const uint8_t* rgba, const Dimension2& imageSize, uint32_t stride, double timeDurationInSeconds)
+	void VideoStream::sendFrame(const uint8_t* rgba, const Dimension2& imageSize, uint32_t stride, double timeDurationInSeconds)
 	{
 		assert(_videoStream != 0);
 		assert(_scaledFrame != 0);
@@ -257,28 +234,28 @@ namespace dz
 
 		int64_t t0 = av_gettime();
 		FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
-		// int64_t t1 = av_gettime();
 		sws_scale(_convertContext, _tempFrame->data, _tempFrame->linesize, 0, imageSize.height, _scaledFrame->data, _scaledFrame->linesize);
-		int64_t t2 = av_gettime();
-		_statistic.lastScaleTime = (t2 - t0);
 		
-		return sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
+		_statistic.lastScaleTime = (av_gettime() - t0);
+		
+		sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
 	}
 
-	int VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDurationInSeconds)
+	void VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDurationInSeconds)
 	{
-		int result = 0;
 		AVCodecContext* codec = videoStream->codec;
 
 		uint64_t timeStamp = (uint64_t)(timeDurationInSeconds * codec->time_base.den);
 
-		if (_lastTimeStamp == timeStamp && !_waitForFirstFrame) {
+		if (_lastTimeStamp == timeStamp && !_waitForFirstFrame)
+		{
 			// ignore
 			_statistic.lastEncodeTime = 0;
 			_statistic.lastSendTime   = 0;
 			_statistic.frameWritten(0);
-			return result;
+			return;
 		}
+
 		_waitForFirstFrame = false;
 		_lastTimeStamp = timeStamp;
 		frame->pts = timeStamp;
@@ -288,7 +265,9 @@ namespace dz
 		int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
 		int64_t t1 = av_gettime();
 		_statistic.lastEncodeTime = (t1 - t0);
-		if (size > 0) {
+		
+		if (size > 0)
+		{
 			AVPacket packet;
 			av_init_packet(&packet);
 
@@ -305,23 +284,26 @@ namespace dz
 			packet.dts  = AV_NOPTS_VALUE;
 		
 			t0 = av_gettime();
-			result = av_interleaved_write_frame(_formatContext, &packet);
-			t1 = av_gettime();
-			_statistic.lastSendTime = (t1 - t0);
+			int result = av_interleaved_write_frame(_formatContext, &packet);
+			if (result < 0)
+				throw exception(strstream() << "av_interleaved_write_frame failed with return code: " << result);
+			
+			_statistic.lastSendTime = (av_gettime() - t0);
 			int64_t bytes = packet.size;
-			for (int i = 0; i < packet.side_data_elems; i++) {
-				bytes+= packet.side_data[i].size;
-			}
-			_statistic.frameWritten(bytes);
 
-		} else {
+			for (int i = 0; i < packet.side_data_elems; i++)
+				bytes+= packet.side_data[i].size;
+			
+			_statistic.frameWritten(bytes);
+		}
+		else
+		{
 			_statistic.lastSendTime = 0;
 			_statistic.frameWritten (0);
 		}
-		return result;
 	}
 
-	int VideoStream::setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize)
+	void VideoStream::setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize)
 	{
 		assert(_tempFrame == NULL);
 		assert(_convertContext == NULL);
@@ -329,10 +311,8 @@ namespace dz
 		PixelFormat srcFormat  = PIX_FMT_BGRA;
 		PixelFormat destFormat = PIX_FMT_YUV420P;
 
-		if (!FFmpegUtils::isConversionSupported(srcFormat, destFormat)) {
-			std::cerr << "color space conversion not supported" << std::endl;
-			return VideoSender::VE_INVALID_CONVERSION;
-		}
+		if (!FFmpegUtils::isConversionSupported(srcFormat, destFormat))
+			throw exception(strstream() << "color space conversion not supported");
 
 		_tempFrame = FFmpegUtils::createVideoFrame(srcFormat, srcSize);
 		_scalingImageSize = srcSize;
@@ -348,10 +328,9 @@ namespace dz
 			NULL,
 			NULL,
 			NULL);
-		if (_convertContext == NULL) {
-			return VideoSender::VE_INVALID_CONVERSION;
-		}
-		return VideoSender::VE_OK;
+
+		if (_convertContext == NULL)
+			throw exception(strstream() << "sws_getContext failed (src " << srcSize.width << "x" << srcSize.height << ") (dst " << destSize.width << "x" << destSize.height << ")");
 	}
 
 	void VideoStream::releaseScaleContext()
@@ -407,26 +386,25 @@ namespace dz
 		}
 	}
 
-	int VideoStream::openStream(AVFormatContext* formatContext, const std::string& url, enum ConnectionMode mode)
+	void VideoStream::openStream(AVFormatContext* formatContext, const std::string& url, enum ConnectionMode mode)
 	{
 		AVIOContext* ioContext = 0;
 
-		if (mode == CM_RTP) {
+		if (mode == CM_RTP)
+		{
 			AVDictionary* options = 0;
 			// av_dict_set(&options, "rtsp_transport", "udp", 0);
 			int result = avio_open2(&ioContext, url.c_str(), AVIO_FLAG_WRITE, NULL, &options);
-			if (result < 0) {
-				std::cerr << "Failed to open stream (" << url << ") : " << result << std::endl;
-				return VideoSender::VE_FAILED_OPEN_STREAM;
-			}
+			if (result < 0)
+				throw exception(strstream() << "Failed to open url stream (" << url << ") with avio_open2 result = " << result );
 		}
-		else if (mode == CM_FILE) {
+		else if (mode == CM_FILE)
+		{
 			int result = avio_open2(&ioContext, url.c_str(), AVIO_FLAG_WRITE, NULL, NULL);
-			if (result < 0) {
-				std::cerr << "Failed to open video file (" << url << ")" << std::endl;
-				return VideoSender::VE_FAILED_OPEN_STREAM;
-			}
+			if (result < 0)
+				throw exception(strstream() << "Failed to open video file (" << url << ") with avio_open2 result = " << result );
 		}
+
 		if (urlGetProtocol (url) == "tcp") {
 			// set stream name if given as path string tcp://host:port/[streamName]
 			std::string streamName = urlGetPath (url);
@@ -437,12 +415,8 @@ namespace dz
 
 		formatContext->pb = ioContext;
 
-		if (avformat_write_header(formatContext, NULL) < 0) {
-			std::cerr << "Failed to write header" << std::endl;
-			return VideoSender::VE_FAILED_OPEN_STREAM;
-		}
-
-		return VideoSender::VE_OK;
+		if (avformat_write_header(formatContext, NULL) < 0)
+			throw exception(strstream() << "avformat_write_header failed to write header");
 	}
 
 	void VideoStream::closeFile(AVFormatContext* formatContext)

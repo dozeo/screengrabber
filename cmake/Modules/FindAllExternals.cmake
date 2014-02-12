@@ -2,6 +2,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/Modules
 
 set (SCREENGRABBER_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 set (SCREENGRABBER_DEPENDS "${SCREENGRABBER_ROOT}/dependencies")
+set (VENDOR_ROOT "${SCREENGRABBER_ROOT}/vendor")
 
 set (GTEST_CMAKE_PATH "${SCREENGRABBER_ROOT}/cmake/external/gtest")
 set (GTEST_DIRECTORY "${SCREENGRABBER_ROOT}/dependencies_source/gtest-1.6.0")
@@ -49,6 +50,14 @@ endif()
 
 #=============================================================
 # Macros for adding subprojects and external to your project (adds libs and include directories too)
+macro(add_dzlib)
+	if (NOT TARGET dzlib)
+		add_subdirectory(${VENDOR_ROOT}/dzlib ${CMAKE_BINARY_DIR}/dzlib)
+	endif()
+	set(HDRS ${HDRS} ${VENDOR_ROOT}/dzlib/include)
+	set(LIBS ${LIBS} dzlib)
+endmacro()
+
 macro(add_gtest)
 	if (NOT TARGET gtest)
 		add_subdirectory (${GTEST_CMAKE_PATH} ${CMAKE_BINARY_DIR}/gtest)

@@ -15,7 +15,6 @@ namespace dz
 	, _fps(10)
 	, _bitRate(300000)
 	, _keyframe(10)
-	, _videoStream(0)
 	, _quality(VQ_MEDIUM)
 	, _mode(OM_FILE)
 	{
@@ -24,69 +23,57 @@ namespace dz
 
 	VideoSenderFFmpeg::~VideoSenderFFmpeg()
 	{
-		close();
 		uninitLog();
 	}
 
-	int VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
+	void VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
 	{
 		_frameSize = Dimension2(w, h);
 		_fps = fps;
 		_bitRate = bitRate;
 		_keyframe = keyframe;
 		_quality = quality;
-		return 0;
 	}
 
-	int VideoSenderFFmpeg::setTargetFile(const std::string& filename)
+	void VideoSenderFFmpeg::setTargetFile(const std::string& filename)
 	{
 		_url = filename;
 		_mode = OM_FILE;
-		return 0;
 	}
 
-	int VideoSenderFFmpeg::setTargetUrl(const std::string& url)
+	void VideoSenderFFmpeg::setTargetUrl(const std::string& url)
 	{
 		_url = url;
 		_mode = OM_URL;
-		return 0;
 	}
 
-	int VideoSenderFFmpeg::open()
+	void VideoSenderFFmpeg::OpenVideoStream()
 	{
-		assert(_videoStream == 0);
+		assert(m_videoStream.get() == nullptr);
 
-		int result = 0;
-		_videoStream = new VideoStream(_frameSize, CODEC_ID_H264);
+		m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(_frameSize, CODEC_ID_H264));
 		if (_mode == OM_FILE)
 		{
-			result = _videoStream->openFile(_url, _fps, _bitRate, _keyframe, _quality);
+			m_videoStream->openFile(_url, _fps, _bitRate, _keyframe, _quality);
 		}
 		else if (_mode == OM_URL)
 		{
-			result = _videoStream->openUrl(_url, _fps, _bitRate, _keyframe, _quality);
+			m_videoStream->openUrl(_url, _fps, _bitRate, _keyframe, _quality);
 		}
-
-		return result;
 	}
 
-	int VideoSenderFFmpeg::putFrame(const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec)
+	void VideoSenderFFmpeg::putFrame(const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec)
 	{
 		assert(data != 0);
-		assert(_videoStream != 0);
+		assert(m_videoStream.get() != nullptr);
 
 		Dimension2 imageSize(width, height);
-		return _videoStream->sendFrame(data, imageSize, (uint32_t)bytesPerRow, durationInSec);
+		return m_videoStream->sendFrame(data, imageSize, (uint32_t)bytesPerRow, durationInSec);
 	}
 
 	void VideoSenderFFmpeg::close()
-	{	
-		if (_videoStream != 0)
-		{
-			_videoStream->close();
-			delete _videoStream;
-			_videoStream = 0;
-		}
+	{
+		m_videoStream = nullptr;
 	}
 
 	void * gLogCallbackUser = 0;

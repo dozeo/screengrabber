@@ -15,15 +15,15 @@ file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
 add_qt()
 add_ffmpeg()
-
-include_directories (${SCREENGRABBER_ROOT})
+add_dzlib()
 
 if (MSVC)
 	include_directories (${CMAKE_CURRENT_SOURCE_DIR}/src/win32include)
 endif()
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_library (libvideosend ${src_files} ${header_files})
+include_directories (${SCREENGRABBER_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/src ${HDRS})
+add_library (libvideosend ${src_files} ${header_files} ${HDRS})
+target_link_libraries(libvideosend ${LIBS})
 
 # if (LINUX)
 #     # otherwise we get strange linking errors

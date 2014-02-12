@@ -1,0 +1,3 @@
+[submodule "vendor/dzlib"]
+	path = vendor/dzlib
+	url = git@github.com:dozeo/dzlib.git

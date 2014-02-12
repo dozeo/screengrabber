@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <QImage>
 
+#include <dzlib/dzexception.h>
+
 namespace dz {
 
 void DrawingArea::paintEvent(QPaintEvent *) {
@@ -23,48 +25,52 @@ QtVideoSender::QtVideoSender () {
 QtVideoSender::~QtVideoSender () {
 }
 
-int QtVideoSender::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality) {
+void QtVideoSender::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
+{
 	assert (!mDrawingArea && "already started?");
-	if (w < 1 || h < 0 || fps < 0.1 || bitRate < 1) return VE_INVALID_RESOLUTION;
+
+	if (w < 1 || h < 0 || fps < 0.1 || bitRate < 1)
+		throw exception(strstream() << "Invalid resolution, ftp or bitrate (w: " << w << ", h:" << h << ", fps: " << fps << ", bitrate: " << bitRate);
+
 	mWidth    = w;
 	mHeight   = h;
 	mFps      = fps;
 	mKeyframe = keyframe;
 	mBitRate  = bitRate;
-	return 0;
 }
 
-int QtVideoSender::setTargetFile(const std::string & filename){
+void  QtVideoSender::setTargetFile(const std::string & filename)
+{
 	assert (!mDrawingArea && "already started?");
 	mTargetFile = filename;
 	mTargetUrl.clear();
-	return 0;
 }
 
-int QtVideoSender::setTargetUrl(const std::string & url){
+void QtVideoSender::setTargetUrl(const std::string & url)
+{
 	assert (!mDrawingArea && "already started?");
-	if (!mTargetFile.empty()) {
-		return VE_INVALID_TARGET;
-	}
+	
+	if (!mTargetFile.empty())
+		throw exception("target url is not empty... and thus invalid?!");
+	
 	mTargetFile = url;
-	return 0;
 }
 
-int QtVideoSender::open(){
+void QtVideoSender::OpenVideoStream()
+{
 	mDrawingArea = new DrawingArea ();
 	mDrawingArea->show();
 	mDrawingArea->setFixedSize (mWidth, mHeight);
 	mDrawingArea->setWindowTitle ("Width: " + QString::number (mWidth) + " Height: " + QString::number (mHeight) + " FPS: " + QString::number(mFps));
-	return 0;
 }
 
-int QtVideoSender::putFrame(const uint8_t *data, int width, int height, int bytesPerRow, double durationInSec){
+void  QtVideoSender::putFrame(const uint8_t *data, int width, int height, int bytesPerRow, double durationInSec)
+{
 	assert (mDrawingArea && "bad order");
 	QImage image (data, width, height, bytesPerRow, QImage::Format_RGB32);
 	QImage scaled = image.scaled(mWidth, mHeight);
 	mDrawingArea->setImage (scaled);
 	mDrawingArea->repaint();
-	return 0;
 }
 
 void QtVideoSender::close(){

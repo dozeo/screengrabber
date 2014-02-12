@@ -24,7 +24,7 @@ namespace po = boost::program_options;
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
-int grabbingLoop(GrabbingPipeline * grabbingPipeline, const GrabSendOptions & options, dz::VideoSender * sender)
+int grabbingLoop(GrabbingPipeline* grabbingPipeline, const GrabSendOptions& options, dz::VideoSender* sender)
 {
 	installSigHandler();
 	installLineReader();
@@ -246,11 +246,18 @@ int main (int argc, char * argv[])
 		return 1;
 	}
 
-	result = grabbingLoop(&grabbingPipeline, options, sender.get());
-	if (result)
+	try
 	{
-		std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
-		return result;
+		result = grabbingLoop(&grabbingPipeline, options, sender.get());
+		if (result)
+		{
+			std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
+			return result;
+		}
+	}
+	catch (std::exception e)
+	{
+		std::cerr << "Exception on grabbingLoop: " << e.what() << std::endl;
 	}
 
 	return 0;
