@@ -27,7 +27,7 @@ static BOOL CALLBACK EnumWindowsProc (HWND win, LPARAM user){
 	char title [512] = "";
 	GetWindowText (win, title, (sizeof title) - 1);
 
-	bool isVisible = info.dwStyle & WS_VISIBLE;
+	bool isVisible = (info.dwStyle & WS_VISIBLE) != 0;
 	// bool isPopup   = info.dwStyle & WS_POPUP;
 
 	if (isVisible) {
@@ -41,13 +41,13 @@ static BOOL CALLBACK EnumWindowsProc (HWND win, LPARAM user){
 	return TRUE; // continue enumeration
 }
 
-/*static*/ int WindowInfo::populate (std::vector<WindowInfo> * destination, int64_t pid) {
+void WindowInfo::populate(std::vector<WindowInfo> * destination, int64_t pid) 
+{
 	destination->clear();
 	EnumerateWindowSettings settings;
 	settings.destination = destination;
 	settings.pid = pid;
 	EnumWindows (&EnumWindowsProc, (LPARAM) &settings);
-	return Grabber::GE_OK;
 }
 
 /*static*/ WindowInfo WindowInfo::about (int64_t wid){
@@ -55,8 +55,7 @@ static BOOL CALLBACK EnumWindowsProc (HWND win, LPARAM user){
 	WINDOWINFO info;
 	GetWindowInfo(win, &info);
 
-	bool isVisible = info.dwStyle & WS_VISIBLE;
-	// bool isPopup   = info.dwStyle & WS_POPUP;
+	bool isVisible = (info.dwStyle & WS_VISIBLE) != 0;
 
 	if (isVisible) {
 		char title [512] = "";

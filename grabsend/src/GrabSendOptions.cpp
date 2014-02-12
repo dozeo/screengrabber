@@ -3,11 +3,12 @@ namespace po = boost::program_options;
 #include <iostream>
 #include <gitdescribe.h>
 
-GrabSendOptions::GrabSendOptions () :
-	desc ("General Configuration"),
-	grabberOptionsParser (&grabberOptions),
-	videoSenderOptionsParser (&videoSenderOptions) {
+#include <dzlib/dzexception.h>
 
+using namespace dz;
+
+GrabSendOptions::GrabSendOptions (int argc, char ** argv) : desc ("General Configuration"), grabberOptionsParser (&grabberOptions), videoSenderOptionsParser (&videoSenderOptions)
+{
 	printHelp      = false;
 	printScreens   = false;
 	printWindows   = false;
@@ -22,19 +23,23 @@ GrabSendOptions::GrabSendOptions () :
 				("stat", boost::program_options::value<int>(&statLevel)->default_value(1), "Statistics level (0 .. 2)");
 	desc.add (grabberOptionsParser.desc);
 	desc.add (videoSenderOptionsParser.desc);
-}
 
-int GrabSendOptions::parse (int argc, char ** argv){
-	try {
+	try
+	{
 		po::variables_map vm;
 		po::store (po::parse_command_line(argc, argv, desc), vm);
 		po::notify(vm);
 		apply (vm);
-	} catch (po::error & e) {
-		std::cerr << "Error: " << e.what () << std::endl;
-		return 1;
+	} 
+	catch (po::error & e)
+	{
+		throw exception(strstream() << "GrabSendOptions parse exception: " << e.what());
 	}
-	return 0;
+}
+
+void GrabSendOptions::parse(int argc, char ** argv)
+{
+
 }
 
 void GrabSendOptions::doPrintHelp () {

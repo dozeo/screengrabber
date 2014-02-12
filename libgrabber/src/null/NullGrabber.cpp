@@ -12,9 +12,7 @@ NullGrabber::~NullGrabber() {
 
 }
 
-int NullGrabber::init () {
-	return 0;
-}
+void NullGrabber::init () { }
 
 void NullGrabber::deinit () {
 

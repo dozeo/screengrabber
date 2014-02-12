@@ -10,11 +10,11 @@
 #include <algorithm>
 #include <vector>
 
+#include <dzlib/dzexception.h>
+
 using namespace dz;
 
-DirectXGrabber::DirectXGrabber()
-: _d3d(NULL)
-, _window(NULL)
+DirectXGrabber::DirectXGrabber() : _d3d(NULL), _window(NULL)
 {
 }
 
@@ -23,36 +23,22 @@ DirectXGrabber::~DirectXGrabber()
 	deinit();
 }
 
-int DirectXGrabber::init()
+void DirectXGrabber::init()
 {
 	_window = new Window();
 
-	int result = initD3D();
-	if (result != 0)
-	{
-		std::cerr << "Failed to initialize Direct3D" << std::endl;
-		deinit();
-		return -1;
-	}
+	initD3D();
 
 	ScreenEnumerator enumerator;
 	if (!enumerator.enumerate())
 	{
-		std::cerr << "Failed to enumerate displays" << std::endl;
 		deinit();
-		return -2;
+		throw exception(strstream() << "Failed to enumerate displays");
 	}
+
 	enumerateDisplays(_d3d, enumerator);
 
-	result = initD3DDisplays();
-	if (result != 0)
-	{
-		std::cerr << "Failed to initialize Direct3D displays" << std::endl;
-		deinit();
-		return -3;
-	}
-	
-	return GE_OK;
+	initD3DDisplays();
 }
 
 void DirectXGrabber::deinit()
@@ -71,28 +57,22 @@ void DirectXGrabber::deinit()
 	_adapters.clear();
 }
 
-HRESULT DirectXGrabber::initD3D()
+void DirectXGrabber::initD3D()
 {
 	_d3d = Direct3DCreate9(D3D_SDK_VERSION);
+
 	if (_d3d == NULL)
-	{
-		return E_FAIL;
-	}
-	return D3D_OK;
+		throw exception(strstream() << "Direct3DCreate9(" << D3D_SDK_VERSION << ") failed to initialize");
 }
 
-HRESULT DirectXGrabber::initD3DDisplays()
+void DirectXGrabber::initD3DDisplays()
 {
 	assert(_window != NULL);
 	for (unsigned int i = 0; i < _displays.size(); i++)
 	{
 		DirectXDisplay& display = _displays[i];
 		IDirect3DDevice9* d3dDevice;
-		HRESULT hr = createD3DDevice(display.adapter(), display.screenRect(), &d3dDevice);
-		if (hr != S_OK)
-		{
-			return hr;
-		}
+		createD3DDevice(display.adapter(), display.screenRect(), &d3dDevice);
 		_displays[i].init(d3dDevice);
 	}
 
@@ -103,16 +83,18 @@ HRESULT DirectXGrabber::initD3DDisplays()
 		{
 			DirectXDisplay& display = _displays[i];
 			D3DPRESENT_PARAMETERS pp = createPresentParameters(display.adapter(), display.screenRect(), _window->getHWnd());
-			HRESULT hr = display.resetDevice(&pp);
-			if (hr != S_OK)
+			
+			try
+			{
+				display.resetDevice(&pp);
+			}
+			catch (...)
 			{
 				_displays.clear();
-				return hr;
+				throw;
 			}
 		}
 	}
-
-	return S_OK;
 }
 
 int DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
@@ -191,7 +173,7 @@ void DirectXGrabber::enumerateDisplays(
 	}
 }
 
-HRESULT DirectXGrabber::createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice)
+void DirectXGrabber::createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice)
 {
 	assert(_d3d != NULL);
 	assert(_window != NULL);
@@ -209,7 +191,9 @@ HRESULT DirectXGrabber::createD3DDevice(int adapter, const Rect& screenRect, IDi
 		createFlags,
 		&pp,
 		d3dDevice);
-	return hr;
+
+	if (FAILED(hr))
+		throw exception(strstream() << "DirectX CreateDevice failed");
 }
 
 D3DPRESENT_PARAMETERS DirectXGrabber::createPresentParameters(int adapter, const Rect& rect, HWND hWnd)

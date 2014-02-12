@@ -22,7 +22,7 @@ if (MSVC)
 endif()
 
 include_directories (${SCREENGRABBER_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/src ${HDRS})
-add_library (libvideosend ${src_files} ${header_files} ${HDRS})
+add_library (libvideosend ${src_files} ${header_files})
 target_link_libraries(libvideosend ${LIBS})
 
 # if (LINUX)

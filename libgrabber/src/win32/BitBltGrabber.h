@@ -18,7 +18,7 @@ public:
 	BitBltGrabber();
 	virtual ~BitBltGrabber();
 
-	virtual int init();
+	virtual void init();
 	virtual void deinit();
 
 	virtual int grab(const Rect& rect, Buffer* destination);

@@ -5,47 +5,42 @@
 #include "ffmpeg/VideoSenderFFmpeg.h"
 #include <sstream>
 
-namespace dz {
+#include <dzlib/dzexception.h>
 
-VideoSender* VideoSender::create(VideoSenderType type)
+namespace dz
 {
-	if (type == VT_NULL)
+	VideoSender* VideoSender::create(VideoSenderType type)
 	{
-		return new NullVideoSender();
+		switch (type)
+		{
+			case VT_NULL: return new NullVideoSender();
+			case VT_QT: return new QtVideoSender();
+			case VT_DEFAULT: return new VideoSenderFFmpeg();
+		}
+	
+		throw exception(strstream() << "Could not create video sender of type " << type);
 	}
-	if (type == VT_QT)
+
+	VideoSender::Statistic::Statistic()
 	{
-		return new QtVideoSender();
+		framesWritten  = 0;
+		bytesSent      = 0;
+		lastScaleTime  = 0;
+		lastEncodeTime = 0;
+		lastSendTime   = 0;
+		sumEncodeTime  = 0;
+		sumSendTime    = 0;
+		sumScaleTime   = 0;
 	}
-	else if (type == VT_DEFAULT)
-	{		
-		return new VideoSenderFFmpeg();
+
+	/// Add one frame with its data to the statistic
+	/// (lastTime... must be updated already)
+	void VideoSender::Statistic::frameWritten(int64_t bytes)
+	{
+		bytesSent+=bytes;
+		framesWritten++;
+		sumScaleTime   += lastScaleTime;
+		sumEncodeTime  += lastEncodeTime;
+		sumSendTime    += lastSendTime;
 	}
-	return 0;
 }
-
-VideoSender::Statistic::Statistic () {
-	framesWritten  = 0;
-	bytesSent      = 0;
-	lastScaleTime  = 0;
-	lastEncodeTime = 0;
-	lastSendTime   = 0;
-	sumEncodeTime  = 0;
-	sumSendTime    = 0;
-	sumScaleTime   = 0;
-}
-/// Add one frame with its data to the statistic
-/// (lastTime... must be updated already)
-void VideoSender::Statistic::frameWritten (int64_t bytes) {
-	bytesSent+=bytes;
-	framesWritten++;
-	sumScaleTime   += lastScaleTime;
-	sumEncodeTime  += lastEncodeTime;
-	sumSendTime    += lastSendTime;
-}
-
-}
-
-
-
-

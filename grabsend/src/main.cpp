@@ -19,22 +19,20 @@
 #include <QWidget>
 #endif
 
+#include <dzlib/dzexception.h>
+
 namespace po = boost::program_options;
+using namespace dz;
 
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
-int grabbingLoop(GrabbingPipeline* grabbingPipeline, const GrabSendOptions& options, dz::VideoSender* sender)
+int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& options, dz::VideoSender* sender)
 {
 	installSigHandler();
 	installLineReader();
 
-	int result = sender->open();
-	if (result)
-	{
-		std::cerr << "Error: Could not open output stream " << result << std::endl;
-		return 1;
-	}
+	sender->OpenVideoStream();
 
 	double t0 = microtime();
 	double timeToGrabSum = 0;
@@ -44,7 +42,7 @@ int grabbingLoop(GrabbingPipeline* grabbingPipeline, const GrabSendOptions& opti
 	{
 		double t1 = microtime();
 		double dt = t1 - t0;
-		result = grabbingPipeline->grab();
+		int result = grabbingPipeline.grab();
 		double t2 = microtime ();
 
 		if (result)
@@ -53,13 +51,8 @@ int grabbingLoop(GrabbingPipeline* grabbingPipeline, const GrabSendOptions& opti
 			return 1;
 		}
 
-		const dz::Buffer * buffer = grabbingPipeline->buffer();
-		result = sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
-		if (result)
-		{
-			std::cerr << "Error: could not send " << result << std::endl;
-			return 1;
-		}
+		const dz::Buffer* buffer = grabbingPipeline.buffer();
+		sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
 
 #if QT_GUI_LIB
 		if (QApplication::instance())
@@ -114,17 +107,15 @@ int grabbingLoop(GrabbingPipeline* grabbingPipeline, const GrabSendOptions& opti
 	return 0;
 }
 
-int main (int argc, char * argv[])
+void doGrabSend(int argc, char * argv[])
 {
-	GrabSendOptions options;
-
-	int result = options.parse(argc, argv);
-	if (result) return result;
+	GrabSendOptions options(argc, argv);
+	//options.parse(argc, argv);
 
 	if (options.printHelp)
 	{
 		options.doPrintHelp();
-		return 1;
+		return;
 	}
 
 	// Debug!
@@ -132,41 +123,24 @@ int main (int argc, char * argv[])
 	std::cout << "GrabberOptions:     " << options.grabberOptions << std::endl;
 	std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
 
-	GrabbingPipeline grabbingPipeline;
-	grabbingPipeline.setOptions(
-		&options.grabberOptions,
-		options.videoSenderOptions.correctAspect,
-		options.videoSenderOptions.width,
-		options.videoSenderOptions.height);
-	result = grabbingPipeline.reinit();
-	if (result)
+	GrabbingPipeline grabbingPipeline(&options.grabberOptions, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
+
+	//int result = grabbingPipeline.reinit();
+	//if (result)
+	//{
+	//	std::cerr << "Error: could not initialize grabbing pipeline " << result << std::endl;
+	//	return 1;
+	//}
+
+	if (options.printScreens || options.printWindows || options.printProcesses)
 	{
-		std::cerr << "Error: could not initialize grabbing pipeline " << result << std::endl;
-		return 1;
+		if (options.printScreens) printScreens(grabbingPipeline.grabber());
+		if (options.printWindows) printWindows(grabbingPipeline.grabber());
+		if (options.printProcesses) printProcesses(grabbingPipeline.grabber());
+		
+		return;
 	}
-
-	bool doQuitImmediately = false;
-	if (options.printScreens)
-	{
-		printScreens (grabbingPipeline.grabber());
-		doQuitImmediately = true;
-	}
-
-	if (options.printWindows)
-	{
-		printWindows (grabbingPipeline.grabber());
-		doQuitImmediately = true;
-	}
-
-	if (options.printProcesses)
-	{
-		printProcesses (grabbingPipeline.grabber());
-		doQuitImmediately = true;
-	}
-
-	if (doQuitImmediately)
-		return 0;
-
+	
 #ifdef QT_GUI_LIB
 	boost::scoped_ptr<QApplication> qApplication;
 	if (options.videoSenderOptions.type == dz::VT_QT)
@@ -181,27 +155,18 @@ int main (int argc, char * argv[])
 #endif
 #endif
 
-	boost::scoped_ptr<dz::VideoSender> sender (dz::VideoSender::create (options.videoSenderOptions.type));
-	if (!sender) {
-		std::cerr << "Error: could not initialize sender" << std::endl;
-		return 1;
-	}
-
 	dz::Rect grabRect = grabbingPipeline.grabRect();
 	std::cout << "Final grabRect: " << grabRect << std::endl;
 
-	if (!options.videoSenderOptions.url.empty()) {
-		result = sender->setTargetUrl(options.videoSenderOptions.url);
-		if (result) {
-			std::cerr << "Error: Could not set target URL " << options.videoSenderOptions.url << " " << result << std::endl;
-			return 1;
-		}
-	} else {
-		result = sender->setTargetFile(options.videoSenderOptions.file);
-		if (result) {
-			std::cerr << "Error: Could not set target file " << options.videoSenderOptions.file << " " << result << std::endl;
-			return 1;
-		}
+	boost::scoped_ptr<dz::VideoSender> sender(dz::VideoSender::create(options.videoSenderOptions.type));
+
+	if (!options.videoSenderOptions.url.empty())
+	{
+		sender->setTargetUrl(options.videoSenderOptions.url);
+	}
+	else
+	{
+		sender->setTargetFile(options.videoSenderOptions.file);
 	}
 
 	if (options.videoSenderOptions.cutSize)
@@ -232,7 +197,7 @@ int main (int argc, char * argv[])
 		options.videoSenderOptions.width, 
 		options.videoSenderOptions.height);
 
-	result = sender->setVideoSettings(
+	sender->setVideoSettings(
 		options.videoSenderOptions.width,
 		options.videoSenderOptions.height,
 		options.videoSenderOptions.fps,
@@ -240,25 +205,20 @@ int main (int argc, char * argv[])
 		options.videoSenderOptions.keyframe,
 		options.videoSenderOptions.quality);
 
-	if (result)
-	{
-		std::cerr << "Error: Could not set video sender settings (w,h,fps,bitrate) " << result << std::endl;
-		return 1;
-	}
+	grabbingLoop(grabbingPipeline, options, sender.get());
+}
 
+int main (int argc, char * argv[])
+{
 	try
 	{
-		result = grabbingLoop(&grabbingPipeline, options, sender.get());
-		if (result)
-		{
-			std::cerr << "Error: Grabbing loop ended with error " << result << std::endl;
-			return result;
-		}
+		doGrabSend(argc, argv);
+		return 0;
 	}
-	catch (std::exception e)
+	catch (dz::exception e)
 	{
-		std::cerr << "Exception on grabbingLoop: " << e.what() << std::endl;
+		std::cerr << "Exception on grabsend: " << e.msg() << std::endl;
 	}
 
-	return 0;
+	return -1;
 }

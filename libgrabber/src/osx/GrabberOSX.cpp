@@ -43,9 +43,8 @@ Rect GrabberOSX::combinedScreenResolution () const {
     return r;
 }
 
-int GrabberOSX::setEnableGrabCursor (bool enable) {
+void GrabberOSX::setEnableGrabCursor (bool enable) {
     mEnableGrabCursor = enable;
-    return GE_OK;
 }
     
 /// Grabs a part of a specific display (in screen coordinates) into the destination

@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <dzlib/dzexception.h>
+
 using namespace dz;
 
 RECT DirectXDisplay::toRECT(const Rect& rhs)
@@ -92,9 +94,10 @@ void DirectXDisplay::shutdown()
 	}
 }
 
-HRESULT DirectXDisplay::resetDevice(D3DPRESENT_PARAMETERS* pp)
+void DirectXDisplay::resetDevice(D3DPRESENT_PARAMETERS* pp)
 {
-	return _d3dDevice->Reset(pp);
+	if (FAILED(_d3dDevice->Reset(pp)))
+		throw exception("DirectXDisplay failed to reset");
 }
 
 int DirectXDisplay::adapter() const
@@ -126,13 +129,8 @@ HRESULT DirectXDisplay::grabRect(const Rect& captureRect, int destX, int destY, 
 		return hr;
 	}
 
-	if (showCursor) {
-		hr = copyCursorToSurface(d3dRect);
-		if (hr != S_OK) {
-			std::cerr << "Failed to copy cursor to surface!" << std::endl;
-			return hr;
-		}
-	}
+	if (showCursor)
+		copyCursorToSurface(d3dRect);
 
 	hr = copySurfaceToBuffer(d3dRect, destX, destY, destination);
 	if (hr != S_OK) {
@@ -170,14 +168,12 @@ HRESULT DirectXDisplay::copySurfaceToBuffer(const Rect& rect, int destX, int des
 	return S_OK;
 }
 
-int DirectXDisplay::copyCursorToSurface(const Rect& rect)
+void DirectXDisplay::copyCursorToSurface(const Rect& rect)
 {
 	CURSORINFO cursorInfo = { 0 };
 	cursorInfo.cbSize = sizeof(CURSORINFO);
-	if (!GetCursorInfo(&cursorInfo)) {
-		std::cerr << "Failed to call GetCursorInfo!" << std::endl;
-		return -1;
-	}
+	if (!GetCursorInfo(&cursorInfo))
+		throw exception("Call to GetCursorInfo failed");
 
 	if (cursorInfo.flags == CURSOR_SHOWING)
 	{
@@ -212,8 +208,6 @@ int DirectXDisplay::copyCursorToSurface(const Rect& rect)
 		DeleteObject(iconInfo.hbmColor);
 		DeleteObject(iconInfo.hbmMask);
 	}
-
-	return Grabber::GE_OK;
 }
 
 void DirectXDisplay::copyBitmap(const Rect& cursorRect, const ICONINFO& iconInfo, bool isColorIcon, const Rect& rect)

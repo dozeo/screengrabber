@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <dzlib/dzexception.h>
+
 namespace dz {
 
 void BitBltGrabber::fillBitmapInfo(int width, int height, BITMAPINFO& info)
@@ -20,11 +22,7 @@ void BitBltGrabber::fillBitmapInfo(int width, int height, BITMAPINFO& info)
 	info.bmiHeader.biCompression = BI_RGB;
 }
 
-BitBltGrabber::BitBltGrabber()
-: _hdcDesktop(0)
-, _hdcCapture(0)
-, _hBitmap(0)
-, _bmpBuffer(0)
+BitBltGrabber::BitBltGrabber() : _hdcDesktop(0), _hdcCapture(0), _hBitmap(0), _bmpBuffer(0)
 {
 }
 
@@ -33,12 +31,15 @@ BitBltGrabber::~BitBltGrabber()
 	deinit();
 }
 
-int BitBltGrabber::init()
+void BitBltGrabber::init()
 {
 	_hdcDesktop = GetDC(GetDesktopWindow());
-	_hdcCapture = CreateCompatibleDC(_hdcDesktop);
+	if (_hdcDesktop == NULL)
+		throw exception(strstream() << "GetDC failed - error code is " << GetLastError());
 
-	return Grabber::GE_OK;
+	_hdcCapture = CreateCompatibleDC(_hdcDesktop);
+	if (_hdcCapture == NULL)
+		throw exception(strstream() << "CreateCompatibleDC failed - error code is " << GetLastError());
 }
 
 void BitBltGrabber::deinit()

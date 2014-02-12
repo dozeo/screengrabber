@@ -6,6 +6,8 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmak
 include (Common)
 include (FindAllExternals)
 
+add_dzlib()
+
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
@@ -18,7 +20,9 @@ else()
 	set (objcpp_src_files "")
 endif()
 
+include_directories (${HDRS})
 add_library (libgrabber ${src_files} ${header_files} ${objcpp_src_files})
+target_link_libraries(libgrabber ${LIBS})
 
 # if (LINUX)
 # 	# otherwise we get strange linking errors

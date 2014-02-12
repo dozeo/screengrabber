@@ -21,7 +21,7 @@ public:
 
 	HRESULT init(IDirect3DDevice9* d3dDevice);
 	void shutdown();
-	HRESULT resetDevice(D3DPRESENT_PARAMETERS* pp);
+	void resetDevice(D3DPRESENT_PARAMETERS* pp);
 
 	int adapter() const;
 	Rect screenRect() const;
@@ -30,7 +30,7 @@ public:
 
 private:
 	HRESULT copySurfaceToBuffer(const Rect& rect, int destX, int destY, Buffer* destination);
-	int copyCursorToSurface(const Rect& rect);
+	void copyCursorToSurface(const Rect& rect);
 	void copyBitmap(const Rect& cursorRect, const ICONINFO& iconInfo, bool isColorIcon, const Rect& rect);
 
 	HRESULT initD3DDevice();

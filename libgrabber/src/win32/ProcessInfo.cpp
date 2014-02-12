@@ -7,7 +7,8 @@
 
 namespace dz
 {
-	/*static*/ int ProcessInfo::populate (std::vector<ProcessInfo> * destination) {
+	bool ProcessInfo::populate(std::vector<ProcessInfo> * destination)
+	{
 		destination->clear();
 
 		DWORD processes[4096];
@@ -31,12 +32,15 @@ namespace dz
 			CloseHandle (h);
 			destination->push_back (info);
 		}
-		return Grabber::GE_OK;
+
+		return true;
 	}
 
-	/*static*/ ProcessInfo ProcessInfo::about (int64_t pid) {
-		HANDLE h = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
-		if (!h) return ProcessInfo(); // fail
+	ProcessInfo ProcessInfo::about(int64_t pid)
+	{
+		HANDLE h = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, (DWORD)pid);
+		if (!h)
+			return ProcessInfo(); // fail
 
 		ProcessInfo info;
 		CHAR filename [1024] = "";

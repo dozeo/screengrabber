@@ -22,7 +22,7 @@ namespace dz
 		return new DirectXGrabber();
 	}
 
-	int Win32Grabber::grabCursor(const Rect& rect, HDC hdc)
+	void Win32Grabber::grabCursor(const Rect& rect, HDC hdc)
 	{
 		CURSORINFO cursorInfo = { 0 };
 		cursorInfo.cbSize = sizeof(CURSORINFO);
@@ -44,11 +44,7 @@ namespace dz
 				DeleteObject(iconInfo.hbmColor);
 				DeleteObject(iconInfo.hbmMask);
 			}
-
-			return GE_OK;
 		}
-
-		return GE_COULD_NOT_GRAB;
 	}
 
 	Win32Grabber::Win32Grabber()
@@ -85,10 +81,9 @@ namespace dz
 		return r;
 	}
 
-	int Win32Grabber::setEnableGrabCursor (bool enable)
+	void Win32Grabber::setEnableGrabCursor (bool enable)
 	{
 		_grabMouseCursor = enable;
-		return GE_OK;
 	}
 }
 

@@ -1,19 +1,18 @@
-#include "ProcessInfo.h"
-
-namespace dz {
-
 #ifdef LINUX
 
-// Not supported
+#include "ProcessInfo.h"
 
-/*static*/ int ProcessInfo::populate (std::vector<ProcessInfo> * destination) {
-	return Grabber::GE_UNSUPPORTED;
-}
+namespace dz
+{
+	bool ProcessInfo::populate (std::vector<ProcessInfo> * destination)
+	{
+		return false;
+	}
 
-/*static*/ ProcessInfo ProcessInfo::about (int64_t pid) {
-	return ProcessInfo();
+	ProcessInfo ProcessInfo::about (int64_t pid) 
+	{
+		return ProcessInfo();
+	}
 }
 
 #endif
-
-}

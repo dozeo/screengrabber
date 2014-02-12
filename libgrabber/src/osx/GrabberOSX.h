@@ -17,7 +17,7 @@ public:
 	virtual int screenCount () const;
 	virtual Rect screenResolution (int screen) const;
 	virtual Rect combinedScreenResolution () const;
-    virtual int setEnableGrabCursor (bool enable = true);
+    virtual void setEnableGrabCursor (bool enable = true);
 	virtual int grab (const Rect& rect, Buffer * destination);
 
 private:

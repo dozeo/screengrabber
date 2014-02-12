@@ -52,22 +52,26 @@ static WindowInfo toWindowInfo (CFDictionaryRef d) {
     return info;
 }
     
-/*static*/ int WindowInfo::populate (std::vector<WindowInfo> * destination, int64_t pidFilter) {
-    CFArrayRef windows = CGWindowListCopyWindowInfo (kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
-    int count = CFArrayGetCount (windows);
-    for (CFIndex i = 0; i < count; i++) {
-        // should be in there
-        CFDictionaryRef d = (CFDictionaryRef) CFArrayGetValueAtIndex (windows, i);
-        if (pidFilter != 0) {
-            CFNumberRef pidRef = (CFNumberRef) CFDictionaryGetValue(d, kCGWindowOwnerPID);
-            if (toPid (pidRef) != pidFilter) continue; // not interested in
-        }
-        WindowInfo info = toWindowInfo (d);
-        destination->push_back (info);
-    }
-    
-    CFRelease (windows);
-    return Grabber::GE_OK;
+void WindowInfo::populate(std::vector<WindowInfo>* destination, int64_t pidFilter)
+{
+	CFArrayRef windows = CGWindowListCopyWindowInfo (kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+	int count = CFArrayGetCount (windows);
+
+	for (CFIndex i = 0; i < count; i++) 
+	{
+		// should be in there
+		CFDictionaryRef d = (CFDictionaryRef) CFArrayGetValueAtIndex (windows, i);
+		if (pidFilter != 0)
+		{
+			CFNumberRef pidRef = (CFNumberRef) CFDictionaryGetValue(d, kCGWindowOwnerPID);
+			if (toPid (pidRef) != pidFilter)
+				continue; // not interested in
+		}
+		WindowInfo info = toWindowInfo (d);
+		destination->push_back (info);
+	}
+
+	CFRelease (windows);
 }
 
 /*static*/ WindowInfo WindowInfo::about (int64_t wid) {

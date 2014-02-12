@@ -7,15 +7,9 @@
 #include <stdio.h>
 
 /// Options for the screen grabber
-struct GrabberOptions {
-	GrabberOptions ()
-	: grabScreen (-1),
-	  grabPid (-1),
-	  grabWid (-1),
-	  grabFollow (false),
-      grabCursor (false),
-	  grabberType (dz::GT_DEFAULT)
-	   {}
+struct GrabberOptions
+{
+	GrabberOptions () : grabScreen (-1), grabPid (-1), grabWid (-1), grabFollow (false), grabCursor (false), grabberType (dz::GT_DEFAULT) {}
 
 	std::ostream& operator<< (std::ostream& s) const {
 		return s << "grect: " << grabRect << " gscreen: " << grabScreen << " gpid: " << grabPid << " gwid: " << grabWid << " gfollow: " << grabFollow << " gcursor: " << grabCursor << " type: " << grabberType;

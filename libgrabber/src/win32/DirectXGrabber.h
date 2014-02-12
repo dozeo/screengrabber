@@ -24,7 +24,7 @@ public:
 	DirectXGrabber();
 	virtual ~DirectXGrabber();
 
-	int init();
+	void init();
 	void deinit();
 
 	int grab(const Rect& captureRect, Buffer* destination);
@@ -33,12 +33,12 @@ public:
 	Rect screenResolution(int screen) const;
 
 private:
-	HRESULT initD3D();
-	HRESULT initD3DDisplays();
+	void initD3D();
+	void initD3DDisplays();
 
 	void enumerateDisplays(IDirect3D9* d3d, const ScreenEnumerator& enumerator);
 
-	HRESULT createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice);
+	void createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice);
 	D3DPRESENT_PARAMETERS createPresentParameters(int adapter, const Rect& rect, HWND hWnd);
 	D3DFORMAT findAutoDepthStencilFormat(int adapter, D3DFORMAT backBufferFormat);
 

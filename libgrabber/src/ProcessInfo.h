@@ -15,7 +15,7 @@ namespace dz
 		std::string exec;	///< Executable, if reliable derminable
 
 		/// Populate all running applications
-		static int populate (std::vector<ProcessInfo> * destination);
+		static bool populate(std::vector<ProcessInfo> * destination);
 
 		/// Returns information about one specific process, returns invalid info if not supported / non existant
 		static ProcessInfo about (int64_t pid);

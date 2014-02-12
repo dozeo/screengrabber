@@ -59,11 +59,9 @@ void printScreens (const dz::Grabber * grabber) {
 void printWindows (const dz::Grabber * grabber) {
 	typedef std::vector<dz::WindowInfo> WindowVec;
 	WindowVec windows;
-	int result = dz::WindowInfo::populate (&windows);
-	if (result) {
-		std::cerr << "Error: Could not populate windows " << result << std::endl;
-		return;
-	}
+	
+	dz::WindowInfo::populate(&windows);
+	
 	std::cout << "Window count: " << windows.size() << std::endl;
 	for (WindowVec::const_iterator i = windows.begin(); i != windows.end(); i++) {
 		const dz::WindowInfo & win (*i);
@@ -71,14 +69,17 @@ void printWindows (const dz::Grabber * grabber) {
 	}
 }
 
-void printProcesses (const dz::Grabber * grabber) {
+void printProcesses (const dz::Grabber * grabber)
+{
 	typedef std::vector<dz::ProcessInfo> ProcessVec;
 	ProcessVec processes;
-	int result = dz::ProcessInfo::populate (&processes);
-	if (result) {
-		std::cerr << "Error: Could not populate processes " << result << std::endl;
+	
+	if (dz::ProcessInfo::populate (&processes) == false)
+	{
+		std::cerr << "Error: Could not populate processes " << std::endl;
 		return;
 	}
+	
 	std::cout << "Process count: " << processes.size() << std::endl;
 	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++) {
 		const dz::ProcessInfo & pinfo (*i);

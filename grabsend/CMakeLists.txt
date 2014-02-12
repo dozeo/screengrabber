@@ -22,12 +22,14 @@ add_boost()
 add_ffmpeg()
 add_qt()
 add_directx()
+add_dzlib()
 
 if (APPLE)
 	file (GLOB_RECURSE ${objcpp_src_files} RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.mm)
 	set (src_files ${src_files} ${additional})
 endif()
 
+include_directories(${HDRS})
 add_executable (grabsend ${src_files} ${header_files} ${objcpp_src_files})
 target_link_libraries (grabsend ${LIBS})
 set_target_properties (grabsend PROPERTIES
