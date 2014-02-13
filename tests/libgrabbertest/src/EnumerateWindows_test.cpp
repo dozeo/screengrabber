@@ -11,8 +11,8 @@ protected:
 TEST_F (EnumerateWindowsTest, getWindows) {
 	typedef std::vector<dz::WindowInfo> WindowVec;
 	WindowVec windows;
-	int result = dz::WindowInfo::populate (&windows);
-	EXPECT_EQ (dz::Grabber::GE_OK, result) << "Should get windows list";
+	dz::WindowInfo::populate (&windows);
+	EXPECT_GT (windows.size(), 0) << "Should get process list" << std::endl;
 
 	EXPECT_TRUE (windows.size() > 0) << "Should have at least one window";
 
@@ -36,8 +36,8 @@ TEST_F (EnumerateWindowsTest, getWindows) {
 TEST_F (EnumerateWindowsTest, getProcesses) {
 	typedef std::vector<dz::ProcessInfo> ProcessVec;
 	ProcessVec processes;
-	int result = dz::ProcessInfo::populate (&processes);
-	EXPECT_EQ (dz::Grabber::GE_OK, result) << "Should get process list" << std::endl;
+	dz::ProcessInfo::populate (&processes);
+	EXPECT_GT (processes.size(), 0) << "Should get process list" << std::endl;
 	EXPECT_TRUE (processes.size() > 0) << "Should have at least one process?!" << std::endl;
 	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++) {
 		const dz::ProcessInfo & info (*i);

@@ -42,14 +42,8 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 	{
 		double t1 = microtime();
 		double dt = t1 - t0;
-		int result = grabbingPipeline.grab();
+		grabbingPipeline.grab();
 		double t2 = microtime ();
-
-		if (result)
-		{
-			std::cerr << "Error: could not grab " << result << std::endl;
-			return 1;
-		}
 
 		const dz::Buffer* buffer = grabbingPipeline.buffer();
 		sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);

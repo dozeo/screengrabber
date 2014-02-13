@@ -77,7 +77,7 @@ class GrabbingPipeline
 		//}
 
 		/// Grab one image; you can get the image using the buffer, returns 0 on success
-		int grab()
+		void grab()
 		{
 			//int result = reinit();
 			//if (result)
@@ -94,10 +94,7 @@ class GrabbingPipeline
 
 				mGrabRect = r;
 				if (mGrabRect.empty())
-				{
-					std::cerr << "Error: could not get grabbing rect" << std::endl;
-					return 1;
-				}
+					throw dz::exception("Grab rectangle is empty");
 			}
 
 			int bufferWidth(mGrabRect.w);
@@ -136,7 +133,7 @@ class GrabbingPipeline
 
 			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
 
-			return mGrabber->grab(mGrabRect, &mDestinationBufferBox);
+			mGrabber->grab(mGrabRect, &mDestinationBufferBox);
 		}
 
 		// Returns the image of the last grab

@@ -27,7 +27,7 @@ public:
 	void init();
 	void deinit();
 
-	int grab(const Rect& captureRect, Buffer* destination);
+	virtual void grab(const Rect& captureRect, Buffer* destination);
 
 	int screenCount() const;
 	Rect screenResolution(int screen) const;

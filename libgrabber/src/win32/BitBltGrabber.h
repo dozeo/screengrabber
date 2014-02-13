@@ -21,7 +21,7 @@ public:
 	virtual void init();
 	virtual void deinit();
 
-	virtual int grab(const Rect& rect, Buffer* destination);
+	virtual void grab(const Rect& rect, Buffer* destination);
 
 private:
 	void initBitmap(const Dimension2& captureSize);

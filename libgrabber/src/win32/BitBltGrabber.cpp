@@ -51,7 +51,7 @@ void BitBltGrabber::deinit()
 	shutdownBitmapBuffer();
 }
 
-int BitBltGrabber::grab(const Rect& rect, Buffer* destination)
+void BitBltGrabber::grab(const Rect& rect, Buffer* destination)
 {
 	resizeBitmapIfNecessary(rect.w, rect.h);
 
@@ -59,10 +59,7 @@ int BitBltGrabber::grab(const Rect& rect, Buffer* destination)
 
 	BOOL result = BitBlt(_hdcCapture, 0, 0, rect.w, rect.h, _hdcDesktop, rect.x, rect.y, SRCCOPY | CAPTUREBLT);
 	if (result == FALSE)
-	{
-		std::cerr << "Failed to BitBlt!" << std::endl;
-		return -1;
-	}
+		throw exception(strstream() << "Failed to BitBlt with error code " << GetLastError());
 
 	// draw mouse cursor into buffer
 	if (_grabMouseCursor)
@@ -72,14 +69,9 @@ int BitBltGrabber::grab(const Rect& rect, Buffer* destination)
 	
 	int lines = GetDIBits(_hdcDesktop, _hBitmap, 0, _captureSize.height, _bmpBuffer, &_bmpInfo, DIB_RGB_COLORS);
 	if (lines == 0)
-	{
-		std::cerr << "Failed to GetDIBits!" << std::endl;
-		return -1;
-	}
+		throw exception(strstream() << "Failed to GetDIBits with return " << lines << " and with error code " << GetLastError());
 
 	copyBitmapToBuffer(_bmpBuffer, rect.w * 4, lines, destination);
-
-	return 0;
 }
 
 void BitBltGrabber::copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer)

@@ -97,7 +97,7 @@ void DirectXGrabber::initD3DDisplays()
 	}
 }
 
-int DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
+void DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
 {
 	assert(destination != 0);
 
@@ -114,13 +114,9 @@ int DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
 			rect.h = intersect.h;
 			int x = intersect.x - captureRect.x;
 			int y = intersect.y - captureRect.y;
-			HRESULT hr = display.grabRect(rect, x, y, destination, _grabMouseCursor);
-			if (hr != S_OK)
-				return hr;
+			display.grabRect(rect, x, y, destination, _grabMouseCursor);
 		}
 	}
-
-	return S_OK;
 }
 
 int DirectXGrabber::screenCount() const

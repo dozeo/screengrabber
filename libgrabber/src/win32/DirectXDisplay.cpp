@@ -110,7 +110,7 @@ Rect DirectXDisplay::screenRect() const
 	return _screenRect;
 }
 
-HRESULT DirectXDisplay::grabRect(const Rect& captureRect, int destX, int destY, Buffer* destination, bool showCursor)
+void DirectXDisplay::grabRect(const Rect& captureRect, int destX, int destY, Buffer* destination, bool showCursor)
 {
 	assert(_d3dDevice != NULL);
 
@@ -121,36 +121,25 @@ HRESULT DirectXDisplay::grabRect(const Rect& captureRect, int destX, int destY, 
 	d3dRect.h = captureRect.h;
 
 	if (d3dRect.w == 0 || d3dRect.h == 0)
-		return S_OK;
+		return;
 
 	HRESULT hr = _d3dDevice->GetFrontBufferData(0, _surface);
-	if (hr != S_OK) {
-		std::cerr << "Failed to retrieve front buffer!" << std::endl;
-		return hr;
-	}
+	if (hr != S_OK)
+		throw exception(strstream() << "Failed to DX:GetFrontBufferData with result " << hr);
 
 	if (showCursor)
 		copyCursorToSurface(d3dRect);
 
-	hr = copySurfaceToBuffer(d3dRect, destX, destY, destination);
-	if (hr != S_OK) {
-		std::cerr << "Failed to copy surface content to buffer!" << std::endl;
-		return hr;
-	}
-
-	return S_OK;
+	copySurfaceToBuffer(d3dRect, destX, destY, destination);
 }
 
-HRESULT DirectXDisplay::copySurfaceToBuffer(const Rect& rect, int destX, int destY, Buffer* destination)
+void DirectXDisplay::copySurfaceToBuffer(const Rect& rect, int destX, int destY, Buffer* destination)
 {
 	RECT d3dRect = toRECT(rect);
 	D3DLOCKED_RECT lockedRect;
 	HRESULT hr = _surface->LockRect(&lockedRect, &d3dRect, D3DLOCK_READONLY | D3DLOCK_NOOVERWRITE);
 	if (hr != S_OK)
-	{
-		std::cerr << "Failed to lock rect of surface!" << std::endl;
-		return hr;
-	}
+		throw exception(strstream() << "LockRect on surface failed with return code " << hr);
 
 	int destOffset = destY * destination->rowLength + 4 * destX;
 	char* destData = (char*)destination->data + destOffset;
@@ -164,8 +153,6 @@ HRESULT DirectXDisplay::copySurfaceToBuffer(const Rect& rect, int destX, int des
 	}
 
 	_surface->UnlockRect();
-
-	return S_OK;
 }
 
 void DirectXDisplay::copyCursorToSurface(const Rect& rect)

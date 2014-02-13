@@ -41,6 +41,6 @@ namespace dz
 			virtual void setEnableGrabCursor(bool enable = true) = 0;
 
 			/// Grab something into the destination buffer
-			virtual int grab(const Rect& rect, Buffer * destination) = 0;
+			virtual void grab(const Rect& rect, Buffer * destination) = 0;
 	};
 }

@@ -17,7 +17,7 @@ namespace dz
 			virtual int screenCount () const;
 			virtual Rect screenResolution (int screen) const;
 			virtual Rect combinedScreenResolution () const;
-			virtual int grab (const Rect& rect, Buffer * destination);
+			virtual void grab(const Rect& rect, Buffer * destination);
 			virtual void setEnableGrabCursor(bool enable = true) { }
 	};
 }

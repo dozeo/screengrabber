@@ -26,10 +26,10 @@ public:
 	int adapter() const;
 	Rect screenRect() const;
 
-	HRESULT grabRect(const Rect& intersectRect, int destX, int destY, Buffer* destination, bool showCursor);
+	void grabRect(const Rect& intersectRect, int destX, int destY, Buffer* destination, bool showCursor);
 
 private:
-	HRESULT copySurfaceToBuffer(const Rect& rect, int destX, int destY, Buffer* destination);
+	void copySurfaceToBuffer(const Rect& rect, int destX, int destY, Buffer* destination);
 	void copyCursorToSurface(const Rect& rect);
 	void copyBitmap(const Rect& cursorRect, const ICONINFO& iconInfo, bool isColorIcon, const Rect& rect);
 
