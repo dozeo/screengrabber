@@ -29,7 +29,7 @@ fi
 
 mkdir -p $DEPSRC
 
-git submodule update --init
+(cd $ABSDIR && git submodule update --init)
 
 checkout zlib git@github.com:dozeo/zlib.git b1827f54df6c61b8c0c21ce3fe7994e7ca0ae8a1
 checkout polarssl git@github.com:polarssl/polarssl.git 1492633e54afdb4cffa5294319b1707cf631e74a
