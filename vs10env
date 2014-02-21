@@ -1,6 +1,0 @@
-#!/bin/bash
-
-DIR=$(cd $(dirname $0); pwd)
-
-echo '@call "%VS100COMNTOOLS%vsvars32.bat"
-'$*'' | $COMSPEC
