@@ -4,34 +4,31 @@
 #ifdef LINUX
 #include <X11/Xlib.h>
 
-namespace dz {
+namespace dz
+{
+	/// X11 implementation of Grabber
+	/// TODO: Multiscreen support
+	class X11Grabber : public IGrabber
+	{
+		public:
+			X11Grabber ();
+			virtual ~X11Grabber();
+			virtual void deinit ();
+			virtual int screenCount () const;
+			virtual Rect screenResolution (int screen) const;
+			virtual Rect combinedScreenResolution () const;
+			virtual void grab (const Rect& rect, Buffer * destination);
+		private:
+			int  loadSizesFromRandr ();
+			void loadSizeFromOneDiplay (); // fallback method
+			Display * mDisplay;
+			bool mRandrAvailable;
 
-/// X11 implementation of Grabber
-/// TODO: Multiscreen support
-class X11Grabber : public Grabber {
-public:
+			int mDisplayCount;
+			dz::Rect mDisplaySizes[16];
 
-	// Implemntation
-	X11Grabber ();
-	virtual ~X11Grabber();
-	virtual int init ();
-	virtual void deinit ();
-	virtual int screenCount () const;
-	virtual Rect screenResolution (int screen) const;
-	virtual Rect combinedScreenResolution () const;
-	virtual int grab (const Rect& rect, Buffer * destination);
-private:
-	int  loadSizesFromRandr ();
-	void loadSizeFromOneDiplay (); // fallback method
-	Display * mDisplay;
-	bool mRandrAvailable;
-
-	int mDisplayCount;
-	dz::Rect mDisplaySizes[16];
-
-	XErrorHandler mPreviousHandler; ///< Error handler before we installed our own
-};
-
+			XErrorHandler mPreviousHandler; ///< Error handler before we installed our own
+	};
 }
 
 #endif

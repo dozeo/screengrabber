@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <string>
 
+#define BITS_PER_PIXEL 32
+
 #pragma warning(disable:4996)
 
 void ffmpeg_log(void*, int line, const char* msg, va_list list)
@@ -49,9 +51,10 @@ namespace dz
 		//av_log_set_level(AV_LOG_DEBUG);
 		::av_log_set_level(AV_LOG_ERROR);
 
-		_videoFrameSize.width  = videoSize.width  - (videoSize.width % 4);
-		_videoFrameSize.height = videoSize.height - (videoSize.height % 4);
 		_scalingImageSize = _videoFrameSize;
+		_videoFrameSize = videoSize;
+		//_videoFrameSize.width  -= _videoFrameSize.width % 4;
+		//_videoFrameSize.height -= _videoFrameSize.height % 4;
 	}
 
 	VideoStream::~VideoStream()
@@ -234,7 +237,9 @@ namespace dz
 
 		int64_t t0 = av_gettime();
 		FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
-		sws_scale(_convertContext, _tempFrame->data, _tempFrame->linesize, 0, imageSize.height, _scaledFrame->data, _scaledFrame->linesize);
+		int scaleRes = sws_scale(_convertContext, _tempFrame->data, _tempFrame->linesize, 0, imageSize.height, _scaledFrame->data, _scaledFrame->linesize);
+		if (scaleRes != _videoFrameSize.height)
+			throw exception(strstream() << "Failed to scale the resulting frame from " << imageSize.width << "x" << imageSize.height << " to " << _videoFrameSize.width << "x" << _videoFrameSize.height);
 		
 		_statistic.lastScaleTime = (av_gettime() - t0);
 		
@@ -295,6 +300,8 @@ namespace dz
 				bytes+= packet.side_data[i].size;
 			
 			_statistic.frameWritten(bytes);
+
+			std::cout << "sendFrame " << bytes << std::endl;
 		}
 		else
 		{
@@ -308,7 +315,7 @@ namespace dz
 		assert(_tempFrame == NULL);
 		assert(_convertContext == NULL);
 
-		PixelFormat srcFormat  = PIX_FMT_BGRA;
+		PixelFormat srcFormat  = (BITS_PER_PIXEL == 24) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_BGRA;
 		PixelFormat destFormat = PIX_FMT_YUV420P;
 
 		if (!FFmpegUtils::isConversionSupported(srcFormat, destFormat))

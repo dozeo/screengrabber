@@ -5,38 +5,40 @@
 #include "Rect.h"
 #include "Buffer.h"
 
+#include <dzlib/dzexception.h>
+
 #include <vector>
 
 namespace dz
 {
-	enum GrabberType { GT_NULL, GT_DEFAULT, GT_DIRECTX };
+	namespace GrabberType
+	{
+		enum Enum
+		{
+			Null,
+			Default,
+			//DirectX,
+			GrabWindow
+		};
+
+		std::string ToString(Enum type);
+		Enum FromString(const std::string &value);
+	}
 
 	/// Main platform independet interface for grabber
 	/// Names:
 	/// - screen - The "real" attached screen, 0 is default screen
-	class Grabber
+	class IGrabber
 	{
 		public:
-			virtual ~Grabber() {}
+			virtual ~IGrabber() {}
 
 			/// Returns a new grabber
-			static Grabber* create(GrabberType type = GT_DEFAULT);
-
-			/// Initializes the grabber, returns 0 on success
-			virtual void init() = 0;
+			static IGrabber* create(GrabberType::Enum type = GrabberType::Default);
 
 			/// Unitializes it again
 			virtual void deinit() = 0;
 
-			/// Screen count
-			virtual int screenCount() const = 0;
-
-			/// Screen resolution
-			virtual Rect screenResolution(int screen) const = 0;
-
-			/// Resolution of all Screens
-			virtual Rect combinedScreenResolution() const = 0;
-    
 			/// Enables cursor grabbing
 			virtual void setEnableGrabCursor(bool enable = true) = 0;
 

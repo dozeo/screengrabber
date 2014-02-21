@@ -1,3 +1,4 @@
+#if 0
 
 #pragma once
 
@@ -12,46 +13,46 @@
 #include <vector>
 #include <windows.h>
 
-namespace dz {
+#include "../IDesktopTools.h"
 
-class Window;
+#include <boost/scoped_ptr.hpp>
 
-class DirectXGrabber : public Win32Grabber
+namespace dz
 {
-public:
-	static RECT toRECT(const Rect& rhs);
+	class Window;
 
-	DirectXGrabber();
-	virtual ~DirectXGrabber();
+	class DirectXGrabber : public Win32Grabber
+	{
+		public:
+			static RECT toRECT(const Rect& rhs);
 
-	void init();
-	void deinit();
+			DirectXGrabber();
+			virtual ~DirectXGrabber();
 
-	virtual void grab(const Rect& captureRect, Buffer* destination);
+			void deinit();
 
-	int screenCount() const;
-	Rect screenResolution(int screen) const;
+			virtual void grab(const Rect& captureRect, Buffer* destination);
 
-private:
-	void initD3D();
-	void initD3DDisplays();
+		private:
+			void enumerateDisplays(IDirect3D9* d3d, const ScreenEnumerator& enumerator);
 
-	void enumerateDisplays(IDirect3D9* d3d, const ScreenEnumerator& enumerator);
+			void createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice);
+			D3DPRESENT_PARAMETERS createPresentParameters(int adapter, const Rect& rect, HWND hWnd);
+			D3DFORMAT findAutoDepthStencilFormat(int adapter, D3DFORMAT backBufferFormat);
 
-	void createD3DDevice(int adapter, const Rect& screenRect, IDirect3DDevice9** d3dDevice);
-	D3DPRESENT_PARAMETERS createPresentParameters(int adapter, const Rect& rect, HWND hWnd);
-	D3DFORMAT findAutoDepthStencilFormat(int adapter, D3DFORMAT backBufferFormat);
+			IDirect3D9* _d3d;
+			Window* _window;
 
-	IDirect3D9* _d3d;
-	Window*     _window;
+			typedef std::vector<DirectXDisplay> DisplayList;
+			typedef std::vector<int> AdapterList;
 
-	typedef std::vector<DirectXDisplay> DisplayList;
-	typedef std::vector<int> AdapterList;
+			DisplayList _displays;
 
-	DisplayList _displays;
-	AdapterList _adapters;
-};
-
+			boost::scoped_ptr<dz::IDesktopTools> m_desktopTools;
+	};
 }
 
 #endif
+
+
+#endif // 0

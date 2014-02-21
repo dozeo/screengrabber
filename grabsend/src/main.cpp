@@ -34,19 +34,27 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 
 	sender->OpenVideoStream();
 
-	double t0 = microtime();
+	double startTime = microtime();
 	double timeToGrabSum = 0;
 	int frame = 0;
 
 	while (!shutDownLoop())
 	{
-		double t1 = microtime();
-		double dt = t1 - t0;
-		grabbingPipeline.grab();
-		double t2 = microtime ();
+		double frameStartTime = microtime();
+		double dt = frameStartTime - startTime;
+		
+		{
+			Timing grabTime("grab");
+			grabbingPipeline.grab();
+		}
+
+		double t2 = microtime();
 
 		const dz::Buffer* buffer = grabbingPipeline.buffer();
-		sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
+		{
+			Timing grabTime("putFrame");
+			sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
+		}
 
 #if QT_GUI_LIB
 		if (QApplication::instance())
@@ -58,8 +66,8 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 
 		frame++;
 		double t3 = microtime ();
-		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - t1);
-		double timeToGrab          = t2 - t1;
+		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - frameStartTime);
+		double timeToGrab          = t2 - frameStartTime;
 		double timeToEncodeAndSend = t3 - t2;
 		timeToGrabSum += timeToGrab;
 		double timeToGrabAvg = (timeToGrabSum / frame);
@@ -69,7 +77,7 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 		std::cerr.precision(3);
 		if (options.statLevel >= 1) {
 			// on each 10th frame print average information
-			if ((frame % 10) == 0 && frame > 0) {
+			if ((frame % 1000) == 0 && frame > 0) {
 				if (stat) {
 					printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
 				} else {
@@ -101,9 +109,8 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 	return 0;
 }
 
-void doGrabSend(int argc, char * argv[])
+void doGrabSend(GrabSendOptions& options)
 {
-	GrabSendOptions options(argc, argv);
 	//options.parse(argc, argv);
 
 	if (options.printHelp)
@@ -117,8 +124,6 @@ void doGrabSend(int argc, char * argv[])
 	std::cout << "GrabberOptions:     " << options.grabberOptions << std::endl;
 	std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
 
-	GrabbingPipeline grabbingPipeline(&options.grabberOptions, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
-
 	//int result = grabbingPipeline.reinit();
 	//if (result)
 	//{
@@ -128,9 +133,9 @@ void doGrabSend(int argc, char * argv[])
 
 	if (options.printScreens || options.printWindows || options.printProcesses)
 	{
-		if (options.printScreens) printScreens(grabbingPipeline.grabber());
-		if (options.printWindows) printWindows(grabbingPipeline.grabber());
-		if (options.printProcesses) printProcesses(grabbingPipeline.grabber());
+		if (options.printScreens) printScreens();
+		if (options.printWindows) printWindows();
+		if (options.printProcesses) printProcesses();
 		
 		return;
 	}
@@ -139,6 +144,8 @@ void doGrabSend(int argc, char * argv[])
 	boost::scoped_ptr<QApplication> qApplication;
 	if (options.videoSenderOptions.type == dz::VT_QT)
 	{
+		int argc = 0;
+		char** argv = { NULL };
 		qApplication.reset (new QApplication (argc, argv));
 	}
 #ifdef MAC_OSX
@@ -149,6 +156,7 @@ void doGrabSend(int argc, char * argv[])
 #endif
 #endif
 
+	GrabbingPipeline grabbingPipeline(&options.grabberOptions, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
 	dz::Rect grabRect = grabbingPipeline.grabRect();
 	std::cout << "Final grabRect: " << grabRect << std::endl;
 
@@ -204,14 +212,24 @@ void doGrabSend(int argc, char * argv[])
 
 int main (int argc, char * argv[])
 {
+	bool bWaitOnError = false;
+
 	try
 	{
-		doGrabSend(argc, argv);
+		GrabSendOptions options(argc, argv);
+		bWaitOnError = options.m_bWantOnException;
+		doGrabSend(options);
 		return 0;
 	}
 	catch (dz::exception e)
 	{
 		std::cerr << "Exception on grabsend: " << e.msg() << std::endl;
+		
+		if (bWaitOnError)
+		{
+			char t;
+			std::cin >> t;
+		}
 	}
 
 	return -1;

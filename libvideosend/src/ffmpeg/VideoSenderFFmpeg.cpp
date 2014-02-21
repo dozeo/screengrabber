@@ -29,6 +29,9 @@ namespace dz
 	void VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
 	{
 		_frameSize = Dimension2(w, h);
+		//_frameSize.width -= (_frameSize.width % 4);
+		//_frameSize.height -= (_frameSize.height % 4);
+
 		_fps = fps;
 		_bitRate = bitRate;
 		_keyframe = keyframe;

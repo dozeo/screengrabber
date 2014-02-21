@@ -1,11 +1,17 @@
 #pragma once
 #include "GrabberOptions.h"
 
+#include <libgrabber/src/IDesktopTools.h>
+
 #include <libgrabber/src/WindowInfo.h>
 #include <libgrabber/src/ProcessInfo.h>
 #include <iostream>
 
 #include <dzlib/dzexception.h>
+
+#include <boost/scoped_ptr.hpp>
+
+#define BITS_PER_PIXEL 32
 
 /// Manages the whole grabbing pipeline + configuration
 ///
@@ -17,8 +23,12 @@ class GrabbingPipeline
 		GrabbingPipeline(const GrabberOptions* options, bool correctAspectToVideo = false, int videoW = 0, int videoH = 0) :
 			mGrabberOptions(options), mCorrectAspectToVideo(correctAspectToVideo), mVideoWidth(videoW), mVideoHeight(videoH)
 		{
-			mGrabber = dz::Grabber::create(mGrabberOptions->grabberType);
-			mGrabber->init();
+			dz::GrabberType::Enum grabberType = mGrabberOptions->grabberType;
+			int64_t windowId = options->grabWid;
+			if (windowId != -1)
+				grabberType = dz::GrabberType::GrabWindow;
+
+			mGrabber = dz::IGrabber::create(mGrabberOptions->grabberType);
 
 			mCurrentGrabberType = mGrabberOptions->grabberType;
 
@@ -26,7 +36,7 @@ class GrabbingPipeline
 			if (mGrabRect.empty())
 				throw dz::exception("Grab rectangle was calculated to be empty (0 width and height)");
 
-			mDestinationBuffer.init (mGrabRect.w, mGrabRect.h);
+			mDestinationBuffer.init(mGrabRect.w, mGrabRect.h, mGrabRect.w * (BITS_PER_PIXEL/8));
 			mDestinationBuffer.clear();
 			mGrabber->setEnableGrabCursor(mGrabberOptions->grabCursor);
 		}
@@ -148,9 +158,11 @@ class GrabbingPipeline
 		}
 
 		// Access to current grabber
-		const dz::Grabber * grabber () const {
+		const dz::IGrabber* grabber () const {
 			return mGrabber;
 		}
+
+		const dz::IDesktopTools& GetDesktopTools() const { return *m_desktopTools.get(); }
 
 	private:
 
@@ -165,7 +177,7 @@ class GrabbingPipeline
 			else if (mGrabberOptions->grabScreen >= 0)
 			{
 				// screen given
-				return mGrabber->screenResolution(mGrabberOptions->grabScreen);
+				return GetDesktopTools().GetScreenResolution(mGrabberOptions->grabScreen);
 			}
 			else if (mGrabberOptions->grabPid > 0)
 			{
@@ -192,17 +204,16 @@ class GrabbingPipeline
 			}
 			
 			// else grab everything
-			return mGrabber->combinedScreenResolution();
+			return m_desktopTools->GetCombinedScreenResolution();
 		}
-
-
 
 		const GrabberOptions * mGrabberOptions; ///< Current set video options, must stay valid as long as grab() and init () rns
 		dz::Buffer mDestinationBuffer;			///< Buffer in which grabbing is done, can be recreated during grab calls
 		dz::Buffer mDestinationBufferBox;		///< The box isnide the destination buffer in which is grabbed actually
 		dz::Rect mGrabRect;						///< Current grab rect
-		dz::GrabberType mCurrentGrabberType;	///< Current initialized grabber type
-		dz::Grabber * mGrabber;					///< Current Grabber
+		dz::GrabberType::Enum mCurrentGrabberType;	///< Current initialized grabber type
+		dz::IGrabber* mGrabber;					///< Current Grabber
+		boost::scoped_ptr<dz::IDesktopTools> m_desktopTools;
 		bool mCorrectAspectToVideo;				///< Rescale the grabbed images, so that they have the same aspect like the destination video
 		// Destination video size, only valid if correctAspectToVideo is set to true
 		int  mVideoWidth;

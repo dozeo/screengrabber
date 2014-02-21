@@ -12,8 +12,6 @@ namespace dz
 
 	}
 
-	void NullGrabber::init () { }
-
 	void NullGrabber::deinit () {
 
 	}

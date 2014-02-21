@@ -13,6 +13,7 @@ GrabSendOptions::GrabSendOptions (int argc, char ** argv) : desc ("General Confi
 	printScreens   = false;
 	printWindows   = false;
 	printProcesses = false;
+	m_bWantOnException = false;
 	statLevel      = 1;
 
 	desc.add_options()
@@ -20,6 +21,7 @@ GrabSendOptions::GrabSendOptions (int argc, char ** argv) : desc ("General Confi
 				("screens", "Print screens and exit")
 				("windows", "Print windows and exit")
 				("processes", "Print processes and exit")
+				("waitonerror", "Waits for keyboard input when an exception occures - use for debugging")
 				("stat", boost::program_options::value<int>(&statLevel)->default_value(1), "Statistics level (0 .. 2)");
 	desc.add (grabberOptionsParser.desc);
 	desc.add (videoSenderOptionsParser.desc);
@@ -42,7 +44,8 @@ void GrabSendOptions::parse(int argc, char ** argv)
 
 }
 
-void GrabSendOptions::doPrintHelp () {
+void GrabSendOptions::doPrintHelp() const
+{
 	std::cout << "grabsend: Grab desktop content and stream it with ffmpeg" << std::endl;
 	std::cout << "Version:  " << GIT_DESCRIBE << std::endl;
 	std::cout << desc << std::endl;
@@ -64,6 +67,9 @@ void GrabSendOptions::apply (const boost::program_options::variables_map & vm) {
 	if (vm.count ("processes") > 0) {
 		printProcesses = true;
 	}
+
+	m_bWantOnException = vm.count("waitonerror") > 0;
+
 	grabberOptionsParser.apply (vm);
 	videoSenderOptionsParser.apply (vm);
 }

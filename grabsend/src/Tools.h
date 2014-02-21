@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libgrabber/src/Grabber.h>
+#include <libgrabber/src/IDesktopTools.h>
 #include <libvideosend/src/VideoSender.h>
 
 /**
@@ -17,13 +17,13 @@ void millisleep (int timeMs);
 double microtime ();
 
 /// Print all identified screens
-void printScreens (const dz::Grabber * grabber);
+void printScreens();
 
 /// Print all identified windows
-void printWindows (const dz::Grabber * grabber);
+void printWindows();
 
 /// Print all identified processes
-void printProcesses (const dz::Grabber * grabber);
+void printProcesses();
 
 /// Print statistic about last frame
 std::ostream& printLastFrame (std::ostream & o, const dz::VideoSender::Statistic & s);
@@ -49,6 +49,26 @@ void installSigHandler ();
 
 /// Install a second thread which is reading std::cin and waiting for QUIT to quit the loop
 void installLineReader ();
+
+#include <iomanip>
+
+class Timing
+{
+	public:
+		Timing(const char *name) : m_name(name), m_start(microtime())
+		{
+		}
+
+		~Timing()
+		{
+			double end = microtime();
+			std::cout << "Timing '" << std::setw(10) << m_name << "' took " << std::setw(4) << (uint32_t)((end - m_start) * 1000.0) << " ms" << std::endl;
+		}
+
+	private:
+		const char *m_name;
+		double m_start;
+};
 
 //@}
 

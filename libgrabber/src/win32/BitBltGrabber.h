@@ -9,40 +9,39 @@
 #include <Windows.h>
 #include <GdiPlus.h>
 
-namespace dz {
+namespace dz
+{
+	class BitBltGrabber : public Win32Grabber
+	{
+		public:
+			static void fillBitmapInfo(int width, int height, BITMAPINFO& info);
 
-class BitBltGrabber : public Win32Grabber {
-public:
-	static void fillBitmapInfo(int width, int height, BITMAPINFO& info);
+			BitBltGrabber();
+			virtual ~BitBltGrabber();
 
-	BitBltGrabber();
-	virtual ~BitBltGrabber();
+			virtual void deinit();
 
-	virtual void init();
-	virtual void deinit();
+			virtual void grab(const Rect& rect, Buffer* destination);
 
-	virtual void grab(const Rect& rect, Buffer* destination);
+		private:
+			void initBitmap(const Dimension2& captureSize);
+			void shutdownBitmap();
 
-private:
-	void initBitmap(const Dimension2& captureSize);
-	void shutdownBitmap();
+			void initBitmapBuffer(const Dimension2& captureSize);
+			void shutdownBitmapBuffer();
 
-	void initBitmapBuffer(const Dimension2& captureSize);
-	void shutdownBitmapBuffer();
+			void resizeBitmapIfNecessary(int width, int height);
+			void copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer);
 
-	void resizeBitmapIfNecessary(int width, int height);
-	void copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer);
+			Dimension2 _captureSize;
 
-	Dimension2 _captureSize;
+			HDC _hdcDesktop;
+			HDC _hdcCapture;
 
-	HDC _hdcDesktop;
-	HDC _hdcCapture;
-
-	HBITMAP _hBitmap;
-	BITMAPINFO _bmpInfo;
-	uint8_t* _bmpBuffer;
-};
-
+			HBITMAP _hBitmap;
+			BITMAPINFO _bmpInfo;
+			uint8_t* _bmpBuffer;
+	};
 }
 
 #endif

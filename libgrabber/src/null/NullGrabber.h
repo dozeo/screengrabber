@@ -5,14 +5,13 @@
 namespace dz
 {
 	/// Dummy implementation of Grabber
-	class NullGrabber : public Grabber
+	class NullGrabber : public IGrabber
 	{
 		public:
 			NullGrabber ();
 			virtual ~NullGrabber();
 
 			// Implementation
-			virtual void init ();
 			virtual void deinit ();
 			virtual int screenCount () const;
 			virtual Rect screenResolution (int screen) const;

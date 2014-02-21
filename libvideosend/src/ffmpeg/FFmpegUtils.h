@@ -13,7 +13,7 @@ namespace dz
 		public:
 			static AVFormatContext* createFormatContext(const std::string& outputType, enum AVCodecID codecId);
 
-			static void copyRgbaToFrame(const uint8_t* rgba, const Dimension2& sourceSize, uint32_t stride, AVFrame* destFrame);
+			static void copyRgbaToFrame(const uint8_t* srcData, const Dimension2& sourceSize, uint32_t stride, AVFrame* destFrame);
 
 			static AVFrame* createVideoFrame(enum PixelFormat pixFormat, const Dimension2& frameSize);
 			static AVFrame* createVideoFrame(enum PixelFormat pixFormat, int width, int height);

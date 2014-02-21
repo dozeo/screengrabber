@@ -9,17 +9,16 @@
 
 namespace dz
 {
-	Grabber* Grabber::create(enum GrabberType type)
+	IGrabber* IGrabber::create(GrabberType::Enum type)
 	{
-		if (type == GT_NULL)
+		switch (type)
 		{
-			return new NullGrabber();
+			case GrabberType::Null: return new NullGrabber();
+			//case GrabberType::DirectX: return new DirectXGrabber();
+			
+			default:
+				return new BitBltGrabber();
 		}
-		else if (type == GT_DEFAULT)
-		{
-			return new BitBltGrabber();
-		}
-		return new DirectXGrabber();
 	}
 
 	void Win32Grabber::grabCursor(const Rect& rect, HDC hdc)
@@ -50,35 +49,7 @@ namespace dz
 	Win32Grabber::Win32Grabber()
 	: _grabMouseCursor(false)
 	{
-		ScreenEnumerator enumerator;
-		enumerator.enumerate();
-		_displays = enumerator.displays();
-	}
 
-	int Win32Grabber::screenCount () const
-	{
-		return _displays.size();
-	}
-
-	Rect Win32Grabber::screenResolution (int screen) const
-	{
-		if (screen >= 0 && screen < (int)_displays.size())
-		{
-			return _displays[screen].rect;
-		}
-		return Rect();
-	}
-
-	Rect Win32Grabber::combinedScreenResolution () const 
-	{
-		int screenCount = this->screenCount();
-		if (screenCount == 0) return Rect();
-		Rect r;
-		for (int i = 0; i < screenCount; i++)
-		{
-			r.addToBoundingRect(this->screenResolution(i));
-		}
-		return r;
 	}
 
 	void Win32Grabber::setEnableGrabCursor (bool enable)

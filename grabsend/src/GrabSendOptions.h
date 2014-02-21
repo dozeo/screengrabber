@@ -13,12 +13,13 @@ struct GrabSendOptions
 	void parse (int argc, char ** argv);
 
 	/// Print command line help
-	void doPrintHelp ();
+	void doPrintHelp() const;
 
 	bool printHelp;
 	bool printScreens;
 	bool printWindows;
 	bool printProcesses;
+	bool m_bWantOnException;
 	int  statLevel;
 	GrabberOptions grabberOptions;
 	VideoSenderOptions videoSenderOptions;
