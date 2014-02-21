@@ -4,12 +4,13 @@
 #include <boost/program_options.hpp>
 
 /// Command line options of grabsend
-struct GrabSendOptions {
-	GrabSendOptions ();
+struct GrabSendOptions
+{
+	GrabSendOptions(int argc, char ** argv);
 
 	/// Parse command line arguments
 	/// Returns 1 on error and already display error message
-	int parse (int argc, char ** argv);
+	void parse (int argc, char ** argv);
 
 	/// Print command line help
 	void doPrintHelp ();

@@ -1,6 +1,7 @@
 #pragma once
-#include <grabber/Grabber.h>
-#include <videosend/VideoSender.h>
+
+#include <libgrabber/src/Grabber.h>
+#include <libvideosend/src/VideoSender.h>
 
 /**
  * @file

@@ -7,6 +7,8 @@ echo "ABSDIR=$ABSDIR"
 # Fail on errors
 set -e
 
+./get_dependencies.sh
+
 # Directories
 export SRC_DIR=$ABSDIR/dependencies_source
 export INSTALL_DIR=$ABSDIR/dependencies
@@ -24,21 +26,20 @@ mkdir -p osx
 
 # pkgconfig
 # Download it by hand
-# Note: 0.25 is the last version which included GObject
 # Git version doesn't work, as no autoconf is installed by default
 if [ -e $INSTALL_DIR/bin/pkg-config ]; then
   echo "pkg-config seems to already exist"
 else
   cd osx
-  if [ -d pkg-config-0.25 ]; then
+  if [ -d pkg-config-0.28 ]; then
     echo "Pkg-Config already downloaded"
   else
-    curl -fL http://pkgconfig.freedesktop.org/releases/pkg-config-0.25.tar.gz > pkg-config-0.25.tar.gz
-    tar -xzf pkg-config-0.25.tar.gz
+    curl -fL http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz > pkg-config-0.28.tar.gz
+    tar -xzf pkg-config-0.28.tar.gz
   fi
   echo "Compiling pkg-config"
 
-  cd pkg-config-0.25
+  cd pkg-config-0.28
   ./configure --prefix=$INSTALL_DIR
   make -j2
   make install
@@ -132,7 +133,7 @@ else
 
     ./configure --prefix=$INSTALL_DIR --enable-shared \
         --enable-gpl --enable-librtmp --enable-libx264 \
-        --disable-everything --enable-encoder=libx264 --enable-muxer=flv \
+        --enable-encoder=libx264 \
         --enable-protocol=rtmps --enable-protocol=rtp --enable-protocol=rtmp \
         --enable-protocol=rtmpte --enable-protocol=rtmpts \
         --enable-protocol=tcp --enable-protocol=file \
@@ -145,11 +146,11 @@ fi
 
 
 # gtest
-if [ -d gtest-1.6.0 ]; then
-    echo "gtest seems already downloaded"
+if [ -d gtest-1.7.0 ]; then
+    echo "gtest 1.7.0 seems already downloaded"
 else
-    curl -fL http://googletest.googlecode.com/files/gtest-1.6.0.zip > gtest-1.6.0.zip
-    unzip gtest-1.6.0.zip
-    rm gtest-1.6.0.zip
+    curl -fL http://googletest.googlecode.com/files/gtest-1.7.0.zip > gtest-1.7.0.zip
+    unzip gtest-1.7.0.zip
+    rm gtest-1.7.0.zip
 fi
 
