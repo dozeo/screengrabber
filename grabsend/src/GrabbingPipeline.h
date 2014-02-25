@@ -1,4 +1,8 @@
 #pragma once
+
+#include <libgrabber/src/Grabber.h>
+#include <libgrabber/src/IWindowGrabber.h>
+
 #include "GrabberOptions.h"
 
 #include <libgrabber/src/IDesktopTools.h>
@@ -24,13 +28,17 @@ class GrabbingPipeline
 			mGrabberOptions(options), mCorrectAspectToVideo(correctAspectToVideo), mVideoWidth(videoW), mVideoHeight(videoH)
 		{
 			dz::GrabberType::Enum grabberType = mGrabberOptions->grabberType;
+
 			int64_t windowId = options->grabWid;
 			if (windowId != -1)
+			{
+				mGrabber = dz::IWindowGrabber::CreateWindowGrabber(windowId);
 				grabberType = dz::GrabberType::GrabWindow;
+			}
+			else
+				mGrabber = dz::IGrabber::create(mGrabberOptions->grabberType);
 
-			mGrabber = dz::IGrabber::create(mGrabberOptions->grabberType);
-
-			mCurrentGrabberType = mGrabberOptions->grabberType;
+			mCurrentGrabberType = grabberType;
 
 			mGrabRect = calcGrabRect();
 			if (mGrabRect.empty())

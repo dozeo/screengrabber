@@ -35,8 +35,7 @@ namespace dz
 			AVStream* addVideoStream(enum AVCodecID codecId, int bitRate, int keyframe, float fps, enum PixelFormat pixFormat, enum VideoQualityLevel level);
 			void openVideo(AVStream* stream);
 
-			void setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat);
-			void setVideoQualitySettings(AVCodecContext* codec, enum VideoQualityLevel level);
+			void setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat, enum VideoQualityLevel level);
 
 			void setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize);
 			void releaseScaleContext();

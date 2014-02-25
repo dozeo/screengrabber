@@ -57,6 +57,8 @@ struct GrabberOptions
 		return result;
 	}
 
+	bool IsGrabWindow() const { return grabWid > 0; }
+
 	dz::Rect grabRect;  ///< != empty if set
 	int grabScreen;     ///< >= 0 if set
 	int64_t grabPid;    ///<   >0 if set

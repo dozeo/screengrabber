@@ -98,13 +98,7 @@ namespace dz
 		_isStreamOpen = true;
 	}
 
-	AVStream* VideoStream::addVideoStream(
-		enum AVCodecID codecId,
-		int bitRate,
-		int keyframe,
-		float fps,
-		enum PixelFormat pixFormat,
-		enum VideoQualityLevel level)
+	AVStream* VideoStream::addVideoStream(enum AVCodecID codecId, int bitRate, int keyframe, float fps, enum PixelFormat pixFormat, enum VideoQualityLevel level)
 	{
 		assert(_formatContext != 0);
 		assert(codecId != CODEC_ID_NONE);
@@ -121,8 +115,7 @@ namespace dz
 
 		avcodec_get_context_defaults3(context, codec);
 	
-		setBasicSettings(context, bitRate, keyframe, fps, codecId, pixFormat);
-		setVideoQualitySettings(context, level);
+		setBasicSettings(context, bitRate, keyframe, fps, codecId, pixFormat, level);
 
 		if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER)
 			context->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -130,36 +123,27 @@ namespace dz
 		return stream;
 	}
 
-	void VideoStream::setBasicSettings(
-		AVCodecContext* codec,
-		int bitRate,
-		int keyframe,
-		float fps,
-		enum AVCodecID codecId,
-		enum PixelFormat pixFormat)
+	void VideoStream::setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat, enum VideoQualityLevel level)
 	{
 		// set up properties
-		codec->codec_type  = AVMEDIA_TYPE_VIDEO;
-		codec->coder_type  = FF_CODER_TYPE_VLC;
-		codec->width       = _videoFrameSize.width;
-		codec->height      = _videoFrameSize.height;
-		codec->bit_rate    = bitRate;
-		codec->pix_fmt     = pixFormat;
+		codec->codec_type = AVMEDIA_TYPE_VIDEO;
+		codec->coder_type = FF_CODER_TYPE_VLC;
+		codec->width = _videoFrameSize.width;
+		codec->height = _videoFrameSize.height;
+		codec->bit_rate = bitRate;
+		codec->pix_fmt = pixFormat;
 
-		codec->codec_id      = codecId;
+		codec->codec_id = codecId;
 		codec->time_base.den = (int)fps;
 		codec->time_base.num = 1;
-		codec->gop_size      = 2*keyframe; // max key frames
-		codec->keyint_min    = keyframe;     // minimum number of keyframes
-	}
+		codec->gop_size = 2*keyframe; // max key frames
+		codec->keyint_min = keyframe; // minimum number of keyframes
 
-	void VideoStream::setVideoQualitySettings(AVCodecContext* codec, enum VideoQualityLevel level) {
-
-		codec->me_method      = 0; //motion estimation algorithm
+		codec->me_method = 0; // motion estimation algorithm
 		codec->me_subpel_quality = 4;
-		codec->delay          = 0;
-		codec->thread_count   = 0; // determines the number of threads automatically
-		codec->refs           = 3;
+		codec->delay = 0;
+		codec->thread_count = 0; // determines the number of threads automatically
+		codec->refs = 3;
 		codec->max_b_frames = 0;
 		codec->rc_buffer_size = 0;
 
@@ -167,7 +151,7 @@ namespace dz
 		av_opt_set(codec->priv_data, "profile", "high", 0);
 		av_opt_set(codec->priv_data, "preset", "slower", 0);
 
-		std::cout << "Video Quality: " << level << std::endl;
+		//std::cout << "Video Quality: " << level << std::endl;
 
 		/*if (level == VQ_LOW) {
 			codec->max_b_frames = 0;
@@ -187,7 +171,7 @@ namespace dz
 			av_opt_set(codec->priv_data, "preset", "medium", 0);
 			av_opt_set(codec->priv_data, "tune", "film", 0);
 		}*/
-	}		
+	}
 
 	void VideoStream::openVideo(AVStream* stream)
 	{
@@ -230,7 +214,8 @@ namespace dz
 		assert(_scaledFrame != 0);
 		assert(_tempFrame != 0);
 
-		if (imageSize != _scalingImageSize) {
+		if (imageSize != _scalingImageSize)
+		{
 			releaseScaleContext();
 			setupScaleContext(imageSize, _videoFrameSize);
 		}
@@ -373,14 +358,16 @@ namespace dz
 	}
 
 	/// returns protocol of an url, or "" in case of an error
-	static std::string urlGetProtocol (const std::string & url) {
+	static std::string urlGetProtocol (const std::string & url)
+	{
 		size_t pos = url.find ("://");
 		if (pos == url.npos) return std::string();
 		return url.substr (0, pos);
 	}
 
-	/// returns path of an url of the form [protocol]://[host]:[port]/[path]?[searchpath]
-	static std::string urlGetPath (const std::string & url) {
+	/// returns path of an url of the form [protocol]://[host][:port]/[path]?[searchpath]
+	static std::string urlGetPath (const std::string & url)
+	{
 		size_t pos = url.find("://");
 		if (pos == url.npos) return std::string (); // no protocol given
 		pos = url.find ('/', pos + 3);
@@ -412,7 +399,8 @@ namespace dz
 				throw exception(strstream() << "Failed to open video file (" << url << ") with avio_open2 result = " << result );
 		}
 
-		if (urlGetProtocol (url) == "tcp") {
+		if (urlGetProtocol (url) == "tcp")
+		{
 			// set stream name if given as path string tcp://host:port/[streamName]
 			std::string streamName = urlGetPath (url);
 			if (!streamName.empty()){
@@ -428,7 +416,8 @@ namespace dz
 
 	void VideoStream::closeFile(AVFormatContext* formatContext)
 	{
-		if (formatContext != 0 && _isStreamOpen) {
+		if (formatContext != 0 && _isStreamOpen)
+		{
 			av_write_trailer(formatContext);
 			avio_close(formatContext->pb);
 		}
