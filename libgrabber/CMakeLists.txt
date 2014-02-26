@@ -28,3 +28,4 @@ target_link_libraries(libgrabber ${LIBS})
 # 	# otherwise we get strange linking errors
 # 	target_link_libraries (grabber ${SCREENGRAB_LIBS})
 # endif()
+
