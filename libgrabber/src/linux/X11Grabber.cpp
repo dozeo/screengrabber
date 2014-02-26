@@ -45,26 +45,25 @@ X11Grabber::X11Grabber () : mRandrAvailable(false)
 	mPreviousHandler = XSetErrorHandler(&x11ErrorHandler);
 }
 
-X11Grabber::~X11Grabber() {
-
-}
-
-void X11Grabber::deinit () {
-	if (!mDisplay) return;
-	XCloseDisplay (mDisplay);
+X11Grabber::~X11Grabber()
+{
+	XCloseDisplay(mDisplay);
 	XSetErrorHandler(mPreviousHandler);
 }
 
-int X11Grabber::screenCount () const  {
+int X11Grabber::screenCount() const
+{
 	return mDisplayCount;
 }
 
-Rect X11Grabber::screenResolution (int screen) const {
+Rect X11Grabber::screenResolution(int screen) const
+{
 	if (screen < 0 || screen > mDisplayCount) return Rect();
 	return mDisplaySizes[screen];
 }
 
-Rect X11Grabber::combinedScreenResolution () const {
+Rect X11Grabber::combinedScreenResolution () const
+{
 	Rect result;
 	result.w = DisplayWidth  (mDisplay, 0);
 	result.h = DisplayHeight (mDisplay, 0);
@@ -72,7 +71,8 @@ Rect X11Grabber::combinedScreenResolution () const {
 }
 
 /// Clips rectangle into the given window
-static Rect clipRect (const Rect & rect, Display * display, const Window& root) {
+static Rect clipRect(const Rect & rect, Display * display, const Window& root)
+{
 	Window rootReturn;
 	int x,y;
 	unsigned int w;
@@ -87,7 +87,8 @@ static Rect clipRect (const Rect & rect, Display * display, const Window& root) 
 	return inter;
 }
 
-void X11Grabber::grab (const Rect& rect, Buffer * destination) {
+void X11Grabber::grab(const Rect& rect, Buffer * destination)
+{
 	int screen = 0; // no multi window suppot
 	Window root = RootWindow (mDisplay, screen);
 

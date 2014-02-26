@@ -32,11 +32,11 @@ class GrabbingPipeline
 			int64_t windowId = options->grabWid;
 			if (windowId != -1)
 			{
-				mGrabber = dz::IWindowGrabber::CreateWindowGrabber(windowId);
+				m_grabber.reset(dz::IWindowGrabber::CreateWindowGrabber(windowId));
 				grabberType = dz::GrabberType::GrabWindow;
 			}
 			else
-				mGrabber = dz::IGrabber::create(mGrabberOptions->grabberType);
+				m_grabber.reset(dz::IGrabber::create(mGrabberOptions->grabberType));
 
 			mCurrentGrabberType = grabberType;
 
@@ -46,16 +46,12 @@ class GrabbingPipeline
 
 			mDestinationBuffer.init(mGrabRect.w, mGrabRect.h, mGrabRect.w * (BITS_PER_PIXEL/8));
 			mDestinationBuffer.clear();
-			mGrabber->setEnableGrabCursor(mGrabberOptions->grabCursor);
+			m_grabber->setEnableGrabCursor(mGrabberOptions->grabCursor);
 		}
 
 		~GrabbingPipeline ()
 		{
-			if (mGrabber)
-			{
-				mGrabber->deinit();
-				delete mGrabber;
-			}
+			m_grabber.reset(NULL);
 		}
 
 		/// Sets option, must be done before reinit or grab
@@ -151,7 +147,7 @@ class GrabbingPipeline
 
 			mDestinationBufferBox.initAsSubBufferFrom(&mDestinationBuffer, letterX, letterY, mGrabRect.w, mGrabRect.h);
 
-			mGrabber->grab(mGrabRect, &mDestinationBufferBox);
+			m_grabber->grab(mGrabRect, &mDestinationBufferBox);
 		}
 
 		// Returns the image of the last grab
@@ -166,9 +162,7 @@ class GrabbingPipeline
 		}
 
 		// Access to current grabber
-		const dz::IGrabber* grabber () const {
-			return mGrabber;
-		}
+		const dz::IGrabber* grabber() const { return m_grabber.get(); }
 
 		const dz::IDesktopTools& GetDesktopTools() const { return *m_desktopTools.get(); }
 
@@ -220,7 +214,7 @@ class GrabbingPipeline
 		dz::Buffer mDestinationBufferBox;		///< The box isnide the destination buffer in which is grabbed actually
 		dz::Rect mGrabRect;						///< Current grab rect
 		dz::GrabberType::Enum mCurrentGrabberType;	///< Current initialized grabber type
-		dz::IGrabber* mGrabber;					///< Current Grabber
+		boost::scoped_ptr<dz::IGrabber> m_grabber;					///< Current Grabber
 		boost::scoped_ptr<dz::IDesktopTools> m_desktopTools;
 		bool mCorrectAspectToVideo;				///< Rescale the grabbed images, so that they have the same aspect like the destination video
 		// Destination video size, only valid if correctAspectToVideo is set to true

@@ -14,7 +14,6 @@ namespace dz
 			WindowGrabber_Win32(HWND windowHandle);
 			virtual ~WindowGrabber_Win32();
 
-			virtual void deinit();
 			virtual void setEnableGrabCursor(bool enable = true);
 
 			/// Grab something into the destination buffer

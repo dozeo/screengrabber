@@ -1,7 +1,11 @@
-#include "GrabberOSX.h"
 #ifdef MAC_OSX
+
+#include "GrabberOSX.h"
+
 #include <assert.h>
 #include <iostream>
+
+#include <dzlib/dzexception.h>
 
 namespace dz
 {
@@ -12,30 +16,23 @@ namespace dz
 
 	GrabberOSX::~GrabberOSX() {}
 
-	void GrabberOSX::deinit ()
-	{
-	}
-
 	void GrabberOSX::setEnableGrabCursor (bool enable)
 	{
 		mEnableGrabCursor = enable;
 	}
 
 	/// Grabs a part of a specific display (in screen coordinates) into the destination
-	static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer* destination)
+	static void subscreenGrab(CGDirectDisplayID display, const CGRect& screenRect, Buffer* destination)
 	{
 #if defined(USE_COCOA_GRAB)
 		CGImageRef image = CGDisplayCreateImageForRect (display, screenRect);
-		if (!image) {
-			std::cerr << "Could not grab screen!" << std::endl;
-			return GrabberOSX::GE_COULD_NOT_GRAB;
-		}
+		if (!image)
+			throw exception(strstream() << "Grabber_OSX failed on subscreenGrab (CGDisplayCreateImageForRect)");
+
 #else
 		void* baseAddress = CGDisplayAddressForPosition(display, screenRect.origin.x, screenRect.origin.y);
-		if (baseAddress == NULL) {
-			std::cerr << "Could not grab screen!" << std::endl;
-			return GrabberOSX::GE_COULD_NOT_GRAB;
-		}
+		if (baseAddress == NULL)
+			throw exception(strstream() << "Grabber_OSX failed on subscreenGrab (CGDisplayAddressForPosition)");
 #endif
 
 		CGColorSpaceRef bufferColorSpace = CGColorSpaceCreateDeviceRGB();
@@ -62,23 +59,21 @@ namespace dz
 
 		CGContextRelease(bufferContext);
 		CGColorSpaceRelease(bufferColorSpace);
-
-		return GrabberOSX::GE_OK;
 	}
 
 	/// Draws mouse pointer into target buffer
 	/// Defined in ObjC++ File
-	void drawMouseIntoBuffer(const Rect& rect, Buffer * destination);
+	void drawMouseIntoBuffer(const Rect& rect, Buffer* destination);
 
-	int GrabberOSX::grab (const Rect& rect, Buffer * destination)
+	void GrabberOSX::grab (const Rect& rect, Buffer* destination)
 	{
 		DesktopTools_OSX desktopTools;
 
-		int firstError = 0;
 		for (uint32_t i = 0; i < desktopTools.GetScreenCount(); i++)
 		{
 			const Rect &displayRect(desktopTools.GetScreenResolution(i));
 			Rect intersection;
+
 			if (rect.intersects (displayRect, &intersection))
 			{
 				CGRect displayCoordinates;
@@ -88,15 +83,13 @@ namespace dz
 				displayCoordinates.size.height = intersection.h;
 				Buffer subBuffer;
 				subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
-				int code = subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
-				firstError = firstError ? firstError : code;
+				
+				subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
 			}
 		}
 
 		if (mEnableGrabCursor)
 			drawMouseIntoBuffer(rect, destination);
-
-		return firstError;
 	}
 }
 

@@ -40,10 +40,6 @@ namespace dz
 		return new WindowGrabber_Win32(windowHandle);
 	}
 
-	void WindowGrabber_Win32::deinit()
-	{
-	}
-
 	void WindowGrabber_Win32::setEnableGrabCursor(bool enable)
 	{
 	}

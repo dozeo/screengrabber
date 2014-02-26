@@ -19,8 +19,6 @@ namespace dz
 			BitBltGrabber();
 			virtual ~BitBltGrabber();
 
-			virtual void deinit();
-
 			virtual void grab(const Rect& rect, Buffer* destination);
 
 		private:

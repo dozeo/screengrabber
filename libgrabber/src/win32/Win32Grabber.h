@@ -12,9 +12,6 @@ namespace dz
 		public:
 			Win32Grabber();
 
-			/// Unitializes it again
-			virtual void deinit() = 0;
-
 			/// Enables cursor grabbing
 			virtual void setEnableGrabCursor(bool enable);
 

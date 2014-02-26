@@ -13,7 +13,6 @@ namespace dz
 		public:
 			X11Grabber ();
 			virtual ~X11Grabber();
-			virtual void deinit ();
 			virtual int screenCount () const;
 			virtual Rect screenResolution (int screen) const;
 			virtual Rect combinedScreenResolution () const;

@@ -37,11 +37,6 @@ namespace dz
 
 	BitBltGrabber::~BitBltGrabber()
 	{
-		deinit();
-	}
-
-	void BitBltGrabber::deinit()
-	{
 		ReleaseDC(GetDesktopWindow(), _hdcDesktop);
 		DeleteDC(_hdcCapture);
 

@@ -29,8 +29,6 @@ namespace dz
 			DirectXGrabber();
 			virtual ~DirectXGrabber();
 
-			void deinit();
-
 			virtual void grab(const Rect& captureRect, Buffer* destination);
 
 		private:

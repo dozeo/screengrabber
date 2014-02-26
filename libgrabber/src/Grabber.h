@@ -36,9 +36,6 @@ namespace dz
 			/// Returns a new grabber
 			static IGrabber* create(GrabberType::Enum type = GrabberType::Default);
 
-			/// Unitializes it again
-			virtual void deinit() = 0;
-
 			/// Enables cursor grabbing
 			virtual void setEnableGrabCursor(bool enable = true) = 0;
 

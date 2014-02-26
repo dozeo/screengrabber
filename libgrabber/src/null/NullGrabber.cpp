@@ -12,10 +12,6 @@ namespace dz
 
 	}
 
-	void NullGrabber::deinit () {
-
-	}
-
 	int NullGrabber::screenCount () const {
 		return 2;
 	}

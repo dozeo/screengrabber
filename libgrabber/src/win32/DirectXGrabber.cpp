@@ -70,11 +70,6 @@ DirectXGrabber::DirectXGrabber() : m_desktopTools(IDesktopTools::CreateDesktopTo
 
 DirectXGrabber::~DirectXGrabber()
 {
-	deinit();
-}
-
-void DirectXGrabber::deinit()
-{
 	if (_d3d != 0)
 	{
 		_d3d->Release();
