@@ -6,15 +6,13 @@ namespace dz
 {
 	DesktopTools_OSX::DesktopTools_OSX()
 	{
-		CGDirectDisplayID displays[16];
-
-		const uint32_t max = sizeof(displays) / sizeof (CGDirectDisplayID);
+		const uint32_t max = sizeof(m_displays) / sizeof (CGDirectDisplayID);
 
 		/*CGGetOnlineDisplayList would also return sleeping and mirrored displays*/ 
-		CGGetActiveDisplayList(max, displays, &m_displayCount);
+		CGGetActiveDisplayList(max, m_displays, &m_displayCount);
 		for (uint32_t i = 0; i < m_displayCount; i++)
 		{
-			CGRect bounds = CGDisplayBounds(displays[i]);
+			CGRect bounds = CGDisplayBounds(m_displays[i]);
 			m_displaySizes[i] = Rect(bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 		}
 	}
@@ -49,6 +47,14 @@ namespace dz
 			r.addToBoundingRect(m_displaySizes[i]);
 		
 		return r;
+	}
+
+	CGDirectDisplayID DesktopTools_OSX::GetDisplayId(uint32_t screen) const
+	{
+		if (screen >= m_displayCount)
+			throw exception(strstream() << "DesktopTools_OSX::GetDisplayId() - Invalid screenID " << screen << " given. The maximum is " << m_displayCount);
+
+		return m_displays[screen];
 	}
 }
 

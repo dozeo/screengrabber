@@ -19,11 +19,13 @@ namespace dz
 			virtual Rect GetScreenResolution(uint32_t screen) const;
 			virtual Rect GetCombinedScreenResolution() const;
 
+			CGDirectDisplayID GetDisplayId(uint32_t screen) const;
+
 		private:
 			// number of connected displays
 			uint32_t m_displayCount;
 			Rect m_displaySizes[16];
-
+			CGDirectDisplayID m_displays[16];
 	};
 }
 

@@ -84,7 +84,7 @@ namespace dz
 				Buffer subBuffer;
 				subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
 				
-				subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
+				subscreenGrab(desktopTools.GetDisplayId(i), displayCoordinates, &subBuffer);
 			}
 		}
 
