@@ -118,7 +118,7 @@ namespace dz
 		// Initialize the header.
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		bmi.bmiHeader.biWidth = m_width;
-		bmi.bmiHeader.biHeight = -m_height;
+		bmi.bmiHeader.biHeight = -(int32_t)m_height;
 		bmi.bmiHeader.biPlanes = 1;
 		bmi.bmiHeader.biBitCount = 32;
 		bmi.bmiHeader.biCompression = BI_RGB;
