@@ -16,40 +16,13 @@ namespace dz
 	{
 	}
 
-	int GrabberOSX::screenCount () const
-	{
-		updateDisplayInformation ();
-		return mDisplayCount;
-	}
-
-	Rect GrabberOSX::screenResolution(int screen) const
-	{
-		updateDisplayInformation ();
-		if (screen >= mDisplayCount)
-			return dz::Rect(); // invalid screen
-		return mDisplaySizes[screen];
-	}
-
-	Rect GrabberOSX::combinedScreenResolution () const
-	{
-		updateDisplayInformation();
-		if (mDisplayCount == 0) return Rect();
-		if (mDisplayCount == 1) return mDisplaySizes[0];
-		Rect r (mDisplaySizes[0]);
-		for (int i = 1; i < mDisplayCount; i++)
-		{
-			r.addToBoundingRect(mDisplaySizes[i]);
-		}
-		return r;
-	}
-
 	void GrabberOSX::setEnableGrabCursor (bool enable)
 	{
 		mEnableGrabCursor = enable;
 	}
 
 	/// Grabs a part of a specific display (in screen coordinates) into the destination
-	static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer * destination)
+	static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer* destination)
 	{
 #if defined(USE_COCOA_GRAB)
 		CGImageRef image = CGDisplayCreateImageForRect (display, screenRect);
@@ -99,11 +72,12 @@ namespace dz
 
 	int GrabberOSX::grab (const Rect& rect, Buffer * destination)
 	{
-		updateDisplayInformation();
+		DesktopTools_OSX desktopTools;
+
 		int firstError = 0;
-		for (uint32_t i = 0; i < mDisplayCount; i++)
+		for (uint32_t i = 0; i < desktopTools.GetScreenCount(); i++)
 		{
-			const Rect & displayRect (mDisplaySizes[i]);
+			const Rect &displayRect(desktopTools.GetScreenResolution(i));
 			Rect intersection;
 			if (rect.intersects (displayRect, &intersection))
 			{
@@ -124,17 +98,6 @@ namespace dz
 
 		return firstError;
 	}
-
-	void GrabberOSX::updateDisplayInformation () const {
-		uint32_t max = sizeof (mDisplays) / sizeof (CGDirectDisplayID);
-		/*CGGetOnlineDisplayList would also return sleeping and mirrored displays*/ 
-		CGGetActiveDisplayList(max, mDisplays, &mDisplayCount);
-		for (uint32_t i = 0; i < mDisplayCount; i++) {
-			CGRect bounds = CGDisplayBounds (mDisplays[i]);
-			mDisplaySizes[i] = Rect (bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
-		}
-	}
-
-
 }
+
 #endif

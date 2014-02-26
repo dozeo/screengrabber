@@ -18,10 +18,6 @@ namespace dz
 			virtual void grab(const Rect& rect, Buffer * destination);
 
 		private:
-			void updateDisplayInformation () const;
-			mutable uint32_t mDisplayCount;          // number of connected displays
-			mutable CGDirectDisplayID mDisplays[16]; // connected displays
-			mutable Rect mDisplaySizes[16];
 			bool mEnableGrabCursor;
 	};
 }
