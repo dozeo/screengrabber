@@ -6,14 +6,16 @@ namespace dz
 {
 	DesktopTools_OSX::DesktopTools_OSX()
 	{
-		const uint32_t max = sizeof(mDisplays) / sizeof (CGDirectDisplayID);
+		CGDirectDisplayID displays[16];
+
+		const uint32_t max = sizeof(displays) / sizeof (CGDirectDisplayID);
 
 		/*CGGetOnlineDisplayList would also return sleeping and mirrored displays*/ 
-		CGGetActiveDisplayList(max, mDisplays, &mDisplayCount);
-		for (uint32_t i = 0; i < mDisplayCount; i++)
+		CGGetActiveDisplayList(max, displays, &m_displayCount);
+		for (uint32_t i = 0; i < m_displayCount; i++)
 		{
-			CGRect bounds = CGDisplayBounds(mDisplays[i]);
-			mDisplaySizes[i] = Rect(bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
+			CGRect bounds = CGDisplayBounds(displays[i]);
+			m_displaySizes[i] = Rect(bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
 		}
 	}
 
@@ -23,27 +25,28 @@ namespace dz
 
 	uint32_t DesktopTools_OSX::GetScreenCount() const
 	{
-		return mDisplayCount;
+		return m_displayCount;
 	}
 
-	Rect IDesktopTools::GetScreenResolution(uint32_t screen) const
+	Rect DesktopTools_OSX::GetScreenResolution(uint32_t screen) const
 	{
-		if (screen >= mDisplayCount)
-			return dz::Rect(); // invalid screen
-		return mDisplaySizes[screen];
+		if (screen >= m_displayCount)
+			throw exception(strstream() << "DesktopTools_OSX::GetScreenResolution() - Invalid screenID " << screen << " given. The maximum is " << m_displayCount);
+
+		return m_displaySizes[screen];
 	}
 
-	Rect IDesktopTools::GetCombinedScreenResolution() const
+	Rect DesktopTools_OSX::GetCombinedScreenResolution() const
 	{
-		if (mDisplayCount == 0)
+		if (m_displayCount == 0)
 			return Rect();
 		
-		if (mDisplayCount == 1)
-			return mDisplaySizes[0];
+		if (m_displayCount == 1)
+			return m_displaySizes[0];
 
-		Rect r (mDisplaySizes[0]);
-		for (int i = 1; i < mDisplayCount; i++)
-			r.addToBoundingRect(mDisplaySizes[i]);
+		Rect r(m_displaySizes[0]);
+		for (uint32_t i = 1; i < m_displayCount; i++)
+			r.addToBoundingRect(m_displaySizes[i]);
 		
 		return r;
 	}
