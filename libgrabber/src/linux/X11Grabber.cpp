@@ -1,8 +1,9 @@
+#ifdef LINUX
+
 #include "X11Grabber.h"
 #include <iostream>
 #include <assert.h>
 
-#ifdef LINUX
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 #include <stdio.h>
