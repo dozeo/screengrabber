@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #pragma once
 
 #include "IDesktopTools.h"
@@ -21,4 +23,5 @@ namespace dz
 	};
 }
 
+#endif
 // EOF

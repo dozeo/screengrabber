@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #include "WindowGrabber_Win32.h"
 #include <dzlib/dzexception.h>
 
@@ -129,3 +131,5 @@ namespace dz
 			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - SelectObject failed with error code " << GetLastError());
 	}
 }
+
+#endif
