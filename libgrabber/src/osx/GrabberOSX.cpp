@@ -17,6 +17,15 @@ namespace dz
 
 	GrabberOSX::~GrabberOSX() {}
 
+	IGrabber* IGrabber::create(GrabberType::Enum type)
+	{
+		switch (type)
+		{
+			case Null: return new NullGrabber();
+			default: return new GrabberOSX();
+		}
+	}
+
 	void GrabberOSX::setEnableGrabCursor (bool enable)
 	{
 		mEnableGrabCursor = enable;
@@ -66,7 +75,7 @@ namespace dz
 	/// Defined in ObjC++ File
 	void drawMouseIntoBuffer(const Rect& rect, Buffer* destination);
 
-	void GrabberOSX::grab (const Rect& rect, Buffer* destination)
+	void GrabberOSX::grab(const Rect& rect, Buffer* destination)
 	{
 		DesktopTools_OSX desktopTools;
 
@@ -78,9 +87,9 @@ namespace dz
 			if (rect.intersects (displayRect, &intersection))
 			{
 				CGRect displayCoordinates;
-				displayCoordinates.origin.x    = intersection.x - displayRect.x;
-				displayCoordinates.origin.y    = intersection.y - displayRect.y;
-				displayCoordinates.size.width  = intersection.w;
+				displayCoordinates.origin.x = intersection.x - displayRect.x;
+				displayCoordinates.origin.y = intersection.y - displayRect.y;
+				displayCoordinates.size.width = intersection.w;
 				displayCoordinates.size.height = intersection.h;
 				Buffer subBuffer;
 				subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
