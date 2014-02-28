@@ -1,6 +1,7 @@
 #ifdef MAC_OSX
 
 #include "GrabberOSX.h"
+#include "../DesktopTools_OSX.h"
 
 #include <assert.h>
 #include <iostream>

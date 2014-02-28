@@ -34,27 +34,27 @@ namespace dz
 		return true;
 	}
 
-/*static*/ ProcessInfo ProcessInfo::about (int64_t pid) {
-    ProcessSerialNumber psn;
-    OSStatus err = GetProcessForPID((pid_t) pid, &psn);
-    if (err) 
-        return ProcessInfo ();
-    
-    FSRef location;
-    err = GetProcessBundleLocation (&psn, &location);
-    if (err) 
-        return ProcessInfo ();
-    
-    unsigned char path[1024] = "";
-    FSRefMakePath (&location, path, (sizeof path) - 1);
-    
-    ProcessInfo target;
-    target.pid  = pid;
-    target.exec = (const char*) path; 
-    return target;
-}
-    
+	/*static*/
+	ProcessInfo ProcessInfo::about (int64_t pid)
+	{
+		ProcessSerialNumber psn;
+		OSStatus err = GetProcessForPID((pid_t) pid, &psn);
+		if (err) 
+			return ProcessInfo ();
 
+		FSRef location;
+		err = GetProcessBundleLocation (&psn, &location);
+		if (err) 
+			return ProcessInfo ();
+
+		unsigned char path[1024] = "";
+		FSRefMakePath (&location, path, (sizeof path) - 1);
+
+		ProcessInfo target;
+		target.pid  = pid;
+		target.exec = (const char*) path; 
+		return target;
+	}
 }
 
 #endif
