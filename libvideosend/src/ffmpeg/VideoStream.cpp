@@ -74,7 +74,6 @@ namespace dz
 
 	void VideoStream::OpenVideoStream(const std::string& fileUrl, enum ConnectionMode mode, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level)
 	{
-		int result = 0;
 		_lastTimeStamp = 0;
 		_waitForFirstFrame = true;
 

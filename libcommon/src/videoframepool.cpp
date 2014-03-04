@@ -6,7 +6,7 @@ namespace dz
 {
 	VideoFramePool* VideoFramePool::m_instance = nullptr;
 
-	VideoFramePool::VideoFramePool(uint32_t maxFrames) : m_maxFrames(maxFrames), m_curFrames(0)
+	VideoFramePool::VideoFramePool(uint32_t maxFrames) : m_curFrames(0), m_maxFrames(maxFrames)
 	{
 		if (m_instance != nullptr)
 			throw exception(strstream() << "Another Video frame pool already exists!");

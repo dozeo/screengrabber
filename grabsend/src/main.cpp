@@ -246,7 +246,9 @@ int main (int argc, char * argv[])
 		}
 
 		//throw std::exception(e.msg().c_str());
+#if _WIN32
 		DebugBreak();
+#endif
 	}
 
 	return -1;
