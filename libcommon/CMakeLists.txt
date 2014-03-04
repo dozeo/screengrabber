@@ -12,11 +12,14 @@ add_boost()
 set(src_files
 	"src/videoframe.cpp"
 	"src/main_test.cpp"
-	"src/videoframepool.cpp")
+	"src/videoframepool.cpp"
+	"src/dzrect.cpp")
 
 set(header_files
 	"src/include/libcommon/videoframe.h"
-	"src/include/libcommon/videoframepool.h")
+	"src/include/libcommon/videoframepool.h"
+	"src/include/libcommon/math_helpers.h"
+	"src/include/libcommon/dzrect.h")
 
 include_directories(${HDRS} "src/include")
 

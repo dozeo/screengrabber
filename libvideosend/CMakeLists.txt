@@ -16,6 +16,7 @@ file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 add_qt()
 add_ffmpeg()
 add_dzlib()
+add_libcommon()
 
 if (MSVC)
 	include_directories (${CMAKE_CURRENT_SOURCE_DIR}/src/win32include)

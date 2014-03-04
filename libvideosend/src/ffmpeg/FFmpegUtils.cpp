@@ -1,6 +1,6 @@
 #include "FFmpegUtils.h"
 
-#include <libgrabber/src/Math.h>
+#include <libcommon/math_helpers.h>
 #include <assert.h>
 
 #include <dzlib/dzexception.h>

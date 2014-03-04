@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include "platform.h"
-#include "Rect.h"
 #include "Buffer.h"
 
 #include <dzlib/dzexception.h>
+#include <libcommon/dzrect.h>
 
 #include <vector>
 
@@ -40,6 +40,6 @@ namespace dz
 			virtual void setEnableGrabCursor(bool enable = true) = 0;
 
 			/// Grab something into the destination buffer
-			virtual void grab(const Rect& rect, Buffer * destination) = 0;
+			virtual void grab(const Rect& rect, Buffer* destination) = 0;
 	};
 }

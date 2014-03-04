@@ -62,13 +62,12 @@ void printScreens()
 
 void printWindows()
 {
-	typedef std::vector<dz::WindowInfo> WindowVec;
-	WindowVec windows;
+	std::vector<dz::WindowInfo> windows;
 	
 	dz::WindowInfo::populate(&windows);
 	
 	std::cout << "Window count: " << windows.size() << std::endl;
-	for (WindowVec::const_iterator i = windows.begin(); i != windows.end(); i++)
+	for (auto i = windows.begin(); i != windows.end(); i++)
 	{
 		const dz::WindowInfo & win (*i);
 		std::cout << "Window " << win.id << " pid: " << win.pid << " title: " << win.title << " area: " << win.area << std::endl;

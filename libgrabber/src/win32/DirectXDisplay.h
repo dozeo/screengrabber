@@ -4,8 +4,9 @@
 
 #include "../Grabber.h"
 #include "../Dimension.h"
-#include "../Rect.h"
 #include "../platform.h"
+
+#include <libcommon/dzrect.h>
 
 #include <d3d9.h>
 

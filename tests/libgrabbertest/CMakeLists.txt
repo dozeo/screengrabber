@@ -12,6 +12,7 @@ file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 add_gtest()
 add_dzlib()
 add_directx()
+add_libcommon()
 
 include_directories (../..)
 include_directories (${HDRS} ${CMAKE_CURRENT_BINARY_DIR})  # Place of UIC Files

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "Rect.h"
+#include <libcommon/dzrect.h>
 
 namespace dz
 {

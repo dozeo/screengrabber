@@ -5,11 +5,13 @@
 
 #include "Win32Grabber.h"
 #include "BitBltGrabber.h"
-#include "../Math.h"
-#include <assert.h>
-#include <iostream>
+
+#include <libcommon/math_helpers.h>
 
 #include <dzlib/dzexception.h>
+
+#include <assert.h>
+#include <iostream>
 
 using namespace dz;
 

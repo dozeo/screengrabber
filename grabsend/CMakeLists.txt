@@ -23,6 +23,7 @@ add_ffmpeg()
 add_qt()
 add_directx()
 add_dzlib()
+add_libcommon()
 
 if (APPLE)
 	file (GLOB_RECURSE ${objcpp_src_files} RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.mm)

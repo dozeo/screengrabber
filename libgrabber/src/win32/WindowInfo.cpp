@@ -36,6 +36,11 @@ namespace dz
 
 		// figure out if the process owning the window is Windows\explorer.exe and ignore it if it is
 		std::string winExplorer = "Windows\\explorer.exe";
+		
+		// this usually happens for some processess that we have no permission to get information for
+		if (winExplorer.length() > procInfo.exec.length())
+			return TRUE;
+
 		std::string procExec = procInfo.exec.substr( procInfo.exec.length() - winExplorer.length() );
 		if (procExec.compare(winExplorer) == 0)
 			return TRUE;

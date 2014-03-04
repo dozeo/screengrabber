@@ -52,6 +52,12 @@ namespace dz
 
 		try
 		{
+			if (GetForegroundWindow() != m_windowHandle)
+			{
+				//destination.clear();
+				//return;
+			}
+
 			if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
 				throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
 
@@ -67,7 +73,9 @@ namespace dz
 				OnWindowResized(m_windowDC, m_width, m_height);
 			}
 
-			if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, SRCCOPY) == FALSE)
+			//PrintWindow(m_windowHandle, m_memDC, 0);
+
+			if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, /*CAPTUREBLT | */SRCCOPY) == FALSE)
 				throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
 
 			uint32_t lineStride = m_width * 4;

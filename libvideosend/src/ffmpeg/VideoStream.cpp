@@ -22,7 +22,7 @@ void ffmpeg_log(void*, int line, const char* msg, va_list list)
 
 namespace dz
 {
-	const std::string VideoStream::StreamProtocol     = std::string("flv");
+	const std::string VideoStream::StreamProtocol = std::string("flv");
 	bool  VideoStream::AVCodecInitialized = false;
 
 	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec)
@@ -53,8 +53,8 @@ namespace dz
 
 		_scalingImageSize = _videoFrameSize;
 		_videoFrameSize = videoSize;
-		//_videoFrameSize.width  -= _videoFrameSize.width % 4;
-		//_videoFrameSize.height -= _videoFrameSize.height % 4;
+		_videoFrameSize.width  -= _videoFrameSize.width % 4;
+		_videoFrameSize.height -= _videoFrameSize.height % 4;
 	}
 
 	VideoStream::~VideoStream()
@@ -182,8 +182,9 @@ namespace dz
 		if (!codec)
 			throw exception(strstream() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
 
-		if (avcodec_open2(ctx, codec, NULL))
-			throw exception(strstream() << "avcodec_open2 failed to find the open the stream");
+		int code = avcodec_open2(ctx, codec, NULL);
+		if (code < 0)
+			throw exception(strstream() << "avcodec_open2 failed with error code " << code << " to open the stream");
 	
 		_frameBufferSize = avpicture_get_size(ctx->pix_fmt, ctx->width, ctx->height);
 		_frameBuffer = (uint8_t*)av_malloc(_frameBufferSize);
@@ -316,7 +317,7 @@ namespace dz
 			destSize.width,
 			destSize.height,
 			destFormat,
-			SWS_BICUBIC,
+			SWS_FAST_BILINEAR/*SWS_BICUBIC*/,
 			NULL,
 			NULL,
 			NULL);

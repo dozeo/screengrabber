@@ -2,7 +2,7 @@
 
 #ifdef WIN32
 
-#include "../Rect.h"
+#include <libcommon/dzrect.h>
 #include <vector>
 #include <Windows.h>
 

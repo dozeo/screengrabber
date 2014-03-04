@@ -90,7 +90,7 @@ class GrabbingPipeline
 		//	return 0;
 		//}
 
-		/// Grab one image; you can get the image using the buffer, returns 0 on success
+		// Grab one image; you can get the image using the buffer
 		void grab()
 		{
 			//int result = reinit();
@@ -116,7 +116,8 @@ class GrabbingPipeline
 			int letterX = 0;	///< Pillarbox (black left and right)
 			int letterY = 0;	///< Letterbox (black up and down)
 
-			if (mCorrectAspectToVideo) {
+			if (mCorrectAspectToVideo)
+			{
 				float aspect = (float) mVideoWidth / (float) mVideoHeight;
 				int bestWidth = (int)(aspect * mGrabRect.h);
 				if (bestWidth > mGrabRect.w)

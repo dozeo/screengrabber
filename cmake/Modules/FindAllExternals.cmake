@@ -50,6 +50,14 @@ endif()
 
 #=============================================================
 # Macros for adding subprojects and external to your project (adds libs and include directories too)
+macro(add_libcommon)
+	if (NOT TARGET libcommon)
+		add_subdirectory(${SCREENGRABBER_ROOT}/libcommon ${CMAKE_BINARY_DIR}/libcommon)
+	endif()
+	set(HDRS ${HDRS} ${SCREENGRABBER_ROOT}/libcommon/src/include)
+	set(LIBS ${LIBS} libcommon)
+endmacro()
+
 macro(add_dzlib)
 	if (NOT TARGET dzlib)
 		add_subdirectory(${VENDOR_ROOT}/dzlib ${CMAKE_BINARY_DIR}/dzlib)

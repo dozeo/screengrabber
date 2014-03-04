@@ -6,6 +6,7 @@
 #include "Tools.h"
 #include "GrabbingPipeline.h"
 
+#include <libcommon/videoframepool.h>
 #include <libvideosend/src/VideoSender.h>
 #include "GrabSendOptions.h"
 #include <gitdescribe.h>
@@ -109,9 +110,14 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 	return 0;
 }
 
+// --gwid 3081322 --gcursor --quality Medium --vsize 792x770 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.staging.dozeo.biz:80 app=screenshare/45e38940-84d3-0131-f326-02832da5ea7e playpath=52839b60-985b-0130-c5ae-59462698dfe5/BF2F5E20-DD5A-8089-89FA-86D847DE3B4B igct=1 live=1 buffer=500" --correctAspect true --cutSize true
+// --gwid 66074 --quality Medium --vsize 1296,840 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/53877710-84e1-0131-2dd8-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/7756D519-CA34-656A-ECB5-87346312BEF5 igct=1 live=1 buffer=500" --correctAspect true --cutSize true
+
 void doGrabSend(GrabSendOptions& options)
 {
 	//options.parse(argc, argv);
+
+	VideoFramePool singleton(5);
 
 	if (options.printHelp)
 	{
@@ -210,6 +216,12 @@ void doGrabSend(GrabSendOptions& options)
 	grabbingLoop(grabbingPipeline, options, sender.get());
 }
 
+#ifndef _WIN32
+#define OutputDebugString(_STR)
+#else
+#include <Windows.h>
+#endif
+
 int main (int argc, char * argv[])
 {
 	bool bWaitOnError = false;
@@ -223,13 +235,18 @@ int main (int argc, char * argv[])
 	}
 	catch (dz::exception e)
 	{
-		std::cerr << "Exception on grabsend: " << e.msg() << std::endl;
+		std::string msg = strstream() << "Exception on grabsend: " << e.msg();
+		std::cerr << msg << std::endl;
+		OutputDebugString(msg.c_str());
 		
 		if (bWaitOnError)
 		{
 			char t;
 			std::cin >> t;
 		}
+
+		//throw std::exception(e.msg().c_str());
+		DebugBreak();
 	}
 
 	return -1;

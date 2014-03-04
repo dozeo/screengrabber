@@ -18,9 +18,10 @@ namespace dz
 		managed = true;
 	}
 
-	void Buffer::clear ()
+	void Buffer::clear()
 	{
-		for (int y = 0; y < height; y++){
+		for (int y = 0; y < height; y++)
+		{
 			uint8_t * pos = data + (y * rowLength);
 			memset (pos, 0, rowLength);
 		}
