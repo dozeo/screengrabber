@@ -1,12 +1,12 @@
 #pragma once
 
-#include <libgrabber/src/Grabber.h>
-#include <libgrabber/src/IWindowGrabber.h>
-
 #include "GrabberOptions.h"
 
-#include <libgrabber/src/IDesktopTools.h>
+#include <libcommon/dzrect.h>
 
+#include <libgrabber/src/IDesktopTools.h>
+#include <libgrabber/src/Grabber.h>
+#include <libgrabber/src/IWindowGrabber.h>
 #include <libgrabber/src/WindowInfo.h>
 #include <libgrabber/src/ProcessInfo.h>
 #include <iostream>
@@ -100,7 +100,7 @@ class GrabbingPipeline
 			if (mGrabberOptions->grabFollow)
 			{
 				dz::Rect r = calcGrabRect();
-				if (!(mGrabRect == r))
+				if (mGrabRect != r)
 				{
 					// otherwise we could get artefacts.
 					mDestinationBuffer.clear();

@@ -44,7 +44,12 @@ namespace dz
 				return a.x == b.x && a.y == b.y && a.w == b.w && a.h == b.h;
 			}
 
-			friend std::ostream& operator << (std::ostream & s, const dz::Rect & r)
+			friend bool operator!= (const Rect& a, const Rect & b)
+			{
+				return (!operator==(a, b));
+			}
+
+			friend std::ostream& operator<< (std::ostream & s, const dz::Rect & r)
 			{
 				return s << r.x << "," << r.y << " " << r.w << "x" << r.h;
 			}
