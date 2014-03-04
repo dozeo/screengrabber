@@ -32,14 +32,18 @@ TEST_F (EnumerateWindowsTest, getWindows) {
 	EXPECT_TRUE (validWin > 0) << "Should get window info for at least one window directly";
 }
 
-TEST_F (EnumerateWindowsTest, getProcesses) {
+TEST_F (EnumerateWindowsTest, getProcesses)
+{
 	typedef std::vector<dz::ProcessInfo> ProcessVec;
 	ProcessVec processes;
 	dz::ProcessInfo::populate (&processes);
 	//EXPECT_GT (processes.size(), (uint32_t)0) << "Should get process list" << std::endl;
 	EXPECT_TRUE (processes.size() > (uint32_t)0) << "Should have at least one process?!" << std::endl;
-	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++) {
-		const dz::ProcessInfo & info (*i);
+
+	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++)
+    {
+		const dz::ProcessInfo &info (*i);
+        EXPECT_TRUE(info.valid()) << "Process info is not valid?" << std::endl;
 		//std::cout << "Process " << info.pid << " exec: " << info.exec << std::endl;
 	}
 }

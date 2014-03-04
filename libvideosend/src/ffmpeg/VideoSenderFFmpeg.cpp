@@ -10,13 +10,7 @@
 
 namespace dz
 {
-	VideoSenderFFmpeg::VideoSenderFFmpeg()
-	: _frameSize(600, 400)
-	, _fps(10)
-	, _bitRate(300000)
-	, _keyframe(10)
-	, _quality(VQ_MEDIUM)
-	, _mode(OM_FILE)
+	VideoSenderFFmpeg::VideoSenderFFmpeg() : _mode(OM_FILE), _frameSize(600, 400), _fps(10), _bitRate(300000), _keyframe(10), _quality(VQ_MEDIUM)
 	{
 		initLog();
 	}

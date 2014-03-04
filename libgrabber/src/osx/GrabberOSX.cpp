@@ -2,6 +2,7 @@
 
 #include "GrabberOSX.h"
 #include "../DesktopTools_OSX.h"
+#include "../null/NullGrabber.h"
 
 #include <assert.h>
 #include <iostream>
@@ -21,7 +22,7 @@ namespace dz
 	{
 		switch (type)
 		{
-			case Null: return new NullGrabber();
+			case GrabberType::Null: return new NullGrabber();
 			default: return new GrabberOSX();
 		}
 	}
