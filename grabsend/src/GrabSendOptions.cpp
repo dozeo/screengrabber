@@ -41,7 +41,6 @@ GrabSendOptions::GrabSendOptions (int argc, char ** argv) : desc ("General Confi
 
 void GrabSendOptions::parse(int argc, char ** argv)
 {
-
 }
 
 void GrabSendOptions::doPrintHelp() const
@@ -52,9 +51,11 @@ void GrabSendOptions::doPrintHelp() const
 	std::cout << "grabsend can be stopped by CTRL+C or with entering \"QUIT\\n\"." << std::endl;
 }
 
-void GrabSendOptions::apply (const boost::program_options::variables_map & vm) {
+void GrabSendOptions::apply (const boost::program_options::variables_map & vm)
+{
 	grabberOptionsParser.apply (vm);
 	videoSenderOptionsParser.apply (vm);
+
 	if (vm.count("help") > 0){
 		printHelp = true;
 	}

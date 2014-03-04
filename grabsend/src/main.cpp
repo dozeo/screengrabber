@@ -68,7 +68,7 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 		frame++;
 		double t3 = microtime ();
 		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - frameStartTime);
-		double timeToGrab          = t2 - frameStartTime;
+		double timeToGrab = t2 - frameStartTime;
 		double timeToEncodeAndSend = t3 - t2;
 		timeToGrabSum += timeToGrab;
 		double timeToGrabAvg = (timeToGrabSum / frame);

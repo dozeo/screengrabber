@@ -113,8 +113,8 @@ class GrabbingPipeline
 
 			int bufferWidth(mGrabRect.w);
 			int bufferHeight(mGrabRect.h);
-			int letterX = 0;	///< Pillarbox (black left and right)
-			int letterY = 0;	///< Letterbox (black up and down)
+			int letterX = 0; ///< Pillarbox (black left and right)
+			int letterY = 0; ///< Letterbox (black up and down)
 
 			if (mCorrectAspectToVideo)
 			{
@@ -137,7 +137,7 @@ class GrabbingPipeline
 					}
 					else
 					{
-						// huh?  rounding errors?
+						// huh? rounding errors?
 						// we are probably already right
 					}
 				}

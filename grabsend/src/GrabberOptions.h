@@ -18,7 +18,7 @@ struct GrabberOptions
 	}
 
 	/// Generate command line arguments compatible with parser
-	inline std::vector<std::string> packCommandLine () const
+	inline std::vector<std::string> packCommandLine() const
 	{
 		std::vector<std::string> result;
 		if (!grabRect.empty()){
@@ -71,19 +71,19 @@ struct GrabberOptions
 /// Boost program_options parser for Grabber options
 struct GrabberOptionsParser
 {
-	GrabberOptionsParser (GrabberOptions * _target) : target (_target), desc ("Grabber Options")
+	GrabberOptionsParser(GrabberOptions * _target) : target (_target), desc ("Grabber Options")
 	{
-		desc.add_options ()
-				("grect", boost::program_options::value<std::string>(), "Select grabbing rect x,y,w,h")
-				("gscreen", boost::program_options::value<int>(), "Select grabbing screens id")
-				("gpid", boost::program_options::value<int64_t>(), "Select grabbing around a specific pid")
-				("gwid", boost::program_options::value<int64_t>(), "Select grabbing around a specific wid")
-				("gfollow", "Follows grabbed region")
-				("gcursor", "Grab mouse cursor, if possible")
-				("gtype", boost::program_options::value<std::string>(), "Select grabber type (Null|DirectX|Default)");
+		desc.add_options()
+			("grect", boost::program_options::value<std::string>(), "Select grabbing rect x,y,w,h")
+			("gscreen", boost::program_options::value<int>(), "Select grabbing screens id")
+			("gpid", boost::program_options::value<int64_t>(), "Select grabbing around a specific pid")
+			("gwid", boost::program_options::value<int64_t>(), "Select grabbing around a specific wid")
+			("gfollow", "Follows grabbed region")
+			("gcursor", "Grab mouse cursor, if possible")
+			("gtype", boost::program_options::value<std::string>(), "Select grabber type (Null|DirectX|Default)");
 	}
 
-	void apply (const boost::program_options::variables_map & po)
+	void apply(const boost::program_options::variables_map & po)
 	{
 		if (po.count("grect") > 0)
 		{
