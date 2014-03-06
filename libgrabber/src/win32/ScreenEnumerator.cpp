@@ -33,11 +33,7 @@ BOOL CALLBACK ScreenEnumerator::monitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRE
 	ScreenEnumerator* instance = reinterpret_cast<ScreenEnumerator*>(data);
 	if (instance != NULL)
 	{
-		Rect screenRect;
-		screenRect.x = rect->left;
-		screenRect.y = rect->top;
-		screenRect.w = rect->right - rect->left;
-		screenRect.h = rect->bottom - rect->top;
+		Rect screenRect = Rect::cornered(rect->left, rect->top, rect->right, rect->bottom);
 		Display display = Display(hMonitor, screenRect);
 		instance->_displays.push_back(display);
 	}

@@ -1,17 +1,14 @@
 #pragma once
+
 #include "GrabberOptions.h"
 #include "VideoSenderOptions.h"
 #include <boost/program_options.hpp>
 
 /// Command line options of grabsend
-class GrabSendOptions
+class GrabSendOptions : public GrabberOptions
 {
 	public:
-		GrabSendOptions(int argc, char ** argv);
-
-		/// Parse command line arguments
-		/// Returns 1 on error and already display error message
-		void parse(int argc, char ** argv);
+		GrabSendOptions(int argc, char* argv[]);
 
 		/// Print command line help
 		void doPrintHelp() const;
@@ -20,17 +17,20 @@ class GrabSendOptions
 		bool printScreens;
 		bool printWindows;
 		bool printProcesses;
-		bool m_bWantOnException;
-		int  statLevel;
+		bool m_bWaitOnException;
+		int statLevel;
 
-		GrabberOptions grabberOptions;
+		//GrabberOptions grabberOptions;
 		VideoSenderOptions videoSenderOptions;
+
+		friend std::ostream& operator<< (std::ostream& s, const GrabSendOptions& o);
 
 	private:
 		/// Apply variables map to this and sub options
-		void apply(const boost::program_options::variables_map & vm);
+		void ApplyGrabSendOptions(const boost::program_options::variables_map & vm);
+		void ApplyGrabberOptions(const boost::program_options::variables_map& vm);
 
 		boost::program_options::options_description desc;
-		GrabberOptionsParser grabberOptionsParser;
+		//GrabberOptionsParser grabberOptionsParser;
 		VideoSenderOptionsParser videoSenderOptionsParser;
 };

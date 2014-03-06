@@ -2,24 +2,28 @@
 
 #ifdef WIN32
 
-#include "Win32Grabber.h"
-#include "ScreenEnumerator.h"
-#include "../Dimension.h"
+#include "grabber_win32.h"
+#include "win32/ScreenEnumerator.h"
+#include "Dimension.h"
 #include <vector>
 #include <Windows.h>
 #include <GdiPlus.h>
 
+class VideoFrame;
+
 namespace dz
 {
-	class BitBltGrabber : public Win32Grabber
+	class BitBltGrabber_Win32 : public Grabber_Win32
 	{
 		public:
+			BitBltGrabber_Win32(Rect capture);
+			virtual ~BitBltGrabber_Win32();
+
+			virtual void SetCaptureRect(Rect capture);
+
+			virtual VideoFrameHandle GrabVideoFrame();
+
 			static void fillBitmapInfo(int width, int height, BITMAPINFO& info);
-
-			BitBltGrabber();
-			virtual ~BitBltGrabber();
-
-			virtual void grab(const Rect& rect, Buffer* destination);
 
 		private:
 			void initBitmap(const Dimension2& captureSize);
@@ -30,7 +34,9 @@ namespace dz
 
 			void resizeBitmapIfNecessary(int width, int height);
 			void copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer);
+			void CopyToFrame(VideoFrameHandle& frame);
 
+			Rect m_captureRect;
 			Dimension2 _captureSize;
 
 			HDC _hdcDesktop;

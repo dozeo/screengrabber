@@ -10,15 +10,18 @@ namespace dz
 	class VideoFramePool
 	{
 		public:
+			friend class VideoFrameHandle;
+
 			VideoFramePool(uint32_t maxFrames = 5);
 			~VideoFramePool();
 
 			static VideoFramePool& GetInstance();
 
-			VideoFrame* AllocVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format = VideoFrameFormat::RGBA);
-			void FreeVideoFrame(VideoFrame* videoFrame);
+			VideoFrameHandle AllocVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format = VideoFrameFormat::RGBA);
 
 		protected:
+			void FreeVideoFrame(VideoFrame* videoFrame);
+
 			VideoFrame* GetNextFreeVideoFrame();
 			
 			VideoFrame* NewVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format);

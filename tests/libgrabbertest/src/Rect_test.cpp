@@ -62,8 +62,8 @@ TEST_F(RectTest, intersectinRect)
 
 	EXPECT_EQ(50, intersect.x);
 	EXPECT_EQ(10, intersect.y);
-	EXPECT_EQ(30, intersect.w);
-	EXPECT_EQ(40, intersect.h);
+	EXPECT_EQ(30, intersect.width);
+	EXPECT_EQ(40, intersect.height);
 }
 
 TEST_F (RectTest, intersect2) 
@@ -138,20 +138,21 @@ TEST_F (RectTest, bottomRightBoundaryWithOffsetPos)
 {
 	Rect screen (1920, 30, 1680, 1050);
 
-	EXPECT_EQ (1680, screen.w);
-	EXPECT_EQ (1050, screen.h);
+	EXPECT_EQ (1680, screen.width);
+	EXPECT_EQ (1050, screen.height);
 	EXPECT_EQ (1920, screen.left());
 	EXPECT_EQ (  30, screen.top());
 	EXPECT_EQ (1920, screen.x);
 	EXPECT_EQ (  30, screen.y);
 
 	EXPECT_EQ (3600, screen.right());
-	EXPECT_EQ (3600, screen.x + screen.w);
+	EXPECT_EQ (3600, screen.x + screen.width);
 	EXPECT_EQ (1080, screen.bottom());
-	EXPECT_EQ (1080, screen.y + screen.h);
+	EXPECT_EQ (1080, screen.y + screen.height);
 }
 
-TEST_F (RectTest, containsTest) {
+TEST_F (RectTest, containsTest)
+{
 	Rect screen0 (-50, -60, 150, 170);
 	EXPECT_TRUE (screen0.contains (-50,-60));
 	EXPECT_FALSE (screen0.contains (-50,-61));

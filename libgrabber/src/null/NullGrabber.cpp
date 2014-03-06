@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <string.h>
 
+#include <libcommon/videoframepool.h>
+#include <libcommon/videosubframe.h>
+
 namespace dz
 {
 	NullGrabber::NullGrabber () {
@@ -12,27 +15,19 @@ namespace dz
 
 	}
 
-	int NullGrabber::screenCount () const {
-		return 2;
-	}
-
-	Rect NullGrabber::screenResolution (int screen) const {
+	Rect NullGrabber::screenResolution(int screen) const
+	{
 		if (screen == 0) return Rect (0,0, 1280, 800);
 		if (screen == 1) return Rect (1280, 0, 1920, 1080);
 		return Rect ();
 	}
-    
-	Rect NullGrabber::combinedScreenResolution () const {
-		Rect box;
-		for (int i = 0; i < screenCount(); i++) {
-    		box.addToBoundingRect(screenResolution (i));
-		}
-		return box;
-	}
 
-	void fillWithColor (Buffer * destination, int32_t color) {
-		for (int y = 0; y < destination->height; y++) {
+	void fillWithColor (Buffer * destination, int32_t color)
+	{
+		for (int y = 0; y < destination->height; y++)
+		{
 			int32_t * line = (int32_t*) (destination->data + y * destination->rowLength);
+
 			for (int x = 0; x < destination->width; x++)
 			{
 				uint32_t rintensity = rand() % 255;
@@ -44,27 +39,53 @@ namespace dz
 		}
 	}
 
-	void NullGrabber::grab(const Rect& rect, Buffer * destination)
+	VideoFrameHandle NullGrabber::GrabVideoFrame()
 	{
-		assert (rect.w >= 0);
-		assert (rect.h >= 0);
+		Rect captureRect = Rect(640, 480);
+
 		// Qt defines them this way: 0xAARRGGBB;
 		// This is internally BB, GG, RR, AA (little endian)
 		// in OSX: kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little
 		int32_t blue = 0x000000ff;
-		Rect first    = screenResolution(0);
-		Rect second   = screenResolution(1);
+		Rect first = screenResolution(0);
+		Rect second = screenResolution(1);
 
 		Rect cut;
-		if (rect.intersects(first, &cut)) {
-			Buffer part;
-			part.initAsSubBufferFrom(destination, cut.x, cut.y, cut.w, cut.h);
-			fillWithColor (&part, blue);
+
+		uint32_t width = captureRect.GetWidth();
+		uint32_t height = captureRect.GetHeight();
+
+		auto videoFrame(VideoFramePool::GetInstance().AllocVideoFrame(width, height, VideoFrameFormat::RGBA));
+		if (videoFrame == nullptr)
+			return videoFrame;
+
+		videoFrame->Clear();
+
+		for (uint32_t screenId = 0; screenId < 2; screenId++)
+		{
+			Rect screenRect = screenResolution(screenId);
+		
+			if (captureRect.intersects(screenRect, &cut))
+			{
+				uint32_t relX = static_cast<uint32_t>(cut.x - captureRect.x);
+				uint32_t relY = static_cast<uint32_t>(cut.y - captureRect.y);
+			
+				VideoSubframe subframe(*videoFrame, relX, relY, cut.width, cut.height);
+				uint32_t pixelSize = subframe.GetPixelSize();
+				uint32_t frameWidth = subframe.GetWidth();
+			
+				for (uint32_t i = 0; i < subframe.GetHeight(); i++)
+				{
+					auto pLine = subframe.GetLineData(i);
+					for (uint32_t x = 0; x < frameWidth; x++)
+					{
+						uint32_t* pPixel = reinterpret_cast<uint32_t*>(pLine + x * pixelSize);
+						*pPixel = blue;
+					}
+				}
+			}
 		}
-		if (rect.intersects(second, &cut)){
-			Buffer part;
-			part.initAsSubBufferFrom(destination, cut.x - rect.x, cut.y - rect.y, cut.w, cut.h);
-			fillWithColor (&part, blue);
-		}
+
+		return videoFrame;
 	}
 }

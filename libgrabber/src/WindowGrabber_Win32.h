@@ -2,22 +2,24 @@
 
 #pragma once
 
-#include "IWindowGrabber.h"
-
 #include <windows.h>
+
+#include "igrabber.h"
 
 namespace dz
 {
-	class WindowGrabber_Win32 : public IWindowGrabber
+	class WindowGrabber_Win32 : public IGrabber
 	{
 		public:
 			WindowGrabber_Win32(HWND windowHandle);
 			virtual ~WindowGrabber_Win32();
 
+			virtual void SetCaptureRect(Rect capture) { }
+
 			virtual void setEnableGrabCursor(bool enable = true);
 
 			/// Grab something into the destination buffer
-			virtual void GrabWindow(Buffer& destination);
+			virtual VideoFrameHandle GrabVideoFrame();
 
 		private:
 			void OnWindowResized(HDC winDC, uint32_t newWidth, uint32_t newHeight);

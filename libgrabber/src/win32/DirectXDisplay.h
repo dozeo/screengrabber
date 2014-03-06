@@ -2,7 +2,7 @@
 
 #ifdef WIN32
 
-#include "../Grabber.h"
+#include "../igrabber.h"
 #include "../Dimension.h"
 #include "../platform.h"
 

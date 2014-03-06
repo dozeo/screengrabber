@@ -1,10 +1,7 @@
-#include "IWindowGrabber.h"
+#ifdef MAC_OSX
 
 namespace dz
 {
-	//static
-	IWindowGrabber* IWindowGrabber::CreateWindowGrabber(int64_t windowId)
-	{
-		return nullptr;
-	}
 }
+
+#endif

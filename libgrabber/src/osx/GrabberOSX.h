@@ -1,5 +1,6 @@
 #pragma once
-#include "../Grabber.h"
+
+#include "../igrabber.h"
 
 #ifdef MAC_OSX
 #include <ApplicationServices/ApplicationServices.h>
@@ -12,9 +13,11 @@ namespace dz
 			GrabberOSX();
 			virtual ~GrabberOSX();
 
+			virtual void SetCaptureRect(Rect capture);
+
 			// Implementation of Grabber
 			virtual void setEnableGrabCursor(bool enable = true);
-			virtual void grab(const Rect& rect, Buffer* destination);
+			virtual VideoFrameHandle GrabVideoFrame();
 
 		private:
 			bool mEnableGrabCursor;

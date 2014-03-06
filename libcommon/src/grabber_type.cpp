@@ -1,4 +1,5 @@
-#include "Grabber.h"
+#include <libcommon/grabber_type.h>
+#include <dzlib/dzexception.h>
 
 namespace dz
 {

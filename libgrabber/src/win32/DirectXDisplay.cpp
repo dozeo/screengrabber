@@ -1,10 +1,9 @@
+#ifdef WIN32
 
 #include "DirectXDisplay.h"
 
-#ifdef WIN32
-
-#include "Win32Grabber.h"
-#include "BitBltGrabber.h"
+#include "../grabber_win32.h"
+#include "../bitbltgrabber_win32.h"
 
 #include <libcommon/math_helpers.h>
 
@@ -41,8 +40,8 @@ int DirectXDisplay::getCursorRect(HBITMAP hbitmap, Rect& rect, bool& isColorIcon
 	result = GetObject(hbitmap, sizeof(BITMAP), &bmp);
 	if (result != 0) {
 		isColorIcon = abs(bmp.bmHeight / bmp.bmWidth) == 2;
-		rect.w = bmp.bmWidth;
-		rect.h = isColorIcon ? bmp.bmHeight / 2 : bmp.bmHeight;
+		rect.width = bmp.bmWidth;
+		rect.height = isColorIcon ? bmp.bmHeight / 2 : bmp.bmHeight;
 	}
 
 	return 0;
@@ -71,7 +70,7 @@ HRESULT DirectXDisplay::init(IDirect3DDevice9* d3dDevice)
 	_hdcCapture = CreateCompatibleDC(_hdcDesktop);
 
 	_d3dDevice = d3dDevice;
-	Dimension2 size(_screenRect.w, _screenRect.h);
+	Dimension2 size(_screenRect.width, _screenRect.height);
 	HRESULT hr = createOffscreenSurface(size, &_surface);
 	return hr;
 }
@@ -119,10 +118,10 @@ void DirectXDisplay::grabRect(const Rect& captureRect, int destX, int destY, Buf
 	Rect d3dRect;
 	d3dRect.x = captureRect.x - _screenRect.x;
 	d3dRect.y = captureRect.y - _screenRect.y;
-	d3dRect.w = captureRect.w;
-	d3dRect.h = captureRect.h;
+	d3dRect.width = captureRect.width;
+	d3dRect.height = captureRect.height;
 
-	if (d3dRect.w == 0 || d3dRect.h == 0)
+	if (d3dRect.empty())
 		return;
 
 	HRESULT hr = _d3dDevice->GetFrontBufferData(0, _surface);
@@ -147,9 +146,9 @@ void DirectXDisplay::copySurfaceToBuffer(const Rect& rect, int destX, int destY,
 	char* destData = (char*)destination->data + destOffset;
 	char* srcData  = (char*)lockedRect.pBits;
 
-	for (int y = 0; y < rect.h; y++)
+	for (uint32_t y = 0; y < rect.height; y++)
 	{
-		memcpy(destData, srcData, rect.w * 4);
+		memcpy(destData, srcData, rect.width * 4);
 		srcData += lockedRect.Pitch;
 		destData += destination->rowLength;
 	}
@@ -179,8 +178,8 @@ void DirectXDisplay::copyCursorToSurface(const Rect& rect)
 		if (cursorRect.intersects(rect))
 		{
 			BITMAPINFO bmpInfo = { 0 };
-			BitBltGrabber::fillBitmapInfo(cursorRect.w, cursorRect.h, bmpInfo);
-			HBITMAP hBitmap = CreateCompatibleBitmap(_hdcCapture, cursorRect.w, cursorRect.h);
+			BitBltGrabber_Win32::fillBitmapInfo(cursorRect.width, cursorRect.height, bmpInfo);
+			HBITMAP hBitmap = CreateCompatibleBitmap(_hdcCapture, cursorRect.width, cursorRect.height);
 
 			// draw cursor into bitmap
 			SelectObject(_hdcCapture, hBitmap);
@@ -230,7 +229,7 @@ void DirectXDisplay::copyBitmap(const Rect& cursorRect, const ICONINFO& iconInfo
 
 			if (isColorIcon) 
 			{
-				unsigned int orMask = GetPixel(hdcMask, bmpX, bmpY + cursorRect.h);
+				unsigned int orMask = GetPixel(hdcMask, bmpX, bmpY + cursorRect.height);
 				*buffer &= (mask & color) ^ orMask;
 			}
 			else if (mask != 0xffffff)

@@ -10,6 +10,7 @@ file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
 add_gtest()
+add_boost()
 add_dzlib()
 add_directx()
 add_libcommon()

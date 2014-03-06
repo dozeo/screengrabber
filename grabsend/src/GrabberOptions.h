@@ -1,120 +1,110 @@
 #pragma once
 
-#include <libgrabber/src/Grabber.h>
+#include <libgrabber/src/igrabber.h>
 #include <boost/program_options.hpp>
 #include <ostream>
 #include <vector>
 #include <stdio.h>
 
-/// Options for the screen grabber
-struct GrabberOptions
-{
-	GrabberOptions() : grabScreen (-1), grabPid (-1), grabWid (-1), grabFollow (true), grabCursor (false), grabberType(dz::GrabberType::Default) {}
-
-	friend std::ostream & operator<< (std::ostream & s, const GrabberOptions& o)
-	{
-		s << "grect: " << o.grabRect << " gscreen: " << o.grabScreen << " gpid: " << o.grabPid << " gwid: " << o.grabWid << " gfollow: " << o.grabFollow << " gcursor: " << o.grabCursor << " type: " << o.grabberType;
-		return s;
-	}
-
-	/// Generate command line arguments compatible with parser
-	inline std::vector<std::string> packCommandLine() const
-	{
-		std::vector<std::string> result;
-		if (!grabRect.empty()){
-			result.push_back ("--grect");
-			result.push_back (
-				boost::lexical_cast<std::string> (grabRect.x) + "," +
-				boost::lexical_cast<std::string> (grabRect.y) + "," +
-				boost::lexical_cast<std::string> (grabRect.w) + "," +
-				boost::lexical_cast<std::string> (grabRect.h));
-		}
-		if (grabScreen >= 0){
-			result.push_back ("--gscreen");
-			result.push_back (boost::lexical_cast<std::string> (grabScreen));
-		}
-		if (grabPid > 0) {
-			result.push_back ("--gpid");
-			result.push_back (boost::lexical_cast<std::string> (grabPid));
-		}
-		if (grabWid > 0) {
-			result.push_back ("--gwid");
-			result.push_back (boost::lexical_cast<std::string> (grabWid));
-		}
-		if (grabFollow) {
-			result.push_back ("--gfollow");
-		}
-		if (grabCursor) {
-			result.push_back ("--gcursor");
-		}
-
-		if (grabberType != dz::GrabberType::Default)
-		{
-			result.push_back ("--gtype");
-			result.push_back ( dz::GrabberType::ToString(grabberType) );
-		}
-
-		return result;
-	}
-
-	bool IsGrabWindow() const { return grabWid > 0; }
-
-	dz::Rect grabRect;  ///< != empty if set
-	int grabScreen;     ///< >= 0 if set
-	int64_t grabPid;    ///<   >0 if set
-	int64_t grabWid;    ///<   >0 if set
-	bool grabFollow;    ///<   if true, follow the grabbed region (valid on grabScreen, grabPid or grabWid)
-	bool grabCursor;    ///<   Also grab mouse cursor (if possible)
-	dz::GrabberType::Enum grabberType; ///< Grabber type to use
-};
+#include <dzlib/strstream.h>
+#include <libcommon/grabber_options.h>
 
 /// Boost program_options parser for Grabber options
-struct GrabberOptionsParser
+class GrabberOptionsCmdLine
 {
-	GrabberOptionsParser(GrabberOptions * _target) : target (_target), desc ("Grabber Options")
-	{
-		desc.add_options()
-			("grect", boost::program_options::value<std::string>(), "Select grabbing rect x,y,w,h")
-			("gscreen", boost::program_options::value<int>(), "Select grabbing screens id")
-			("gpid", boost::program_options::value<int64_t>(), "Select grabbing around a specific pid")
-			("gwid", boost::program_options::value<int64_t>(), "Select grabbing around a specific wid")
-			("gfollow", "Follows grabbed region")
-			("gcursor", "Grab mouse cursor, if possible")
-			("gtype", boost::program_options::value<std::string>(), "Select grabber type (Null|DirectX|Default)");
-	}
-
-	void apply(const boost::program_options::variables_map & po)
-	{
-		if (po.count("grect") > 0)
+	public:
+		GrabberOptionsCmdLine(GrabberOptions& options) : m_options(options), desc("Grabber Options")
 		{
-			std::string arg = po["grect"].as<std::string>();
-			int ret = sscanf (arg.c_str(), "%d,%d,%d,%d", &target->grabRect.x, &target->grabRect.y, &target->grabRect.w, &target->grabRect.h);
-			if (ret != 4)
-				throw boost::program_options::invalid_option_value ("Invalid grect");
+			desc.add_options()
+				("grect", boost::program_options::value<std::string>(), "Select grabbing rect x,y,w,h")
+				("gscreen", boost::program_options::value<int>(), "Select grabbing screens id")
+				("gpid", boost::program_options::value<int64_t>(), "Select grabbing around a specific pid")
+				("gwid", boost::program_options::value<int64_t>(), "Select grabbing around a specific wid")
+				("gfollow", "Follows grabbed region")
+				("gcursor", "Grab mouse cursor, if possible")
+				("gtype", boost::program_options::value<std::string>(), "Select grabber type (Null|DirectX|Default)");
 		}
 
-		if (po.count ("gscreen") > 0)
-			target->grabScreen = po["gscreen"].as<int> ();
-		
-		if (po.count ("gpid") > 0)
-			target->grabPid = po["gpid"].as<int64_t> ();
-
-		if (po.count ("gwid") > 0)
-			target->grabWid = po["gwid"].as<int64_t> ();
-		
-		if (po.count ("gfollow") > 0)
-			target->grabFollow = true;
-		
-		if (po.count ("gcursor") > 0)
-			target->grabCursor = true;
-		
-		if (po.count ("gtype") > 0)
+		void apply(const boost::program_options::variables_map & po)
 		{
-			std::string type = po["gtype"].as<std::string>();
-			target->grabberType = dz::GrabberType::FromString(type);
-		}
-	}
+			if (po.count("grect") > 0)
+			{
+				std::string arg = po["grect"].as<std::string>();
+				int ret = sscanf (arg.c_str(), "%d,%d,%d,%d", &m_options.m_grabRect.x, &m_options.m_grabRect.y, &m_options.m_grabRect.width, &m_options.m_grabRect.height);
+				if (ret != 4)
+					throw boost::program_options::invalid_option_value ("Invalid grect");
+			}
 
-	GrabberOptions * target;
-	boost::program_options::options_description desc;
+			if (po.count ("gscreen") > 0)
+				m_options.m_grabScreen = po["gscreen"].as<int> ();
+		
+			//if (po.count ("gpid") > 0)
+			//	target.m_grabPid = po["gpid"].as<int64_t> ();
+
+			if (po.count ("gwid") > 0)
+				m_options.m_grabWindowId = po["gwid"].as<int64_t> ();
+		
+			if (po.count ("gfollow") > 0)
+				m_options.m_grabFollow = true;
+		
+			if (po.count ("gcursor") > 0)
+				m_options.m_grabCursor = true;
+		
+			if (po.count ("gtype") > 0)
+			{
+				std::string type = po["gtype"].as<std::string>();
+				m_options.m_grabberType = dz::GrabberType::FromString(type);
+			}
+		}
+
+		std::vector<std::string> packCommandLine() const
+		{
+			std::vector<std::string> result;
+
+			if (!m_options.m_grabRect.empty())
+			{
+				result.push_back("--grect");
+				result.push_back(
+					boost::lexical_cast<std::string>(m_options.m_grabRect.x) + "," +
+					boost::lexical_cast<std::string>(m_options.m_grabRect.y) + "," +
+					boost::lexical_cast<std::string>(m_options.m_grabRect.width) + "," +
+					boost::lexical_cast<std::string>(m_options.m_grabRect.height));
+			}
+
+			if (m_options.m_grabScreen >= 0)
+			{
+				result.push_back("--gscreen");
+				result.push_back(boost::lexical_cast<std::string>(m_options.m_grabScreen));
+			}
+
+/*			if (target.m_grabPid > 0)
+			{
+				result.push_back("--gpid");
+				result.push_back(boost::lexical_cast<std::string>(target.m_grabPid));
+			}*/
+
+			if (m_options.m_grabWindowId > 0)
+			{
+				result.push_back("--gwid");
+				result.push_back(boost::lexical_cast<std::string>(m_options.m_grabWindowId));
+			}
+
+			if (m_options.m_grabFollow)
+				result.push_back("--gfollow");
+
+			if (m_options.m_grabCursor)
+				result.push_back("--gcursor");
+
+			if (m_options.m_grabberType != dz::GrabberType::Default)
+			{
+				result.push_back("--gtype");
+				result.push_back(dz::GrabberType::ToString(m_options.m_grabberType));
+			}
+
+			return result;
+		}
+
+	private:
+		GrabberOptions& m_options;
+		boost::program_options::options_description desc;
 };

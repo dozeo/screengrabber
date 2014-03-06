@@ -112,6 +112,8 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 
 // --gwid 3081322 --gcursor --quality Medium --vsize 792x770 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.staging.dozeo.biz:80 app=screenshare/45e38940-84d3-0131-f326-02832da5ea7e playpath=52839b60-985b-0130-c5ae-59462698dfe5/BF2F5E20-DD5A-8089-89FA-86D847DE3B4B igct=1 live=1 buffer=500" --correctAspect true --cutSize true
 // --gwid 66074 --quality Medium --vsize 1296,840 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/53877710-84e1-0131-2dd8-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/7756D519-CA34-656A-ECB5-87346312BEF5 igct=1 live=1 buffer=500" --correctAspect true --cutSize true
+// --grect 1361,255,400,400 --gcursor --quality Medium --vsize 400,400 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/76324a80-85e1-0131-a8e3-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/651F70EE-2C07-2DE6-ECBE-8DC4096D7954 igct=1 live=1 buffer=500" --correctAspect true --cutSize true
+// --grect 1361,255,765,600 --gcursor --quality Medium --vsize 765,400 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/328ed4e0-8676-0131-e127-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500" --correctAspect false --cutSize false
 
 void doGrabSend(GrabSendOptions& options)
 {
@@ -127,8 +129,8 @@ void doGrabSend(GrabSendOptions& options)
 
 	// Debug!
 	std::cout << "Version: " << GIT_DESCRIBE << std::endl;
-	std::cout << "GrabberOptions:     " << options.grabberOptions << std::endl;
-	std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
+	std::cout << "GrabberOptions:     " << options << std::endl;
+	//std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
 
 	//int result = grabbingPipeline.reinit();
 	//if (result)
@@ -162,8 +164,8 @@ void doGrabSend(GrabSendOptions& options)
 #endif
 #endif
 
-	GrabbingPipeline grabbingPipeline(&options.grabberOptions, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
-	dz::Rect grabRect = grabbingPipeline.grabRect();
+	GrabbingPipeline grabbingPipeline(options, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
+	dz::Rect grabRect = grabbingPipeline.GetGrabRect();
 	std::cout << "Final grabRect: " << grabRect << std::endl;
 
 	boost::scoped_ptr<dz::VideoSender> sender(dz::VideoSender::create(options.videoSenderOptions.type));
@@ -177,33 +179,32 @@ void doGrabSend(GrabSendOptions& options)
 		sender->setTargetFile(options.videoSenderOptions.file);
 	}
 
-	if (options.videoSenderOptions.cutSize)
-	{
-		double aspect  = (double) grabRect.w / (double) grabRect.h;
-		double vaspect = (double) options.videoSenderOptions.width / (double) options.videoSenderOptions.height;
-		if (aspect > vaspect) {
-			// Letter Boxing up and down
-			int bh = (int) options.videoSenderOptions.width / aspect;
-			options.videoSenderOptions.height = dz::minimum (dz::toNextMultiple(bh, 16), options.videoSenderOptions.height);
-		} else {
-			// Letter Boxing left and right
-			int bw  = (int) options.videoSenderOptions.height * aspect;
-			options.videoSenderOptions.width = dz::minimum (dz::toNextMultiple (bw, 16), options.videoSenderOptions.width);
-		}
-		std::cout << "Final video size after cutting: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
-	}
-
-	if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0)
-	{
-		std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
-	}
+	//if (options.videoSenderOptions.cutSize)
+	//{
+	//	double aspect  = (double) grabRect.w / (double) grabRect.h;
+	//	double vaspect = (double) options.videoSenderOptions.width / (double) options.videoSenderOptions.height;
+	//	if (aspect > vaspect) {
+	//		// Letter Boxing up and down
+	//		int bh = (int) options.videoSenderOptions.width / aspect;
+	//		options.videoSenderOptions.height = dz::minimum (dz::toNextMultiple(bh, 16), options.videoSenderOptions.height);
+	//	} else {
+	//		// Letter Boxing left and right
+	//		int bw  = (int) options.videoSenderOptions.height * aspect;
+	//		options.videoSenderOptions.width = dz::minimum (dz::toNextMultiple (bw, 16), options.videoSenderOptions.width);
+	//	}
+	//	std::cout << "Final video size after cutting: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
+	//}
+	//if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0)
+	//{
+	//	std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
+	//}
 
 	// Set Options again, as video width/height could be changed
-	grabbingPipeline.setOptions (
-		&options.grabberOptions, 
-		options.videoSenderOptions.correctAspect, 
-		options.videoSenderOptions.width, 
-		options.videoSenderOptions.height);
+	//grabbingPipeline.setOptions (
+	//	&options, 
+	//	options.videoSenderOptions.correctAspect, 
+	//	options.videoSenderOptions.width, 
+	//	options.videoSenderOptions.height);
 
 	sender->setVideoSettings(
 		options.videoSenderOptions.width,
@@ -229,7 +230,7 @@ int main (int argc, char * argv[])
 	try
 	{
 		GrabSendOptions options(argc, argv);
-		bWaitOnError = options.m_bWantOnException;
+		bWaitOnError = options.m_bWaitOnException;
 		doGrabSend(options);
 		return 0;
 	}

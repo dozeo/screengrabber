@@ -21,7 +21,7 @@ namespace dz
 			return new DesktopTools_OSX();
 		#endif // MAC_OSX
 
-		throw exception(strstream() << "Failed to instanciate the desktop tools for this platform!");
+		throw exception(strstream() << "Failed to instantiate the desktop tools for this platform!");
 	}
 }
 

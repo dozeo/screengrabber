@@ -25,19 +25,8 @@ namespace dz
 	const std::string VideoStream::StreamProtocol = std::string("flv");
 	bool  VideoStream::AVCodecInitialized = false;
 
-	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec)
-	: _formatContext(NULL)
-	, _convertContext(NULL)
-	, _videoStream(NULL)
-	, _tempFrame(NULL)
-	, _scaledFrame(NULL)
-	, _frameBufferSize(0)
-	, _frameBuffer(NULL)
-	, _videoFrameSize(videoSize)
-	, _videoCodec(videoCodec)
-	, _lastTimeStamp(0)
-	, _waitForFirstFrame(true)
-	, _isStreamOpen(false)
+	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec): _formatContext(NULL), _convertContext(NULL), _videoStream(NULL), _tempFrame(NULL), _scaledFrame(NULL), _frameBufferSize(0),
+		_frameBuffer(NULL), _videoFrameSize(videoSize), _videoCodec(videoCodec), _lastTimeStamp(0), _waitForFirstFrame(true), _isStreamOpen(false)
 	{
 		if (!AVCodecInitialized)
 		{
@@ -261,10 +250,13 @@ namespace dz
 			AVPacket packet;
 			av_init_packet(&packet);
 
-			if (codec->coded_frame->pts != AV_NOPTS_VALUE) {
+			if (codec->coded_frame->pts != AV_NOPTS_VALUE)
+			{
 				packet.pts = av_rescale_q(timeStamp, codec->time_base, _videoStream->time_base);
 			}
-			if (codec->coded_frame->key_frame) {
+
+			if (codec->coded_frame->key_frame)
+			{
 				packet.flags |= AV_PKT_FLAG_KEY;
 			}
 

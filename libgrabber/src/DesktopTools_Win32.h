@@ -3,7 +3,7 @@
 #pragma once
 
 #include "IDesktopTools.h"
-#include "Grabber.h"
+#include "igrabber.h"
 #include "win32/ScreenEnumerator.h"
 
 namespace dz

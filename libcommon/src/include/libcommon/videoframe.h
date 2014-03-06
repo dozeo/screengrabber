@@ -20,6 +20,8 @@ namespace dz
 			VideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format);
 			~VideoFrame();
 
+			void Clear();
+
 			uint32_t GetWidth() const { return m_width; }
 			uint32_t GetHeight() const { return m_height; }
 
@@ -33,5 +35,17 @@ namespace dz
 			uint32_t m_width, m_height;
 			VideoFrameFormat::Enum m_format;
 			std::unique_ptr<uint8_t> m_pData;
+	};
+
+	class VideoFrameHandle : public std::unique_ptr<VideoFrame, void(*)(VideoFrame*)>
+	{
+		public:
+			VideoFrameHandle(VideoFrame*handledFrame);
+			VideoFrameHandle(VideoFrameHandle&& other);
+
+		private:
+			VideoFrameHandle(VideoFrameHandle&);
+
+			static void VideoFrameDeleter(VideoFrame* frame);
 	};
 }

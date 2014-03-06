@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Grabber.h"
+#include "../igrabber.h"
 
 namespace dz
 {
@@ -11,11 +11,15 @@ namespace dz
 			NullGrabber ();
 			virtual ~NullGrabber();
 
-			// Implementation
-			virtual int screenCount () const;
-			virtual Rect screenResolution (int screen) const;
-			virtual Rect combinedScreenResolution () const;
-			virtual void grab(const Rect& rect, Buffer * destination);
+			virtual void SetCaptureRect(Rect capture) { m_captureRect = capture; }
+
+			// fake one
+			Rect screenResolution(int screen) const;
+
+			virtual VideoFrameHandle GrabVideoFrame();
 			virtual void setEnableGrabCursor(bool enable = true) { }
+
+		private:
+			Rect m_captureRect;
 	};
 }

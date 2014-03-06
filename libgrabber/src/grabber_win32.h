@@ -2,21 +2,18 @@
 
 #ifdef WIN32
 
-#include "../Grabber.h"
+#include "igrabber.h"
 #include <Windows.h>
 
 namespace dz
 {
-	class Win32Grabber : public IGrabber
+	class Grabber_Win32 : public IGrabber
 	{
 		public:
-			Win32Grabber();
+			Grabber_Win32();
 
 			/// Enables cursor grabbing
 			virtual void setEnableGrabCursor(bool enable);
-
-			/// Grab something into the destination buffer
-			virtual void grab(const Rect& rect, Buffer * destination) = 0;
 
 			static void grabCursor(const Rect& rect, HDC hdc);
 

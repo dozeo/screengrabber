@@ -1,20 +1,30 @@
-#include <libgrabber/src/Grabber.h>
+#include <libgrabber/src/igrabber.h>
 #include <libgrabber/src/IDesktopTools.h>
 
 #include <gtest/gtest.h>
 
+#include <libcommon/videoframepool.h>
+
+using dz::VideoFrameHandle;
+using dz::VideoFramePool;
+using dz::VideoFrame;
+
 class GrabberTest : public testing::Test
 {
 	protected:
-		void SetUp () {
-			m_grabber.reset(dz::IGrabber::create(dz::GrabberType::Default));
+		void SetUp()
+		{
+			m_grabber.reset(dz::IGrabber::CreateGrabber(m_options));
 			m_desktopTools.reset(dz::IDesktopTools::CreateDesktopTools());
 		}
 
-		void TearDown () {
+		void TearDown()
+		{
 			m_grabber = nullptr;
 		}
 
+		VideoFramePool m_framePool;
+		GrabberOptions m_options;
 		std::unique_ptr<dz::IGrabber> m_grabber;
 		std::unique_ptr<dz::IDesktopTools> m_desktopTools;
 };
@@ -30,56 +40,67 @@ TEST_F (GrabberTest, FindAtLeastOneMonitor)
 }
 
 /// Fills a buffer in a specific color
-static void fillWithColor(dz::Buffer * buf, int32_t color)
+static void fillWithColor(VideoFrameHandle& frame, uint32_t color)
 {
-	for (int y = 0; y < buf->height; y++)
+	for (uint32_t y = 0; y < frame->GetHeight(); y++)
 	{
-		for (int x = 0; x < buf->width; x++)
+		for (uint32_t x = 0; x < frame->GetWidth(); x++)
 		{
-			int32_t * pos = (int32_t*) (buf->data + (y * buf->rowLength) + x * 4);
-			*pos = color;
+			uint32_t* pData = reinterpret_cast<uint32_t*>(frame->GetData() + (frame->GetHeight() * frame->GetStride()));
+			pData[x] = color;
 		}
 	}
 }
 
 /// Checks if a block is still in a specific color
-static bool isAllInColor (const dz::Buffer * buf, int32_t color) {
-	for (int y = 0; y < buf->height; y++) {
-		for (int x = 0; x < buf->width; x++) {
-			const int32_t * pos = (const int32_t*) (buf->data + (y * buf->rowLength) + x * 4);
-			if (*pos != color) return false;
-		}
-	}
+static bool IsFrameContainingOnlyColor(dz::VideoFrameHandle& frame, uint32_t color)
+{
+	//for (int y = 0; y < buf->height; y++) {
+	//	for (int x = 0; x < buf->width; x++) {
+	//		const int32_t * pos = (const int32_t*) (buf->data + (y * buf->rowLength) + x * 4);
+	//		if (*pos != color) return false;
+	//	}
+	//}
 	return true;
 }
 
-static int32_t colorWhite = 0xffffffff;
-
+#define RGBA(r, g, b, a) (((uint32_t)a << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | ((uint32_t)b))
+static uint32_t colorWhite = RGBA(255, 255, 255, 255);
 
 TEST_F (GrabberTest, CheckTestFunctions)
 {
-	dz::Buffer buf (640, 480);
-	fillWithColor (&buf, colorWhite);
-	ASSERT_TRUE (isAllInColor (&buf, colorWhite)) << "Test functions do not work!";
-	buf.data [640 * 4 * 117 + 318] = 0; // coord 318,117, first byte
-	ASSERT_FALSE (isAllInColor (&buf, colorWhite)) << "Cannot detect small change";
+	auto frame(VideoFramePool::GetInstance().AllocVideoFrame(640, 480, dz::VideoFrameFormat::RGBA));
+
+	fillWithColor(frame, colorWhite);
+
+	ASSERT_TRUE(IsFrameContainingOnlyColor(frame, colorWhite)) << "Test functions do not work!";
+
+	uint32_t x = 318, y = 117;
+	frame->GetData()[y * frame->GetStride() + x * frame->GetPixelSize()] = 0;
+
+	ASSERT_FALSE(IsFrameContainingOnlyColor(frame, colorWhite)) << "Cannot detect small change";
 }
 
 TEST_F (GrabberTest, GrabEverything)
 {
 	dz::Rect all = m_desktopTools->GetCombinedScreenResolution();
-	dz::Buffer buf (all.w, all.h);
-	fillWithColor (&buf, colorWhite);
-	m_grabber->grab(all, &buf);
-	EXPECT_TRUE (!isAllInColor (&buf, colorWhite)) << "Grabbing should change at least one pixel!";
+	m_grabber->SetCaptureRect(all);
+
+	auto frameHandle(m_grabber->GrabVideoFrame());
+	const uint32_t blackColor = RGBA(0, 0, 0, 0);
+
+	EXPECT_FALSE(IsFrameContainingOnlyColor(frameHandle, blackColor)) << "Grabbing should change at least one pixel!";
 }
 
-TEST_F (GrabberTest, GrabPart) {
-	dz::Rect part (100, 100, 50, 50);
-	dz::Buffer buf (part.w, part.h);
-	fillWithColor (&buf, colorWhite);
-	m_grabber->grab(part, &buf);
-	EXPECT_TRUE (!isAllInColor (&buf, colorWhite)) << "Should change at least one pixel";
+TEST_F (GrabberTest, GrabPart)
+{
+	dz::Rect part(100, 100, 50, 50);
+	m_grabber->SetCaptureRect(part);
+	auto frameHandle(m_grabber->GrabVideoFrame());
+	//dz::Buffer buf (part.w, part.h);
+	const uint32_t blackColor = RGBA(0, 0, 0, 0);
+	//m_grabber->grab(part, &buf);
+	EXPECT_FALSE(IsFrameContainingOnlyColor(frameHandle, blackColor)) << "Should change at least one pixel";
 }
 
 /// Grabs each screen for it self.
@@ -89,33 +110,24 @@ TEST_F (GrabberTest, SingleScreens)
 	for (uint32_t i = 0; i < screenCount; i++)
 	{
 		dz::Rect screenRect = m_desktopTools->GetScreenResolution(i);
-		dz::Buffer buf (screenRect.w, screenRect.h);
-		m_grabber->grab(screenRect, &buf);
+		
+		m_grabber->SetCaptureRect(screenRect);
+		auto frame(m_grabber->GrabVideoFrame());
+
+		EXPECT_TRUE(frame->GetWidth() == screenRect.GetWidth()) << "Invalid width on frame";
+		EXPECT_TRUE(frame->GetHeight() == screenRect.GetHeight()) << "Invalid height on frame";
 	}
 }
 
 /// Grabs areas usually not on a display
 TEST_F (GrabberTest, BigExtends1)
 {
-	dz::Rect big (-1000, -1000, 10000, 10000);
-	dz::Buffer buf (big.w, big.h);
-	m_grabber->grab(big, &buf);
-}
+	dz::Rect big(-1000, -1000, 10000, 10000);
 
-/// Grabs all screens and tests the color result (covers best multiple screens)
-TEST_F (GrabberTest, GrabAllScreens)
-{
-	unsigned int color = 0x80808080;
-	uint32_t screenCount = m_desktopTools->GetScreenCount();
+	m_grabber->SetCaptureRect(big);
+	auto frame(m_grabber->GrabVideoFrame());
 
-	for (uint32_t i = 0; i < screenCount; i++)
-	{
-		dz::Rect screenRect = m_desktopTools->GetScreenResolution(i);
-		dz::Buffer buffer(screenRect.w, screenRect.h);
-		fillWithColor(&buffer, color);
-		m_grabber->grab(screenRect, &buffer);
-		EXPECT_TRUE(!isAllInColor(&buffer, color)) << "Each screen should contain the same color";
-	}
+	EXPECT_TRUE(frame != nullptr) << "Run out of memory or could not allocate any more video frames";
 }
 
 TEST_F (GrabberTest, GrabAllScreensWithMouseCursor)
@@ -127,19 +139,18 @@ TEST_F (GrabberTest, GrabAllScreensWithMouseCursor)
 	for (uint32_t i = 0; i < screenCount; i++)
 	{
 		dz::Rect screenRect = m_desktopTools->GetScreenResolution(i);
-		dz::Buffer buffer(screenRect.w, screenRect.h);
-		fillWithColor(&buffer, color);
-		m_grabber->grab(screenRect, &buffer);
+		m_grabber->SetCaptureRect(screenRect);
+		auto frame(m_grabber->GrabVideoFrame());
+		fillWithColor(frame, color);
 	}
 }
 
 TEST_F (GrabberTest, GrabAmongTwoScreens)
 {
-	unsigned int color = 0xffaabbcc;
+	const uint32_t color = RGBA(0xaa, 0xbb, 0xcc, 0xff);
 	dz::Rect all = m_desktopTools->GetCombinedScreenResolution();
-	dz::Buffer buf (all.w, all.h);
-	fillWithColor (&buf, color);
 
 	dz::Rect captureRect(1200, 200, 1024, 768);
-	m_grabber->grab(captureRect, &buf);
+	m_grabber->SetCaptureRect(captureRect);
+	auto frame(m_grabber->GrabVideoFrame());
 }

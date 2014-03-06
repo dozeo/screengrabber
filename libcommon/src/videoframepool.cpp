@@ -28,7 +28,7 @@ namespace dz
 		return *m_instance;
 	}
 
-	VideoFrame* VideoFramePool::AllocVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format)
+	VideoFrameHandle VideoFramePool::AllocVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format)
 	{
 		while (true)
 		{
@@ -45,11 +45,15 @@ namespace dz
 				}
 
 				if (curFrame != nullptr)
-					return curFrame;
+				{
+					VideoFrameHandle handle(curFrame);
+					return std::move(handle);
+				}
 			}
 			else
 			{
-				return NewVideoFrame(width, height, format);
+				VideoFrameHandle handle(NewVideoFrame(width, height, format));
+				return std::move(handle);
 			}
 		}
 	}

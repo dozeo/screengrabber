@@ -27,6 +27,10 @@ namespace dz
 		}
 	}
 
+	virtual void GrabberOSX::SetCaptureRect(Rect capture)
+	{
+	}
+
 	void GrabberOSX::setEnableGrabCursor (bool enable)
 	{
 		mEnableGrabCursor = enable;

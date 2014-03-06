@@ -1,5 +1,6 @@
 #pragma once
-#include "../Grabber.h"
+
+#include "../igrabber.h"
 
 #ifdef LINUX
 #include <X11/Xlib.h>
@@ -16,6 +17,7 @@ namespace dz
 			virtual int screenCount () const;
 			virtual Rect screenResolution (int screen) const;
 			virtual Rect combinedScreenResolution () const;
+			virtual void SetCaptureRect(Rect capture);
 			virtual void grab (const Rect& rect, Buffer * destination);
 		private:
 			int  loadSizesFromRandr ();

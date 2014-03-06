@@ -9,6 +9,7 @@
 
 namespace dz
 {
+	//static
 	VideoSender* VideoSender::create(VideoSenderType type)
 	{
 		switch (type)

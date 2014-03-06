@@ -2,6 +2,8 @@
 
 #include "WindowGrabber_Win32.h"
 #include <dzlib/dzexception.h>
+#include <libcommon/videoframe.h>
+#include <libcommon/videoframepool.h>
 
 #include <cassert>
 
@@ -35,60 +37,56 @@ namespace dz
 			DeleteDC(m_memDC);
 	}
 
-	//static 
-	IWindowGrabber* IWindowGrabber::CreateWindowGrabber(int64_t windowId)
-	{
-		HWND windowHandle = (HWND)windowId;
-		return new WindowGrabber_Win32(windowHandle);
-	}
-
 	void WindowGrabber_Win32::setEnableGrabCursor(bool enable)
 	{
 	}
 
-	void WindowGrabber_Win32::GrabWindow(Buffer& destination)
+	//void WindowGrabber_Win32::GrabWindow(Buffer& destination)
+
+	//virtual
+	VideoFrameHandle WindowGrabber_Win32::GrabVideoFrame()
 	{
 		RECT curWindowRect;
 
-		try
+		// figure out if the window is not the foreground window and if it is not, use the window grabbing mode
+		if (GetForegroundWindow() != m_windowHandle)
 		{
-			if (GetForegroundWindow() != m_windowHandle)
-			{
-				//destination.clear();
-				//return;
-			}
-
-			if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
-				throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
-
-			if (OffsetRect(&curWindowRect, -curWindowRect.left, -curWindowRect.top) == FALSE)
-				throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
-
-			if (m_width != curWindowRect.right ||
-				m_height != curWindowRect.bottom)
-			{
-				// window size changed
-				m_width = curWindowRect.right;
-				m_height = curWindowRect.bottom;
-				OnWindowResized(m_windowDC, m_width, m_height);
-			}
-
-			//PrintWindow(m_windowHandle, m_memDC, 0);
-
-			if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, /*CAPTUREBLT | */SRCCOPY) == FALSE)
-				throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
-
-			uint32_t lineStride = m_width * 4;
-
-			//assert(destination.width == m_width);
-			//assert(destination.height == m_height);
-
-			CopyMemory(destination.data, m_pData, lineStride * m_height);
+			//destination.clear();
+			//return;
 		}
-		catch (...)
+
+		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
+			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
+
+		// figure out of the window lies outside of any of the screens, and if yes use the window grab method
+		if (OffsetRect(&curWindowRect, -curWindowRect.left, -curWindowRect.top) == FALSE)
+			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
+
+		if (m_width != curWindowRect.right ||
+			m_height != curWindowRect.bottom)
 		{
-			throw;
+			// window size changed
+			m_width = curWindowRect.right;
+			m_height = curWindowRect.bottom;
+			OnWindowResized(m_windowDC, m_width, m_height);
 		}
+
+		//PrintWindow(m_windowHandle, m_memDC, 0);
+		if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, /*CAPTUREBLT | */SRCCOPY) == FALSE)
+			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
+
+		uint32_t lineStride = m_width * 4;
+
+		//assert(destination.width == m_width);
+		//assert(destination.height == m_height);
+		auto frame(VideoFramePool::GetInstance().AllocVideoFrame(m_width, m_height));
+
+		assert(lineStride == frame->GetStride());
+
+		CopyMemory(frame->GetData(), m_pData, lineStride * m_height);
+		//CopyMemory(destination.data, m_pData, lineStride * m_height);
+
+		return std::move(frame);
 	}
 
 	void WindowGrabber_Win32::OnWindowResized(HDC winDC, uint32_t newWidth, uint32_t newHeight)
