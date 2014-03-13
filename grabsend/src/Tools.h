@@ -55,17 +55,25 @@ void installLineReader ();
 class Timing
 {
 	public:
-		Timing(const char *name) : m_name(name), m_start(microtime())
+		Timing(const char *name) : m_name(name), m_start(microtime()), m_bAlreadOutput(true)
 		{
 		}
 
 		~Timing()
 		{
+			if (m_bAlreadOutput == false)
+				Output();
+		}
+
+		void Output()
+		{
 			double end = microtime();
 			std::cout << "Timing '" << std::setw(10) << m_name << "' took " << std::setw(4) << (uint32_t)((end - m_start) * 1000.0) << " ms" << std::endl;
+			m_bAlreadOutput = true;
 		}
 
 	private:
+		bool m_bAlreadOutput;
 		const char *m_name;
 		double m_start;
 };

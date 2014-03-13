@@ -9,6 +9,13 @@ namespace dz
 {
 	VideoFrame::VideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format) : m_width(width), m_height(height), m_format(format)
 	{
+		switch (m_format)
+		{
+			case VideoFrameFormat::RGB: m_pixelSize = 3; break;
+			case VideoFrameFormat::RGBA: m_pixelSize = 4; break;
+			default: throw exception(strstream() << "Unknown pixel format " << m_format << " alteast to GetPixelSize()");
+		}
+
 		m_pData.reset(new uint8_t[m_height * m_width * GetPixelSize()]);
 	}
 
@@ -19,16 +26,6 @@ namespace dz
 	void VideoFrame::Clear()
 	{
 		memset(m_pData.get(), 0, m_height * m_width * GetPixelSize());
-	}
-
-	uint32_t VideoFrame::GetPixelSize() const
-	{
-		switch (m_format)
-		{
-			case VideoFrameFormat::RGB: return 3;
-			case VideoFrameFormat::RGBA: return 4;
-			default: throw exception(strstream() << "Unknown pixel format " << m_format << " alteast to GetPixelSize()");
-		}
 	}
 
 	uint32_t VideoFrame::GetStride() const

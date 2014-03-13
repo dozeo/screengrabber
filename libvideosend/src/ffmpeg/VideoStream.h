@@ -3,8 +3,10 @@
 #include <libgrabber/src/Dimension.h>
 #include "VideoSender.h"
 #include "ffmpeg_includes.h"
+#include "FFmpegUtils.h"
 
 #include <iostream>
+#include <memory>
 
 namespace dz
 {
@@ -45,7 +47,7 @@ namespace dz
 			void closeVideo();
 			void closeFile(AVFormatContext* formatContext);
 
-			void sendFrame(AVStream* videoStream, AVFrame* frame, double timeDurationInSeconds);
+			void sendFrame(SmartPtrAVFrame& frame, double timeDurationInSeconds);
 
 			static const std::string StreamProtocol;
 			static bool AVCodecInitialized;
@@ -54,8 +56,8 @@ namespace dz
 			SwsContext* _convertContext;
 
 			AVStream* _videoStream;
-			AVFrame*  _tempFrame;
-			AVFrame*  _scaledFrame;
+			SmartPtrAVFrame m_tempFrame;
+			SmartPtrAVFrame m_scaledFrame;
 
 			uint32_t _frameBufferSize;
 			uint8_t* _frameBuffer;

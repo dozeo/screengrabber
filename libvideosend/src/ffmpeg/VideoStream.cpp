@@ -25,8 +25,9 @@ namespace dz
 	const std::string VideoStream::StreamProtocol = std::string("flv");
 	bool  VideoStream::AVCodecInitialized = false;
 
-	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec): _formatContext(NULL), _convertContext(NULL), _videoStream(NULL), _tempFrame(NULL), _scaledFrame(NULL), _frameBufferSize(0),
-		_frameBuffer(NULL), _videoFrameSize(videoSize), _videoCodec(videoCodec), _lastTimeStamp(0), _waitForFirstFrame(true), _isStreamOpen(false)
+	VideoStream::VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec): _formatContext(NULL), _convertContext(NULL), _videoStream(NULL), _frameBufferSize(0),
+		_frameBuffer(NULL), _videoFrameSize(videoSize), _videoCodec(videoCodec), _lastTimeStamp(0), _waitForFirstFrame(true), _isStreamOpen(false)/*, 
+		m_tempFrame(nullptr, avframe_deleter), m_scaledFrame(nullptr, avframe_deleter)*/
 	{
 		if (!AVCodecInitialized)
 		{
@@ -75,12 +76,23 @@ namespace dz
 		if (_videoCodec != CODEC_ID_NONE)
 		{
 			_videoStream = addVideoStream(_videoCodec, bitRate, keyframe, frameRate, destPixFormat, level);
-			openVideo(_videoStream);
+
+			AVCodecContext* ctx = _videoStream->codec;
+			AVCodec* codec = avcodec_find_encoder(ctx->codec_id);
+			if (!codec)
+				throw exception(strstream() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
+
+			int code = avcodec_open2(ctx, codec, NULL);
+			if (code < 0)
+				throw exception(strstream() << "avcodec_open2 failed with error code " << code << " to open the stream");
+	
+			_frameBufferSize = avpicture_get_size(ctx->pix_fmt, ctx->width, ctx->height);
+			_frameBuffer = (uint8_t*)av_malloc(_frameBufferSize);
 		}
 
 		setupScaleContext(_scalingImageSize, _videoFrameSize);
 
-		_scaledFrame = FFmpegUtils::createVideoFrame(destPixFormat, _videoFrameSize);
+		m_scaledFrame = std::move(FFmpegUtils::createVideoFrame(destPixFormat, _videoFrameSize.width, _videoFrameSize.height));
 		openStream(_formatContext, fileUrl, mode);
 
 		_isStreamOpen = true;
@@ -113,9 +125,13 @@ namespace dz
 
 	void VideoStream::setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat, enum VideoQualityLevel level)
 	{
+		const uint32_t keyframeEverySeconds = 4;
+		const double refSec = 0.2;
+		const uint32_t bframes = (uint32_t)(refSec / (1.0 / (double)fps));
+
 		// set up properties
 		codec->codec_type = AVMEDIA_TYPE_VIDEO;
-		codec->coder_type = FF_CODER_TYPE_VLC;
+		codec->coder_type = FF_CODER_TYPE_AC;//FF_CODER_TYPE_VLC;
 		codec->width = _videoFrameSize.width;
 		codec->height = _videoFrameSize.height;
 		codec->bit_rate = bitRate;
@@ -127,17 +143,45 @@ namespace dz
 		codec->gop_size = 2*keyframe; // max key frames
 		codec->keyint_min = keyframe; // minimum number of keyframes
 
-		codec->me_method = 0; // motion estimation algorithm
-		codec->me_subpel_quality = 4;
+		codec->me_method = ME_EPZS; // motion estimation algorithm
+		codec->me_subpel_quality = 10;
 		codec->delay = 0;
-		codec->thread_count = 0; // determines the number of threads automatically
+		codec->thread_count = 1; // determines the number of threads automatically
 		codec->refs = 3;
-		codec->max_b_frames = 0;
+		codec->max_b_frames = bframes;
 		codec->rc_buffer_size = 0;
+
+		// documentation says to set it to 2 on H.264
+		codec->ticks_per_frame = 2;
+
+		//codec->bit_rate = 500*1000;
+		//codec->bit_rate_tolerance = 0;
+		//codec->compression_level = 10;
+		//codec->rc_max_rate = 0;
+		//codec->rc_buffer_size = 0;
+		codec->gop_size = fps * keyframeEverySeconds;
+		codec->keyint_min = fps * keyframeEverySeconds;
+		codec->max_b_frames = 2;
+		codec->b_frame_strategy = 1;
+		//codec->coder_type = 1;
+		codec->me_cmp = 1;
+		//codec->me_range = 16;
+		//codec->qmin = 10;
+		//codec->qmax = 51;
+		//codec->scenechange_threshold = 40;
+		//codec->flags |= CODEC_FLAG_LOOP_FILTER;
+		//codec->me_method = ME_LOG;
+		//codec->me_subpel_quality = 10;
+		//codec->i_quant_factor = 0.71f;
+		//codec->qcompress = 0.6f;
+		//codec->max_qdiff = 4;
+		//codec->directpred = 1;
+		//codec->flags2 |= CODEC_FLAG2_FASTPSKIP;
 
 		av_opt_set(codec->priv_data, "tune", "zerolatency", 0);
 		av_opt_set(codec->priv_data, "profile", "high", 0);
-		av_opt_set(codec->priv_data, "preset", "slower", 0);
+		//av_opt_set(codec->priv_data, "vprofile", "baseline", 0);
+		av_opt_set(codec->priv_data, "preset", "ultrafast", 0);
 
 		//std::cout << "Video Quality: " << level << std::endl;
 
@@ -163,23 +207,13 @@ namespace dz
 
 	void VideoStream::openVideo(AVStream* stream)
 	{
-		assert(stream != 0);
-
-		AVCodecContext* ctx = stream->codec;
-		AVCodec* codec = avcodec_find_encoder(ctx->codec_id);
-		if (!codec)
-			throw exception(strstream() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
-
-		int code = avcodec_open2(ctx, codec, NULL);
-		if (code < 0)
-			throw exception(strstream() << "avcodec_open2 failed with error code " << code << " to open the stream");
-	
-		_frameBufferSize = avpicture_get_size(ctx->pix_fmt, ctx->width, ctx->height);
-		_frameBuffer = (uint8_t*)av_malloc(_frameBufferSize);
 	}
 
 	void VideoStream::close()
 	{
+		m_scaledFrame = nullptr;
+		m_tempFrame = nullptr;
+
 		closeFile(_formatContext);
 		closeVideo();
 
@@ -200,8 +234,8 @@ namespace dz
 	void VideoStream::sendFrame(const uint8_t* rgba, const Dimension2& imageSize, uint32_t stride, double timeDurationInSeconds)
 	{
 		assert(_videoStream != 0);
-		assert(_scaledFrame != 0);
-		assert(_tempFrame != 0);
+		assert(m_scaledFrame != nullptr);
+		assert(m_tempFrame != nullptr);
 
 		if (imageSize != _scalingImageSize)
 		{
@@ -210,19 +244,19 @@ namespace dz
 		}
 
 		int64_t t0 = av_gettime();
-		FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, _tempFrame);
-		int scaleRes = sws_scale(_convertContext, _tempFrame->data, _tempFrame->linesize, 0, imageSize.height, _scaledFrame->data, _scaledFrame->linesize);
+		FFmpegUtils::copyRgbaToFrame(rgba, imageSize, stride, m_tempFrame);
+		int scaleRes = sws_scale(_convertContext, m_tempFrame->data, m_tempFrame->linesize, 0, imageSize.height, m_scaledFrame->data, m_scaledFrame->linesize);
 		if (scaleRes != _videoFrameSize.height)
 			throw exception(strstream() << "Failed to scale the resulting frame from " << imageSize.width << "x" << imageSize.height << " to " << _videoFrameSize.width << "x" << _videoFrameSize.height);
 		
 		_statistic.lastScaleTime = (av_gettime() - t0);
 		
-		sendFrame(_videoStream, _scaledFrame, timeDurationInSeconds);
+		sendFrame(m_scaledFrame, timeDurationInSeconds);
 	}
 
-	void VideoStream::sendFrame(AVStream* videoStream, AVFrame* frame, double timeDurationInSeconds)
+	void VideoStream::sendFrame(SmartPtrAVFrame& frame, double timeDurationInSeconds)
 	{
-		AVCodecContext* codec = videoStream->codec;
+		AVCodecContext* codec = _videoStream->codec;
 
 		uint64_t timeStamp = (uint64_t)(timeDurationInSeconds * codec->time_base.den);
 
@@ -241,7 +275,7 @@ namespace dz
 
 		frame->pts = timeStamp;
 		int64_t t0 = av_gettime();
-		int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame);
+		int size = avcodec_encode_video(codec, _frameBuffer, _frameBufferSize, frame.get());
 		int64_t t1 = av_gettime();
 		_statistic.lastEncodeTime = (t1 - t0);
 		
@@ -278,7 +312,7 @@ namespace dz
 			
 			_statistic.frameWritten(bytes);
 
-			std::cout << "sendFrame " << bytes << std::endl;
+			std::cout << "bytes send " << bytes << std::endl;
 		}
 		else
 		{
@@ -289,7 +323,7 @@ namespace dz
 
 	void VideoStream::setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize)
 	{
-		assert(_tempFrame == NULL);
+		assert(m_tempFrame == NULL);
 		assert(_convertContext == NULL);
 
 		PixelFormat srcFormat  = (BITS_PER_PIXEL == 24) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_BGRA;
@@ -298,7 +332,7 @@ namespace dz
 		if (!FFmpegUtils::isConversionSupported(srcFormat, destFormat))
 			throw exception(strstream() << "color space conversion not supported");
 
-		_tempFrame = FFmpegUtils::createVideoFrame(srcFormat, srcSize);
+		m_tempFrame = FFmpegUtils::createVideoFrame(srcFormat, srcSize.width, srcSize.height);
 		_scalingImageSize = srcSize;
 
 		_convertContext = sws_getContext(
@@ -319,12 +353,8 @@ namespace dz
 
 	void VideoStream::releaseScaleContext()
 	{
-		if (_tempFrame != 0) {
-			av_free(_tempFrame->data[0]);
-			av_free(_tempFrame);
-			_tempFrame = 0;
-		}
-		if (_convertContext != 0) {
+		if (_convertContext != 0)
+		{
 			sws_freeContext(_convertContext);
 			_convertContext = 0;
 		}
@@ -332,15 +362,10 @@ namespace dz
 
 	void VideoStream::closeVideo()
 	{
-		if (_videoStream != NULL) {
-			if (_videoStream->codec->codec != 0) {
+		if (_videoStream != NULL)
+		{
+			if (_videoStream->codec->codec != 0)
 				avcodec_close(_videoStream->codec);
-			}
-			if (_scaledFrame != 0) {
-				av_free(_scaledFrame->data[0]);
-				av_free(_scaledFrame);
-				_scaledFrame = 0;
-			}
 
 			av_free(_frameBuffer);
 			_frameBufferSize = 0;

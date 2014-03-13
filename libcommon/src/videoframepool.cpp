@@ -17,6 +17,7 @@ namespace dz
 	VideoFramePool::~VideoFramePool()
 	{
 		assert (m_instance == this);
+		m_instance = nullptr;
 	}
 
 	//static
@@ -79,15 +80,15 @@ namespace dz
 
 	VideoFrame* VideoFramePool::NewVideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format)
 	{
-		boost::lock_guard<boost::mutex> lock(m_mutex);
-
-		if (m_curFrames < m_maxFrames)
 		{
+			boost::lock_guard<boost::mutex> lock(m_mutex);
+			if (m_curFrames >= m_maxFrames)
+				return nullptr;
+
 			m_curFrames++;
-			return new VideoFrame(width, height, format);
 		}
 
-		return nullptr;
+		return new VideoFrame(width, height, format);
 	}
 }
 

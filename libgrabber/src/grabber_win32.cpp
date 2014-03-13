@@ -1,7 +1,6 @@
 #ifdef WIN32
 
 #include "igrabber.h"
-#include "IWindowGrabber.h"
 #include "null/NullGrabber.h"
 #include "bitbltgrabber_win32.h"
 #include "win32/DirectXGrabber.h"

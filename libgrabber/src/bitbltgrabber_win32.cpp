@@ -105,8 +105,8 @@ namespace dz
 		for (uint32_t i = 0; i < frame->GetHeight(); i++)
 		{
 			CopyMemory(dst, src, srcStride);
-			dst += (i * dstStride);
-			src += (i * srcStride);
+			dst += dstStride;
+			src += srcStride;
 		}
 	}
 
@@ -127,13 +127,16 @@ namespace dz
 
 		fillBitmapInfo(captureSize.width, captureSize.height, _bmpInfo);
 		_hBitmap = CreateCompatibleBitmap(_hdcDesktop, captureSize.width, captureSize.height);
+		if (_hBitmap == NULL)
+			throw exception(strstream() << "CreateCompatibleBitmap failed with capture size (" << captureSize.width << ", " << captureSize.height << ")");
 	}
 
 	void BitBltGrabber_Win32::initBitmapBuffer(const Dimension2& captureSize)
 	{
 		shutdownBitmapBuffer();
 
-		int bufferSize = ((captureSize.width * 32 + 31) / 32) * 4 * captureSize.height;
+		// TODO: fix this hard coded bytes per pixel value
+		uint32_t bufferSize = captureSize.width * 4 * captureSize.height;
 		_bmpBuffer = new uint8_t[bufferSize];
 	}
 

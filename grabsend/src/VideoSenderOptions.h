@@ -5,7 +5,8 @@
 #include <vector>
 
 /// Options for the video sender
-struct VideoSenderOptions {
+struct VideoSenderOptions
+{
 	VideoSenderOptions () :
 		fps (10.0f),
 		kiloBitrate (100),
@@ -15,9 +16,10 @@ struct VideoSenderOptions {
 		cutSize (true),
 		correctAspect (true),
 		quality (dz::VQ_MEDIUM),
-		type (dz::VT_DEFAULT){}
+		type (dz::VT_DEFAULT) {}
 
-	std::ostream & operator<< (std::ostream & s) const {
+	std::ostream & operator<< (std::ostream & s) const
+	{
 		s << "fps: " << fps << " kiloBitrate: " << kiloBitrate << " keyframe: " << keyframe << " vsize: " << width << "x" << height;
 		if (!url.empty()) {
 			s << " url: " << url;
@@ -30,7 +32,6 @@ struct VideoSenderOptions {
 	}
 
 	inline std::vector<std::string> packCommandLine () const;
-
 
 	float fps; ///< fps rate to send
 	int kiloBitrate; ///< bitrate in kiloBit

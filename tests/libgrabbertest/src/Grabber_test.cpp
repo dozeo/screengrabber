@@ -42,25 +42,30 @@ TEST_F (GrabberTest, FindAtLeastOneMonitor)
 /// Fills a buffer in a specific color
 static void fillWithColor(VideoFrameHandle& frame, uint32_t color)
 {
+	if (frame->GetVideoFrameFormat() != dz::VideoFrameFormat::RGBA)
+		throw std::exception("Wrong video frame format - expected RGBA");
+
 	for (uint32_t y = 0; y < frame->GetHeight(); y++)
 	{
+		uint32_t* pData = reinterpret_cast<uint32_t*>(frame->GetData() + (y * frame->GetStride()));
+
 		for (uint32_t x = 0; x < frame->GetWidth(); x++)
-		{
-			uint32_t* pData = reinterpret_cast<uint32_t*>(frame->GetData() + (frame->GetHeight() * frame->GetStride()));
 			pData[x] = color;
-		}
 	}
 }
 
 /// Checks if a block is still in a specific color
 static bool IsFrameContainingOnlyColor(dz::VideoFrameHandle& frame, uint32_t color)
 {
-	//for (int y = 0; y < buf->height; y++) {
-	//	for (int x = 0; x < buf->width; x++) {
-	//		const int32_t * pos = (const int32_t*) (buf->data + (y * buf->rowLength) + x * 4);
-	//		if (*pos != color) return false;
-	//	}
-	//}
+	for (uint32_t y = 0; y < frame->GetHeight(); y++)
+	{
+		uint32_t* pData = reinterpret_cast<uint32_t*>(frame->GetData() + (y * frame->GetStride()));
+
+		for (uint32_t x = 0; x < frame->GetWidth(); x++)
+			if (pData[x] != color)
+				return false;
+	}
+
 	return true;
 }
 
@@ -122,7 +127,7 @@ TEST_F (GrabberTest, SingleScreens)
 /// Grabs areas usually not on a display
 TEST_F (GrabberTest, BigExtends1)
 {
-	dz::Rect big(-1000, -1000, 10000, 10000);
+	dz::Rect big(-1000, -1000, 5000, 5000);
 
 	m_grabber->SetCaptureRect(big);
 	auto frame(m_grabber->GrabVideoFrame());
@@ -141,7 +146,6 @@ TEST_F (GrabberTest, GrabAllScreensWithMouseCursor)
 		dz::Rect screenRect = m_desktopTools->GetScreenResolution(i);
 		m_grabber->SetCaptureRect(screenRect);
 		auto frame(m_grabber->GrabVideoFrame());
-		fillWithColor(frame, color);
 	}
 }
 
@@ -152,5 +156,16 @@ TEST_F (GrabberTest, GrabAmongTwoScreens)
 
 	dz::Rect captureRect(1200, 200, 1024, 768);
 	m_grabber->SetCaptureRect(captureRect);
+	auto frame(m_grabber->GrabVideoFrame());
+}
+
+TEST_F (GrabberTest, GrabPartiallyOutside)
+{
+	const uint32_t color = RGBA(0xaa, 0xbb, 0xcc, 0xff);
+	dz::Rect all = m_desktopTools->GetCombinedScreenResolution();
+
+	all.x += all.width / 2;
+
+	m_grabber->SetCaptureRect(all);
 	auto frame(m_grabber->GrabVideoFrame());
 }

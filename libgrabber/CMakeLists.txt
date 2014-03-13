@@ -7,6 +7,7 @@ include (Common)
 include (FindAllExternals)
 
 add_dzlib()
+add_boost()
 add_libcommon()
 
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)

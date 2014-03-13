@@ -44,17 +44,19 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 		double frameStartTime = microtime();
 		double dt = frameStartTime - startTime;
 		
-		{
-			Timing grabTime("grab");
-			grabbingPipeline.grab();
-		}
+		//std::cout << "Start frame " << frame << std::endl;
+
+		Timing grabTime("grab");
+		auto videoFrame = grabbingPipeline.grab();
+		//grabTime.Output();
 
 		double t2 = microtime();
 
 		const dz::Buffer* buffer = grabbingPipeline.buffer();
 		{
-			Timing grabTime("putFrame");
-			sender->putFrame(buffer->data, buffer->width, buffer->height, buffer->rowLength, dt);
+			Timing putTime("putFrame");
+			sender->putFrame(videoFrame->GetData(), videoFrame->GetWidth(), videoFrame->GetHeight(), videoFrame->GetStride(), dt);
+			//putTime.Output();
 		}
 
 #if QT_GUI_LIB

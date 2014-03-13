@@ -28,11 +28,11 @@ namespace dz
 			uint32_t GetStride() const;
 			uint8_t* GetData() const;
 
-			uint32_t GetPixelSize() const;
+			uint32_t GetPixelSize() const { return m_pixelSize; }
 			VideoFrameFormat::Enum GetVideoFrameFormat() const { return m_format; }
 
 		private:
-			uint32_t m_width, m_height;
+			uint32_t m_width, m_height, m_pixelSize;
 			VideoFrameFormat::Enum m_format;
 			std::unique_ptr<uint8_t> m_pData;
 	};
