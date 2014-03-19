@@ -41,6 +41,19 @@ namespace dz
 		
 		return r;
 	}
+
+	bool DesktopTools_Win32::IsInsideAnyScreen(const Rect& otherRect) const
+	{
+		for (uint32_t i = 0; i < GetScreenCount(); i++)
+		{
+			Rect screenRect = GetScreenResolution(i);
+			if (screenRect.contains(otherRect.x, otherRect.y) &&
+				screenRect.contains(otherRect.x + otherRect.width, otherRect.y + otherRect.height))
+				return true;
+		}
+
+		return false;
+	}
 }
 
 #endif // _WIN32

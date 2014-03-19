@@ -9,7 +9,8 @@
 
 namespace dz
 {
-	WindowGrabber_Win32::WindowGrabber_Win32(HWND windowHandle) : m_windowHandle(windowHandle), m_winBitmap(NULL), m_pData(NULL)
+	WindowGrabber_Win32::WindowGrabber_Win32(HWND windowHandle) : m_windowHandle(windowHandle), m_winBitmap(NULL), m_pData(NULL),
+		m_desktopTools(IDesktopTools::CreateDesktopTools()), m_areaGrabber(Rect(0, 0, 640, 480))
 	{
 		if (IsWindow(m_windowHandle) == FALSE)
 			throw exception(strstream() << "WindowGrabber_Win32 given an invalid window handle");
@@ -49,18 +50,32 @@ namespace dz
 		RECT curWindowRect;
 
 		// figure out if the window is not the foreground window and if it is not, use the window grabbing mode
-		if (GetForegroundWindow() != m_windowHandle)
-		{
-			//destination.clear();
-			//return;
-		}
+		bool bUseFullGrabber = (GetForegroundWindow() == m_windowHandle);
+
+		dz::Rect windowRect;
 
 		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
 			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
 
+		windowRect.x = curWindowRect.left;
+		windowRect.y = curWindowRect.top;
+
 		// figure out of the window lies outside of any of the screens, and if yes use the window grab method
 		if (OffsetRect(&curWindowRect, -curWindowRect.left, -curWindowRect.top) == FALSE)
 			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
+
+		windowRect.width = curWindowRect.right;
+		windowRect.height = curWindowRect.bottom;
+
+		// if the window is not inside a screen/desktop, we cannot use the area grabber
+		if (m_desktopTools->IsInsideAnyScreen(windowRect) == false)
+			bUseFullGrabber = false;
+
+		if (bUseFullGrabber)
+		{
+			m_areaGrabber.SetCaptureRect(windowRect);
+			return m_areaGrabber.GrabVideoFrame();
+		}
 
 		if (m_width != curWindowRect.right ||
 			m_height != curWindowRect.bottom)
@@ -71,15 +86,21 @@ namespace dz
 			OnWindowResized(m_windowDC, m_width, m_height);
 		}
 
+		//SendMessage(m_windowHandle, WM_PRINT, (WPARAM)m_windowDC, PRF_NONCLIENT | PRF_CLIENT);
+
+		PrintWindow(m_windowHandle, m_memDC, 0);
 		//PrintWindow(m_windowHandle, m_memDC, 0);
-		if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, /*CAPTUREBLT | */SRCCOPY) == FALSE)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
+		//if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, CAPTUREBLT | SRCCOPY) == FALSE)
+		//	throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
 
 		uint32_t lineStride = m_width * 4;
 
 		//assert(destination.width == m_width);
 		//assert(destination.height == m_height);
 		auto frame(VideoFramePool::GetInstance().AllocVideoFrame(m_width, m_height));
+
+		if (frame == nullptr)
+			return frame;
 
 		assert(lineStride == frame->GetStride());
 

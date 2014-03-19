@@ -21,11 +21,6 @@ namespace dz
 				return *this;
 			}
 
-			inline int area() const
-			{
-				return width * height;
-			}
-
 			bool operator== (const Dimension2& rhs) const
 			{
 				return width == rhs.width && height == rhs.height;

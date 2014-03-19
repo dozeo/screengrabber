@@ -40,11 +40,12 @@ namespace dz
 	class VideoFrameHandle : public std::unique_ptr<VideoFrame, void(*)(VideoFrame*)>
 	{
 		public:
-			VideoFrameHandle(VideoFrame*handledFrame);
+			explicit VideoFrameHandle(VideoFrame* handledFrame);
 			VideoFrameHandle(VideoFrameHandle&& other);
 
 		private:
 			VideoFrameHandle(VideoFrameHandle&);
+			VideoFrameHandle& operator= (const VideoFrameHandle&);
 
 			static void VideoFrameDeleter(VideoFrame* frame);
 	};

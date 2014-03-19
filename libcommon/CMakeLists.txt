@@ -15,7 +15,8 @@ set(src_files
 	"src/main_test.cpp"
 	"src/videoframepool.cpp"
 	"src/dzrect.cpp"
-	"src/grabber_type.cpp")
+	"src/videotypes.cpp"
+	"src/sender_options.cpp")
 
 set(hdr_folder "src/include")
 set(header_files
@@ -24,8 +25,9 @@ set(header_files
 	"${hdr_folder}/libcommon/videoframepool.h"
 	"${hdr_folder}/libcommon/math_helpers.h"
 	"${hdr_folder}/libcommon/dzrect.h"
-	"${hdr_folder}/libcommon/grabber_type.h"
-	"${hdr_folder}/libcommon/grabber_options.h")
+	"${hdr_folder}/libcommon/grabber_options.h"
+	"${hdr_folder}/libcommon/videotypes.h"
+	"${hdr_folder}/libcommon/sender_options.h")
 
 include_directories(${HDRS} "${hdr_folder}")
 
@@ -33,3 +35,4 @@ add_library (libcommon ${src_files} ${header_files})
 #add_executable (libcommon ${src_files} ${header_files})
 
 target_link_libraries(libcommon ${LIBS})
+

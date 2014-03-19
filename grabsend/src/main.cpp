@@ -15,11 +15,6 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 
-#ifdef QT_GUI_LIB
-#include <QApplication>
-#include <QWidget>
-#endif
-
 #include <dzlib/dzexception.h>
 
 namespace po = boost::program_options;
@@ -28,12 +23,18 @@ using namespace dz;
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
-int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& options, dz::VideoSender* sender)
+void GrabbingLoop(GrabSendOptions& options)
 {
+	GrabbingPipeline grabbingPipeline(options);
+
 	installSigHandler();
 	installLineReader();
 
-	sender->OpenVideoStream();
+	dz::Rect grabSize = grabbingPipeline.GetGrabRect();
+	options.videowidth = grabSize.width;
+	options.videoheight = grabSize.height;
+	std::unique_ptr<dz::VideoSender> psender(dz::VideoSender::CreateVideoSender(options));
+	auto& sender = *psender.get();
 
 	double startTime = microtime();
 	double timeToGrabSum = 0;
@@ -55,73 +56,81 @@ int grabbingLoop(GrabbingPipeline& grabbingPipeline, const GrabSendOptions& opti
 		const dz::Buffer* buffer = grabbingPipeline.buffer();
 		{
 			Timing putTime("putFrame");
-			sender->putFrame(videoFrame->GetData(), videoFrame->GetWidth(), videoFrame->GetHeight(), videoFrame->GetStride(), dt);
+			sender.putFrame(std::move(videoFrame), dt);
 			//putTime.Output();
 		}
 
-#if QT_GUI_LIB
-		if (QApplication::instance())
-		{
-			QApplication::processEvents();
-			QApplication::sendPostedEvents();
-		}
-#endif
-
 		frame++;
-		double t3 = microtime ();
-		double timeToWait = (1.0f / options.videoSenderOptions.fps) - (t3 - frameStartTime);
+		double t3 = microtime();
+		double timeToWait = (1.0f / sender.GetFPS()) - (t3 - frameStartTime);
 		double timeToGrab = t2 - frameStartTime;
 		double timeToEncodeAndSend = t3 - t2;
 		timeToGrabSum += timeToGrab;
 		double timeToGrabAvg = (timeToGrabSum / frame);
 
-		const dz::VideoSender::Statistic * stat = sender->statistic();
+		const dz::VideoSender::Statistic * stat = sender.statistic();
 
 		std::cerr.precision(3);
-		if (options.statLevel >= 1) {
+		if (options.statLevel >= 1) 
+		{
 			// on each 10th frame print average information
-			if ((frame % 1000) == 0 && frame > 0) {
-				if (stat) {
+			if ((frame % 1000) == 0 && frame > 0) 
+			{
+				if (stat)
+				{
 					printAvg(std::cerr << "Info: ", *stat) << " grab: " << (timeToGrabAvg * 1000) << "ms " << std::endl;
-				} else {
+				}
+				else
+				{
 					std::cerr << "Info: avg grab: " << (timeToGrabAvg * 1000) << "ms, no more information available" << std::endl;
 				}
 			}
 		}
-		if (options.statLevel >= 2) {
+
+		if (options.statLevel >= 2)
+		{
 			// on each frame print time about grabing and sending (scale, encode + send)
 			std::cerr << "Info: " << dt << "s grab: " << (timeToGrab * 1000) << "ms encodeAndSend: " << (timeToEncodeAndSend * 1000) << " wait: " << (timeToWait * 1000) << "ms" << std::endl;
 		}
-		if (options.statLevel >= 3 && stat) {
+		
+		if (options.statLevel >= 3 && stat)
+		{
 			// on each frame print time for scaling, encoding, sending
 			printLastFrame(std::cerr << "Info: ", *stat) << std::endl << std::endl;
 		}
-		if (timeToWait < 0) {
+		
+		if (timeToWait < 0)
+		{
 			// oh, do not have time, what takes so long?
-			if (stat) { // can make assumption only if statistic
+			if (stat)
+			{ // can make assumption only if statistic
 				analyseFrameDropCause (std::cerr << "Warning: ", frame, timeToGrabSum, *stat) << std::endl;
-			} else {
+			}
+			else
+			{
 				// no statistic, cannot analyze
 				std::cerr << "Warning: can not grab and send in time, will miss frames!" << std::endl;
 			}
-		} else {
+		}
+		else
+		{
 			millisleep ( (int) (timeToWait * 1000));
 		}
 	}
-	sender->close();
-	return 0;
 }
 
-// --gwid 3081322 --gcursor --quality Medium --vsize 792x770 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.staging.dozeo.biz:80 app=screenshare/45e38940-84d3-0131-f326-02832da5ea7e playpath=52839b60-985b-0130-c5ae-59462698dfe5/BF2F5E20-DD5A-8089-89FA-86D847DE3B4B igct=1 live=1 buffer=500" --correctAspect true --cutSize true
-// --gwid 66074 --quality Medium --vsize 1296,840 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/53877710-84e1-0131-2dd8-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/7756D519-CA34-656A-ECB5-87346312BEF5 igct=1 live=1 buffer=500" --correctAspect true --cutSize true
-// --grect 1361,255,400,400 --gcursor --quality Medium --vsize 400,400 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/76324a80-85e1-0131-a8e3-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/651F70EE-2C07-2DE6-ECBE-8DC4096D7954 igct=1 live=1 buffer=500" --correctAspect true --cutSize true
-// --grect 1361,255,765,600 --gcursor --quality Medium --vsize 765,400 --bitrate 300 --keyframe 30 --fps 10 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/328ed4e0-8676-0131-e127-027d216995aa playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500" --correctAspect false --cutSize false
+// --grect 1739,210,161,120 --gcursor --quality Medium --vsize 161,120 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0dc3eed0-9005-0131-5a6d-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
+// --grect 1739,210,161,120 --gcursor --quality medium --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0729dc60-90ac-0131-353a-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
 
 void doGrabSend(GrabSendOptions& options)
 {
 	//options.parse(argc, argv);
 
 	VideoFramePool singleton(5);
+
+	std::cout << "Version: " << GRABSEND_VERSION << std::endl;
+	if (options.m_bPrintVersion)
+		return;
 
 	if (options.printHelp)
 	{
@@ -130,16 +139,7 @@ void doGrabSend(GrabSendOptions& options)
 	}
 
 	// Debug!
-	std::cout << "Version: " << GIT_DESCRIBE << std::endl;
-	std::cout << "GrabberOptions:     " << options << std::endl;
-	//std::cout << "VideoSenderOptions: " << options.videoSenderOptions << std::endl;
-
-	//int result = grabbingPipeline.reinit();
-	//if (result)
-	//{
-	//	std::cerr << "Error: could not initialize grabbing pipeline " << result << std::endl;
-	//	return 1;
-	//}
+	std::cout << "Options: " << options << std::endl;
 
 	if (options.printScreens || options.printWindows || options.printProcesses)
 	{
@@ -150,73 +150,11 @@ void doGrabSend(GrabSendOptions& options)
 		return;
 	}
 	
-#ifdef QT_GUI_LIB
-	boost::scoped_ptr<QApplication> qApplication;
-	if (options.videoSenderOptions.type == dz::VT_QT)
-	{
-		int argc = 0;
-		char** argv = { NULL };
-		qApplication.reset (new QApplication (argc, argv));
-	}
 #ifdef MAC_OSX
-	else
-	{
-		initalizeNSApplication();
-	}
-#endif
+	initalizeNSApplication();
 #endif
 
-	GrabbingPipeline grabbingPipeline(options, options.videoSenderOptions.correctAspect, options.videoSenderOptions.width, options.videoSenderOptions.height);
-	dz::Rect grabRect = grabbingPipeline.GetGrabRect();
-	std::cout << "Final grabRect: " << grabRect << std::endl;
-
-	boost::scoped_ptr<dz::VideoSender> sender(dz::VideoSender::create(options.videoSenderOptions.type));
-
-	if (!options.videoSenderOptions.url.empty())
-	{
-		sender->setTargetUrl(options.videoSenderOptions.url);
-	}
-	else
-	{
-		sender->setTargetFile(options.videoSenderOptions.file);
-	}
-
-	//if (options.videoSenderOptions.cutSize)
-	//{
-	//	double aspect  = (double) grabRect.w / (double) grabRect.h;
-	//	double vaspect = (double) options.videoSenderOptions.width / (double) options.videoSenderOptions.height;
-	//	if (aspect > vaspect) {
-	//		// Letter Boxing up and down
-	//		int bh = (int) options.videoSenderOptions.width / aspect;
-	//		options.videoSenderOptions.height = dz::minimum (dz::toNextMultiple(bh, 16), options.videoSenderOptions.height);
-	//	} else {
-	//		// Letter Boxing left and right
-	//		int bw  = (int) options.videoSenderOptions.height * aspect;
-	//		options.videoSenderOptions.width = dz::minimum (dz::toNextMultiple (bw, 16), options.videoSenderOptions.width);
-	//	}
-	//	std::cout << "Final video size after cutting: " << options.videoSenderOptions.width << "x" << options.videoSenderOptions.height << std::endl;
-	//}
-	//if (options.videoSenderOptions.width % 16 != 0 || options.videoSenderOptions.height % 16 != 0)
-	//{
-	//	std::cerr << "Warning: video size is not a multiple of 16" << std::endl;
-	//}
-
-	// Set Options again, as video width/height could be changed
-	//grabbingPipeline.setOptions (
-	//	&options, 
-	//	options.videoSenderOptions.correctAspect, 
-	//	options.videoSenderOptions.width, 
-	//	options.videoSenderOptions.height);
-
-	sender->setVideoSettings(
-		options.videoSenderOptions.width,
-		options.videoSenderOptions.height,
-		options.videoSenderOptions.fps,
-		options.videoSenderOptions.kiloBitrate * 1000,
-		options.videoSenderOptions.keyframe,
-		options.videoSenderOptions.quality);
-
-	grabbingLoop(grabbingPipeline, options, sender.get());
+	GrabbingLoop(options);
 }
 
 #ifndef _WIN32
@@ -248,6 +186,7 @@ int main (int argc, char * argv[])
 			std::cin >> t;
 		}
 
+		throw;
 		//throw std::exception(e.msg().c_str());
 #if _WIN32
 		DebugBreak();

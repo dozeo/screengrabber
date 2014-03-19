@@ -41,6 +41,11 @@ namespace dz
 					curFrame->GetHeight() != height ||
 					curFrame->GetVideoFrameFormat() != format)
 				{
+					{
+						boost::lock_guard<boost::mutex> lock(m_mutex);
+						m_curFrames--;
+					}
+
 					delete curFrame;
 					curFrame = nullptr;
 				}

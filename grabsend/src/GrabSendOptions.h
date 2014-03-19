@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 /// Command line options of grabsend
-class GrabSendOptions : public GrabberOptions
+class GrabSendOptions : public GrabberOptions, public VideoSenderOptions
 {
 	public:
 		GrabSendOptions(int argc, char* argv[]);
@@ -18,10 +18,8 @@ class GrabSendOptions : public GrabberOptions
 		bool printWindows;
 		bool printProcesses;
 		bool m_bWaitOnException;
+		bool m_bPrintVersion;
 		int statLevel;
-
-		//GrabberOptions grabberOptions;
-		VideoSenderOptions videoSenderOptions;
 
 		friend std::ostream& operator<< (std::ostream& s, const GrabSendOptions& o);
 
@@ -29,8 +27,7 @@ class GrabSendOptions : public GrabberOptions
 		/// Apply variables map to this and sub options
 		void ApplyGrabSendOptions(const boost::program_options::variables_map & vm);
 		void ApplyGrabberOptions(const boost::program_options::variables_map& vm);
+		void ApplySenderOptions(const boost::program_options::variables_map& vm);
 
 		boost::program_options::options_description desc;
-		//GrabberOptionsParser grabberOptionsParser;
-		VideoSenderOptionsParser videoSenderOptionsParser;
 };

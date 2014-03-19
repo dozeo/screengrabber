@@ -16,5 +16,6 @@ namespace dz
 			virtual uint32_t GetScreenCount() const = 0;
 			virtual Rect GetScreenResolution(uint32_t screen) const = 0;
 			virtual Rect GetCombinedScreenResolution() const = 0;
+			virtual bool IsInsideAnyScreen(const Rect& otherRect) const = 0;
 	};
 }

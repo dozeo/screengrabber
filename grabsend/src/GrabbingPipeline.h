@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GrabberOptions.h"
+//#include "GrabberOptions.h"
+#include "GrabSendOptions.h"
 
 #include <libcommon/dzrect.h>
 
@@ -23,8 +24,8 @@
 class GrabbingPipeline
 {
 	public:
-		GrabbingPipeline(const GrabberOptions& options, bool correctAspectToVideo = false, int videoW = 0, int videoH = 0) :
-			m_grabberOptions(options), mCorrectAspectToVideo(correctAspectToVideo), mVideoWidth(videoW), mVideoHeight(videoH),
+		GrabbingPipeline(const GrabSendOptions& options) :
+			m_grabberOptions(options), mVideoWidth(options.videowidth), mVideoHeight(options.videoheight),
 			m_grabber(dz::IGrabber::CreateGrabber(options))
 		{
 			//dz::GrabberType::Enum grabberType = m_grabberOptions.m_grabberType;
@@ -152,7 +153,7 @@ class GrabbingPipeline
 		//dz::GrabberType::Enum mCurrentGrabberType;	///< Current initialized grabber type
 		boost::scoped_ptr<dz::IGrabber> m_grabber;					///< Current Grabber
 		boost::scoped_ptr<dz::IDesktopTools> m_desktopTools;
-		bool mCorrectAspectToVideo;				///< Rescale the grabbed images, so that they have the same aspect like the destination video
+		
 		// Destination video size, only valid if correctAspectToVideo is set to true
 		int  mVideoWidth;
 		int mVideoHeight;

@@ -1,25 +1,25 @@
 
 #include "VideoSender.h"
 #include "null/NullVideoSender.h"
-#include "qt/QtVideoSender.h"
 #include "ffmpeg/VideoSenderFFmpeg.h"
-#include <sstream>
 
 #include <dzlib/dzexception.h>
+
+#include <sstream>
+#include <algorithm>
 
 namespace dz
 {
 	//static
-	VideoSender* VideoSender::create(VideoSenderType type)
+	VideoSender* VideoSender::CreateVideoSender(const VideoSenderOptions& senderOptions)
 	{
-		switch (type)
+		switch (senderOptions.senderType)
 		{
-			case VT_NULL: return new NullVideoSender();
-			case VT_QT: return new QtVideoSender();
-			case VT_DEFAULT: return new VideoSenderFFmpeg();
+			case VideoSenderType::Null: return new NullVideoSender();
+			case VideoSenderType::Default: return new VideoSenderFFmpeg(senderOptions);
 		}
 	
-		throw exception(strstream() << "Could not create video sender of type " << type);
+		throw exception(strstream() << "Could not create video sender of type " << senderOptions.senderType);
 	}
 
 	VideoSender::Statistic::Statistic()

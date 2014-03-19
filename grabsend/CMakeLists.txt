@@ -14,13 +14,25 @@ endif()
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
 include (Common)
 include (FindAllExternals)
-include (gitdescribe)
+
+execute_process(COMMAND git describe --long --tags
+	OUTPUT_VARIABLE GIT_DESCRIBE OUTPUT_STRIP_TRAILING_WHITESPACE
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+configure_file("gitdescribe.h.in"
+	"${CMAKE_BINARY_DIR}/gitdescribe.h")
+
+include_directories("${CMAKE_BINARY_DIR}")
+
+list(APPEND header_files "${CMAKE_BINARY_DIR}/gitdescribe.h")
+
+message (STATUS "Git Describe Version for grabsend: ${GIT_DESCRIBE}")
 
 add_libgrabber()
 add_libvideosend()
 add_boost()
 add_ffmpeg()
-add_qt()
+#add_qt()
 add_directx()
 add_dzlib()
 add_libcommon()

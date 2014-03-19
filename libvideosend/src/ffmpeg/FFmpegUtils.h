@@ -36,34 +36,16 @@ namespace dz
 	};
 
 	typedef UniquePtrCustom<AVFrame> SmartPtrAVFrame;
-
-	//class SmartPtrAVFrame : public std::unique_ptr<AVFrame, void(*)(AVFrame*)>
-	//{
-	//	public:
-	//		SmartPtrAVFrame() : std::unique_ptr<AVFrame, void(*)(AVFrame*)>(nullptr, deleter) { }
-	//		SmartPtrAVFrame(AVFrame* newFrame) : std::unique_ptr<AVFrame, void(*)(AVFrame*)>(newFrame, deleter) { }
-	//		SmartPtrAVFrame(SmartPtrAVFrame&& moved) : std::unique_ptr<AVFrame, void(*)(AVFrame*)>(std::move(moved)) { }
-	//		void operator= (SmartPtrAVFrame&& moved)
-	//		{
-	//			std::unique_ptr<AVFrame, void(*)(AVFrame*)> &pObj = (*this);
-	//			pObj = std::move(moved);
-	//		}
-
-	//		static void deleter(AVFrame*);
-
-	//	private:
-	//		SmartPtrAVFrame(const SmartPtrAVFrame&);
-	//		const SmartPtrAVFrame& operator= (const SmartPtrAVFrame&);
-	//};
+	typedef UniquePtrCustom<AVFormatContext> SmartPtrAVFormatContext;
 
 	class FFmpegUtils
 	{
 		public:
-			static AVFormatContext* createFormatContext(const std::string& outputType, enum AVCodecID codecId);
+			static SmartPtrAVFormatContext CreateFormatContext(const std::string& outputType, enum AVCodecID codecId);
 
-			static void copyRgbaToFrame(const uint8_t* srcData, const Dimension2& sourceSize, uint32_t stride, SmartPtrAVFrame& destFrame);
+			static void CopyRgbaToFrame(const uint8_t* srcData, uint32_t height, uint32_t stride, SmartPtrAVFrame& destFrame);
 
-			static SmartPtrAVFrame createVideoFrame(enum PixelFormat pixFormat, uint32_t width, uint32_t height);
+			static SmartPtrAVFrame CreateVideoFrame(enum PixelFormat pixFormat, uint32_t width, uint32_t height);
 
 			static bool isConversionSupported(enum PixelFormat srcFmt, enum PixelFormat destFmt);
 

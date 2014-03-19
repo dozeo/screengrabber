@@ -1,7 +1,7 @@
 #pragma once
 
 #include <dzlib/dzexception.h>
-#include <libcommon/grabber_type.h>
+#include <libcommon/videotypes.h>
 #include <libcommon/dzrect.h>
 
 #include <cstdint>
@@ -15,18 +15,29 @@ struct GrabberOptions
 
 	friend std::ostream& operator<< (std::ostream& s, const GrabberOptions& o)
 	{
-		s << o.ToString();
+		s << "grect: " << o.m_grabRect << " gscreen: " << o.m_grabScreen << " gwid: " << o.m_grabWindowId << " gfollow: " << (o.m_grabFollow ? "true" : "false") << " gcursor: " << o.m_grabCursor << " type: " << o.m_grabberType;
 		return s;
 	}
 
-	std::string ToString() const { return dz::strstream() << "grect: " << m_grabRect << " gscreen: " << m_grabScreen << " gwid: " << m_grabWindowId << " gfollow: " << m_grabFollow << " gcursor: " << m_grabCursor << " type: " << m_grabberType; }
+	//std::string ToString() const { return dz::strstream() << "grect: " << m_grabRect << " gscreen: " << m_grabScreen << " gwid: " << m_grabWindowId << " gfollow: " << m_grabFollow << " gcursor: " << m_grabCursor << " type: " << m_grabberType; }
 
 	bool IsGrabWindow() const { return m_grabWindowId > 0; }
 
-	dz::Rect m_grabRect;  ///< != empty if set
-	int m_grabScreen;     ///< >= 0 if set
-	int64_t m_grabWindowId;    ///<   >0 if set
-	bool m_grabFollow;    ///<   if true, follow the grabbed region (valid on grabScreen, grabPid or grabWid)
-	bool m_grabCursor;    ///<   Also grab mouse cursor (if possible)
-	dz::GrabberType::Enum m_grabberType; ///< Grabber type to use
+	// != empty if set
+	dz::Rect m_grabRect;
+	
+	// >= 0 if set
+	int m_grabScreen; 
+
+	// >0 if set
+	int64_t m_grabWindowId;
+	
+	// if true, follow the grabbed region (valid on grabScreen, grabPid or grabWid)
+	bool m_grabFollow;
+
+	// Also grab mouse cursor (if possible)
+	bool m_grabCursor;
+
+	// Grabber type to use
+	dz::GrabberType::Enum m_grabberType;
 };

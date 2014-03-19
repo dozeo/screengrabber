@@ -17,6 +17,7 @@ namespace dz
 			virtual uint32_t GetScreenCount() const;
 			virtual Rect GetScreenResolution(uint32_t screen) const;
 			virtual Rect GetCombinedScreenResolution() const;
+			virtual bool IsInsideAnyScreen(const Rect& otherRect) const;
 
 		private:
 			std::vector<Display> m_displays;
