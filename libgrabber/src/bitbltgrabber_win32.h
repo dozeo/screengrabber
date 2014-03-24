@@ -20,6 +20,7 @@ namespace dz
 			virtual ~BitBltGrabber_Win32();
 
 			virtual void SetCaptureRect(Rect capture);
+			virtual Rect GetCaptureRect() const;
 
 			virtual VideoFrameHandle GrabVideoFrame();
 

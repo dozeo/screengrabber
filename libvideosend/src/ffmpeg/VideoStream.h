@@ -25,6 +25,8 @@ namespace dz
 			void SendFrame(VideoFrameHandle videoFrame, double timeDurationInSeconds);
 
 			float GetFPS() const;
+			uint32_t GetVideoWidth() const { return m_videoFrameWidth; }
+			uint32_t GetVideoHeight() const { return m_videoFrameHeight; }
 
 			const VideoSender::Statistic* statistic() const { return &_statistic; }
 

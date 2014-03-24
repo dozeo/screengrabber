@@ -52,6 +52,8 @@ namespace dz
 		m_captureRect = capture;
 	}
 
+	Rect BitBltGrabber_Win32::GetCaptureRect() const { return m_captureRect; }
+
 	//virtual 
 	VideoFrameHandle BitBltGrabber_Win32::GrabVideoFrame()
 	{

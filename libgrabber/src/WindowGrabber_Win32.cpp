@@ -10,7 +10,7 @@
 namespace dz
 {
 	WindowGrabber_Win32::WindowGrabber_Win32(HWND windowHandle) : m_windowHandle(windowHandle), m_winBitmap(NULL), m_pData(NULL),
-		m_desktopTools(IDesktopTools::CreateDesktopTools()), m_areaGrabber(Rect(0, 0, 640, 480))
+		m_desktopTools(IDesktopTools::CreateDesktopTools()), m_areaGrabber(Rect(0, 0, 640, 480)), m_width(0), m_height(0)
 	{
 		if (IsWindow(m_windowHandle) == FALSE)
 			throw exception(strstream() << "WindowGrabber_Win32 given an invalid window handle");
@@ -25,6 +25,8 @@ namespace dz
 			ReleaseDC(m_windowHandle, m_windowDC);
 			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - CreateCompatibleDC failed with error code " << GetLastError());
 		}
+
+		m_areaGrabber.SetCaptureRect(GetCaptureRect());
 	}
 	
 	WindowGrabber_Win32::~WindowGrabber_Win32()
@@ -43,16 +45,18 @@ namespace dz
 	}
 
 	//void WindowGrabber_Win32::GrabWindow(Buffer& destination)
-
-	//virtual
-	VideoFrameHandle WindowGrabber_Win32::GrabVideoFrame()
+	Rect WindowGrabber_Win32::GetCaptureRect() const
 	{
 		RECT curWindowRect;
-
-		// figure out if the window is not the foreground window and if it is not, use the window grabbing mode
-		bool bUseFullGrabber = (GetForegroundWindow() == m_windowHandle);
-
 		dz::Rect windowRect;
+
+		if (IsIconic(m_windowHandle) == TRUE)
+		{
+			if (m_width != 0 && m_height != 0)
+				return Rect(m_width, m_height);
+			else
+				return Rect(320, 240);
+		}
 
 		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
 			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
@@ -67,6 +71,24 @@ namespace dz
 		windowRect.width = curWindowRect.right;
 		windowRect.height = curWindowRect.bottom;
 
+		return windowRect;
+	}
+
+	//virtual
+	VideoFrameHandle WindowGrabber_Win32::GrabVideoFrame()
+	{
+		// figure out if the window is not the foreground window and if it is not, use the window grabbing mode
+		bool bUseFullGrabber = (GetForegroundWindow() == m_windowHandle);
+
+		dz::Rect windowRect = GetCaptureRect();
+
+		if (IsIconic(m_windowHandle) == TRUE)
+		{
+			auto frame(VideoFramePool::GetInstance().AllocVideoFrame(windowRect.width, windowRect.height));
+			frame->Clear();
+			return std::move(frame);
+		}
+
 		// if the window is not inside a screen/desktop, we cannot use the area grabber
 		if (m_desktopTools->IsInsideAnyScreen(windowRect) == false)
 			bUseFullGrabber = false;
@@ -77,13 +99,11 @@ namespace dz
 			return m_areaGrabber.GrabVideoFrame();
 		}
 
-		if (m_width != curWindowRect.right ||
-			m_height != curWindowRect.bottom)
+		if (m_width != windowRect.width ||
+			m_height != windowRect.height)
 		{
 			// window size changed
-			m_width = curWindowRect.right;
-			m_height = curWindowRect.bottom;
-			OnWindowResized(m_windowDC, m_width, m_height);
+			OnWindowResized(m_windowDC, windowRect.width, windowRect.height);
 		}
 
 		//SendMessage(m_windowHandle, WM_PRINT, (WPARAM)m_windowDC, PRF_NONCLIENT | PRF_CLIENT);

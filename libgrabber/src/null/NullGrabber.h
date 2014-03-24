@@ -12,6 +12,7 @@ namespace dz
 			virtual ~NullGrabber();
 
 			virtual void SetCaptureRect(Rect capture) { m_captureRect = capture; }
+			virtual Rect GetCaptureRect() const { return m_captureRect; }
 
 			// fake one
 			Rect screenResolution(int screen) const;

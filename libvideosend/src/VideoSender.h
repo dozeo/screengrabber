@@ -26,7 +26,7 @@ namespace dz
 
 			/// Puts in a new frame
 			/// @param durationInSec exact time point not duration since last frame!
-			virtual void putFrame(VideoFrameHandle videoFrame, double durationInSec) = 0;
+			virtual void SendFrame(VideoFrameHandle videoFrame, double durationInSec) = 0;
 
 			virtual float GetFPS() const = 0;
 

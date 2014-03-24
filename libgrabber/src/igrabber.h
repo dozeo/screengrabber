@@ -25,6 +25,7 @@ namespace dz
 			static IGrabber* CreateGrabber(const GrabberOptions& options);
 
 			virtual void SetCaptureRect(Rect capture) = 0;
+			virtual Rect GetCaptureRect() const = 0;
 
 			/// Enables cursor grabbing
 			virtual void setEnableGrabCursor(bool enable = true) = 0;

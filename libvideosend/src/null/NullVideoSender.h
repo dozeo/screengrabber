@@ -10,7 +10,7 @@ namespace dz
 			virtual ~NullVideoSender();
 
 			// Implementation
-			virtual void putFrame(VideoFrameHandle videoFrame, double durationInSec);
+			virtual void SendFrame(VideoFrameHandle videoFrame, double durationInSec);
 			virtual float GetFPS() const;
 	};
 }

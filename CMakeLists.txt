@@ -2,7 +2,7 @@ PROJECT("screengrabber" C CXX)
 
 cmake_minimum_required(VERSION 2.8)
 
-OPTION(OPTION_DISABLE_TESTS "Disable Test Projects" Off)
+OPTION(OPTION_BUILD_TESTS "Build Test Projects" ON)
 
 message (STATUS "adding application: grabsend")
 add_subdirectory (grabsend)
@@ -12,7 +12,7 @@ if (APPLE)
     set (MAC_OSX TRUE)
 endif()
 
-if (NOT OPTION_DISABLE_TESTS)
+if (OPTION_BUILD_TESTS)
 	message (STATUS "adding tests: libgrabbertest")
 	add_subdirectory (tests/libgrabbertest)
 endif ()

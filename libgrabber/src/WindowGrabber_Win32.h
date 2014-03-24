@@ -20,6 +20,7 @@ namespace dz
 			///////////////////////////////////////////
 
 			virtual void SetCaptureRect(Rect capture) { }
+			virtual Rect GetCaptureRect() const;
 
 			virtual void setEnableGrabCursor(bool enable = true);
 

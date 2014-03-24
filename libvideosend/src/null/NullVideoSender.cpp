@@ -8,7 +8,7 @@ namespace dz
 
 	float NullVideoSender::GetFPS() const { return 24.f; }
 
-	void NullVideoSender::putFrame(VideoFrameHandle videoFrame, double durationInSec)
+	void NullVideoSender::SendFrame(VideoFrameHandle videoFrame, double durationInSec)
 	{
 	}
 }

@@ -4,7 +4,6 @@
 #include <signal.h>
 
 #include "Tools.h"
-#include "GrabbingPipeline.h"
 
 #include <libcommon/videoframepool.h>
 #include <libvideosend/src/VideoSender.h>
@@ -25,16 +24,15 @@ using namespace dz;
 /// Note: grabbbingPipeline and sender must be completely initialized.
 void GrabbingLoop(GrabSendOptions& options)
 {
-	GrabbingPipeline grabbingPipeline(options);
+	std::unique_ptr<IGrabber> grabber(IGrabber::CreateGrabber(options));
 
 	installSigHandler();
 	installLineReader();
 
-	dz::Rect grabSize = grabbingPipeline.GetGrabRect();
+	dz::Rect grabSize = grabber->GetCaptureRect();
 	options.videowidth = grabSize.width;
 	options.videoheight = grabSize.height;
-	std::unique_ptr<dz::VideoSender> psender(dz::VideoSender::CreateVideoSender(options));
-	auto& sender = *psender.get();
+	std::unique_ptr<dz::VideoSender> sender(dz::VideoSender::CreateVideoSender(options));
 
 	double startTime = microtime();
 	double timeToGrabSum = 0;
@@ -48,27 +46,26 @@ void GrabbingLoop(GrabSendOptions& options)
 		//std::cout << "Start frame " << frame << std::endl;
 
 		Timing grabTime("grab");
-		auto videoFrame = grabbingPipeline.grab();
+		auto videoFrame = grabber->GrabVideoFrame();
 		//grabTime.Output();
 
 		double t2 = microtime();
 
-		const dz::Buffer* buffer = grabbingPipeline.buffer();
 		{
 			Timing putTime("putFrame");
-			sender.putFrame(std::move(videoFrame), dt);
+			sender->SendFrame(std::move(videoFrame), dt);
 			//putTime.Output();
 		}
 
 		frame++;
 		double t3 = microtime();
-		double timeToWait = (1.0f / sender.GetFPS()) - (t3 - frameStartTime);
+		double timeToWait = (1.0f / sender->GetFPS()) - (t3 - frameStartTime);
 		double timeToGrab = t2 - frameStartTime;
 		double timeToEncodeAndSend = t3 - t2;
 		timeToGrabSum += timeToGrab;
 		double timeToGrabAvg = (timeToGrabSum / frame);
 
-		const dz::VideoSender::Statistic * stat = sender.statistic();
+		const dz::VideoSender::Statistic* stat = sender->statistic();
 
 		std::cerr.precision(3);
 		if (options.statLevel >= 1) 
@@ -120,7 +117,9 @@ void GrabbingLoop(GrabSendOptions& options)
 }
 
 // --grect 1739,210,161,120 --gcursor --quality Medium --vsize 161,120 --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0dc3eed0-9005-0131-5a6d-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
+// --grect 1739,210,161,120 --gcursor --quality medium --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0729dc60-90ac-0131-353a-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"--grect 1739,210,161,120 --gcursor --quality medium --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0729dc60-90ac-0131-353a-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
 // --grect 1739,210,161,120 --gcursor --quality medium --url "rtmp://streaming.dozeo.biz:80 app=screenshare/0729dc60-90ac-0131-353a-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
+// --gwid 459958 --gcursor --quality medium --url "rtmp://streaming.dozeo.biz:80 app=screenshare/e81e5680-933f-0131-5a6d-027e5843a57f playpath=5d516580-9858-0130-5069-75a07fdc4ce0/BBB0D2C2-4AB3-85F1-6A6B-919291438593 igct=1 live=1 buffer=500"
 
 void doGrabSend(GrabSendOptions& options)
 {

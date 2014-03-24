@@ -16,7 +16,7 @@ namespace dz
 			VideoSenderFFmpeg(const VideoSenderOptions& options);
 			virtual ~VideoSenderFFmpeg();
 
-			virtual void putFrame(VideoFrameHandle videoFrame, double durationInSec);
+			virtual void SendFrame(VideoFrameHandle videoFrame, double durationInSec);
 			virtual float GetFPS() const;
 
 			// override
@@ -30,5 +30,9 @@ namespace dz
 			std::unique_ptr<VideoStream> m_videoStream;
 
 			int _defaultLogLevel;
+
+			VideoSenderOptions m_options;
+			uint32_t m_lastSendFrameWidth, m_lastSendFrameHeight;
+			uint32_t m_stableFrameSizeCount;
 	};
 }

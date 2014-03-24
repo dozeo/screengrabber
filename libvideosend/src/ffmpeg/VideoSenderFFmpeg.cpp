@@ -4,6 +4,8 @@
 
 #include <assert.h>
 
+#include <boost/thread/thread.hpp>
+
 #ifdef _DEBUG
  #define FFMPEG_LOG_LEVEL (AV_LOG_VERBOSE)
 #else
@@ -12,11 +14,13 @@
 
 namespace dz
 {
-	VideoSenderFFmpeg::VideoSenderFFmpeg(const VideoSenderOptions& options)
+	VideoSenderFFmpeg::VideoSenderFFmpeg(const VideoSenderOptions& options) : m_options(options), m_lastSendFrameWidth(0), m_lastSendFrameHeight(0), m_stableFrameSizeCount(0)
 	{
 		initLog();
 
-		m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(options.url, options.videowidth, options.videoheight, options.quality));
+		m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(m_options.url, m_options.videowidth, m_options.videoheight, m_options.quality));
+		m_lastSendFrameWidth = m_options.videowidth;
+		m_lastSendFrameHeight = m_options.videoheight;
 	}
 
 	VideoSenderFFmpeg::~VideoSenderFFmpeg()
@@ -24,8 +28,35 @@ namespace dz
 		uninitLog();
 	}
 
-	void VideoSenderFFmpeg::putFrame(VideoFrameHandle videoFrame, double durationInSec)
+	void VideoSenderFFmpeg::SendFrame(VideoFrameHandle videoFrame, double durationInSec)
 	{
+		if (videoFrame->GetWidth() != m_lastSendFrameWidth ||
+			videoFrame->GetHeight() != m_lastSendFrameHeight)
+		{
+			m_stableFrameSizeCount = 0;
+			m_lastSendFrameWidth = videoFrame->GetWidth();
+			m_lastSendFrameHeight = videoFrame->GetHeight();
+		}
+		else
+			m_stableFrameSizeCount++;
+
+		// half a second of frame size stability before we re establish the stream
+		const uint32_t reqFrames = static_cast<uint32_t>(m_videoStream->GetFPS()) / 2;
+
+		if (m_stableFrameSizeCount >= reqFrames)
+		{
+			const bool bNeedsResize = (videoFrame->GetWidth() != m_options.videowidth) || (videoFrame->GetHeight() != m_options.videoheight);
+			if (bNeedsResize)
+			{
+				m_videoStream = nullptr;
+				boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+
+				m_options.videowidth = videoFrame->GetWidth();
+				m_options.videoheight = videoFrame->GetHeight();
+				m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(m_options.url, m_options.videowidth, m_options.videoheight, m_options.quality));
+			}
+		}
+
 		return m_videoStream->SendFrame(std::move(videoFrame), durationInSec);
 	}
 

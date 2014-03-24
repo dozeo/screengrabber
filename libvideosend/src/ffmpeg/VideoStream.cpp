@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <string>
 
+#include <librtmp/amf.h>
+
 #define BITS_PER_PIXEL 32
 
 #pragma warning(disable:4996)
@@ -79,9 +81,9 @@ namespace dz
 			bAVCodecInitialized = true;
 		}
 
-		//::av_log_set_callback(ffmpeg_log);
-		//av_log_set_level(AV_LOG_DEBUG);
-		::av_log_set_level(AV_LOG_ERROR);
+		::av_log_set_callback(ffmpeg_log);
+		av_log_set_level(AV_LOG_INFO);
+		//::av_log_set_level(AV_LOG_ERROR);
 
 		//_scalingImageSize.width = width;
 		//_scalingImageSize.height = height;
@@ -122,12 +124,15 @@ namespace dz
 			// set stream name if given as path string tcp://host:port/[streamName]
 			std::string streamName = urlGetPath(url);
 			if (!streamName.empty())
-				av_dict_set (&m_formatContext->metadata, "streamName", streamName.c_str() + 1, 0);
+				av_dict_set(&options, "streamName", streamName.c_str() + 1, 0);
 		}
 
 		m_formatContext->pb = ioContext;
 
-		if (avformat_write_header(m_formatContext.get(), NULL) < 0)
+		//std::string text = (strstream() << "letitgo");
+		//av_dict_set(&options, "widthtest", text.c_str() + 1, 0);
+
+		if (avformat_write_header(m_formatContext.get(), &options) < 0)
 			throw exception(strstream() << "avformat_write_header failed to write header");
 	}
 
@@ -166,43 +171,76 @@ namespace dz
 
 	void VideoStream::SetBasicSettings(AVCodecContext* codec, VideoQualityLevel::Enum level)
 	{
+		uint32_t keyframeEverySeconds = 4;
+		uint32_t bitrate = 100 * 1000;
+		uint32_t keyframes = 30;
+		float maxDelay = 0.2f;
+		m_fps = 5;
+
+		switch (level)
+		{
+			case VideoQualityLevel::Low:
+				bitrate = 100 * 1000;
+				m_fps = 5;
+				keyframeEverySeconds = 5;
+				maxDelay = 0.5f;
+				break;
+
+			case VideoQualityLevel::Medium:
+				bitrate = 200 * 1000;
+				m_fps = 10;
+				keyframeEverySeconds = 3;
+				maxDelay = 0.5f;
+				break;
+
+			case VideoQualityLevel::High:
+				bitrate = 500 * 1000;
+				m_fps = 10;
+				keyframeEverySeconds = 1;
+				maxDelay = 0.5f;
+				break;
+		}
 
 		// set up properties
 		codec->codec_type = AVMEDIA_TYPE_VIDEO;
 		codec->coder_type = FF_CODER_TYPE_AC;//FF_CODER_TYPE_VLC;
 		codec->width = m_videoFrameWidth;
 		codec->height = m_videoFrameHeight;
-		//codec->bit_rate = bitRate;
 		codec->pix_fmt = OutputPixelFormat;
 
 		codec->codec_id = CODEC_ID_H264;
+		//codec->flags |= CODEC_FLAG_LOOP_FILTER;
 		//codec->time_base.den = (int)fps;
 		//codec->time_base.num = 1;
 		//codec->gop_size = 2*keyframe; // max key frames
 		//codec->keyint_min = keyframe; // minimum number of keyframes
 
-		codec->me_method = ME_EPZS; // motion estimation algorithm
-		codec->me_subpel_quality = 10;
-		codec->delay = 0;
-		codec->thread_count = 1; // determines the number of threads automatically
+		//codec->me_method = ME_HEX; // motion estimation algorithm
+		//codec->me_subpel_quality = 7;
+		//codec->delay = 0;
+		codec->thread_count = 0; // determines the number of threads automatically
 		codec->refs = 3;
+		codec->profile = FF_PROFILE_H264_BASELINE;
 		//codec->max_b_frames = bframes;
-		codec->rc_buffer_size = 0;
+		//codec->rc_buffer_size = 182 * 1000;
+		//codec->rc_initial_buffer_occupancy = 182 * 1000;
 
 		// documentation says to set it to 2 on H.264
-		codec->ticks_per_frame = 2;
+		//codec->ticks_per_frame = 2;
 
-		codec->bit_rate = 500*1000;
-		codec->bit_rate_tolerance = 0;
-		codec->compression_level = 10;
+		//codec->bit_rate = 0;
+		//codec->rc_min_rate = 500*1000;
+		//codec->rc_max_rate = 600*1000;
+		//codec->bit_rate_tolerance = 0;
+		//codec->compression_level = 10;
 		//codec->rc_max_rate = 0;
 		//codec->rc_buffer_size = 0;
 		//codec->gop_size = int(fps * (float)keyframeEverySeconds);
 		//codec->keyint_min = int(fps * (float)keyframeEverySeconds);
-		codec->max_b_frames = 2;
-		codec->b_frame_strategy = 1;
+		//codec->max_b_frames = 2;
+		//codec->b_frame_strategy = 1;
 		//codec->coder_type = 1;
-		codec->me_cmp = 1;
+		//codec->me_cmp = 1;
 		//codec->me_range = 16;
 		//codec->qmin = 10;
 		//codec->qmax = 51;
@@ -216,39 +254,9 @@ namespace dz
 		//codec->directpred = 1;
 		//codec->flags2 |= CODEC_FLAG2_FASTPSKIP;
 
-		uint32_t keyframeEverySeconds = 4;
-		uint32_t bitrate = 100 * 1000;
-		uint32_t keyframes = 30;
-		float maxDelay = 0.2f;
-		m_fps = 5;
-
-		switch (level)
-		{
-			case VideoQualityLevel::Low:
-				bitrate = 100 * 1000;
-				m_fps = 5;
-				keyframeEverySeconds = 1;
-				maxDelay = 0.5f;
-				break;
-
-			case VideoQualityLevel::Medium:
-				bitrate = 300*1000;
-				m_fps = 10;
-				keyframeEverySeconds = 2;
-				maxDelay = 0.2f;
-				break;
-
-			case VideoQualityLevel::High:
-				bitrate = 6000*1000;
-				m_fps = 15;
-				keyframeEverySeconds = 3;
-				maxDelay = 0.0f;
-				break;
-		}
-
 		//const double refSec = 0.2;
 		const double timePerFrame = (1.0 / (double)m_fps);
-		const uint32_t bframes = (timePerFrame > maxDelay) ? (uint32_t)(maxDelay / (1.0 / (double)m_fps)) : 0;
+		const uint32_t bframes = 0;//(timePerFrame > maxDelay) ? (uint32_t)(maxDelay / (1.0 / (double)m_fps)) : 0;
 
 		codec->max_b_frames = bframes;
 		codec->bit_rate = bitrate;
@@ -258,9 +266,11 @@ namespace dz
 		codec->time_base.num = 1;
 
 		av_opt_set(codec->priv_data, "tune", "zerolatency", 0);
-		av_opt_set(codec->priv_data, "profile", "high", 0);
+		av_opt_set(codec->priv_data, "profile", "baseline", 0);
 		//av_opt_set(codec->priv_data, "vprofile", "baseline", 0);
-		av_opt_set(codec->priv_data, "preset", "ultrafast", 0);
+		av_opt_set(codec->priv_data, "preset", "medium", 0);
+		//av_opt_set(codec->priv_data, "tune", "zerolatency", 1);
+		//av_opt_set(codec->priv_data, "preset", "medium", 0);
 
 		//std::cout << "Video Quality: " << level << std::endl;
 
@@ -284,11 +294,17 @@ namespace dz
 		}*/
 	}
 
+	//static void put_amf_double(AVIOContext *pb, double d)
+	//{
+	//	avio_w8(pb, AMF_DATA_TYPE_NUMBER);
+	//	avio_wb64(pb, av_double2int(d));
+	//}
+
 	void VideoStream::SendFrame(VideoFrameHandle videoFrame, double timeDurationInSeconds)
 	{
 		if (videoFrame == nullptr)
 			return;
-
+	
 		const VideoFrame& frame = *videoFrame.get();
 
 		const uint32_t curWidth = frame.GetWidth();
@@ -370,7 +386,7 @@ namespace dz
 			
 			_statistic.frameWritten(bytes);
 
-			std::cout << "bytes send " << bytes << std::endl;
+			//std::cout << "bytes send " << bytes << std::endl;
 		}
 		else
 		{

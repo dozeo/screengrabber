@@ -47,8 +47,8 @@ namespace dz
 
 		int32_t width = info.rcWindow.right - info.rcWindow.left;
 		int32_t height = info.rcWindow.bottom - info.rcWindow.top;
-		//if (width <= 0 || height <= 0)
-		//	return TRUE;
+		if (width <= 0 || height <= 0)
+			return TRUE;
 
 		std::string windowTitle = title;
 		if (windowTitle.length() == 0)
