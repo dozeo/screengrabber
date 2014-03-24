@@ -47,29 +47,34 @@ double microtime()
 #endif
 }
 
-void printScreens (const dz::Grabber * grabber) {
-	int count = grabber->screenCount();
+void printScreens()
+{
+	boost::scoped_ptr<dz::IDesktopTools> desktopTools(dz::IDesktopTools::CreateDesktopTools());
+
+	uint32_t count = desktopTools->GetScreenCount();
 	std::cout << "Screen Count: " << count << std::endl;
-	for (int i = 0; i < count; i++) {
-		dz::Rect r = grabber->screenResolution(i);
+	for (uint32_t i = 0; i < count; i++)
+	{
+		dz::Rect r = desktopTools->GetScreenResolution(i);
 		std::cout << "Screen " << i << ": " << r << std::endl;
 	}
 }
 
-void printWindows (const dz::Grabber * grabber) {
-	typedef std::vector<dz::WindowInfo> WindowVec;
-	WindowVec windows;
+void printWindows()
+{
+	std::vector<dz::WindowInfo> windows;
 	
 	dz::WindowInfo::populate(&windows);
 	
 	std::cout << "Window count: " << windows.size() << std::endl;
-	for (WindowVec::const_iterator i = windows.begin(); i != windows.end(); i++) {
+	for (auto i = windows.begin(); i != windows.end(); i++)
+	{
 		const dz::WindowInfo & win (*i);
 		std::cout << "Window " << win.id << " pid: " << win.pid << " title: " << win.title << " area: " << win.area << std::endl;
 	}
 }
 
-void printProcesses (const dz::Grabber * grabber)
+void printProcesses()
 {
 	typedef std::vector<dz::ProcessInfo> ProcessVec;
 	ProcessVec processes;

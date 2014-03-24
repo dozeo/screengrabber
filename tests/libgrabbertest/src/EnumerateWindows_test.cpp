@@ -12,15 +12,14 @@ TEST_F (EnumerateWindowsTest, getWindows) {
 	typedef std::vector<dz::WindowInfo> WindowVec;
 	WindowVec windows;
 	dz::WindowInfo::populate (&windows);
-	EXPECT_GT (windows.size(), 0) << "Should get process list" << std::endl;
-
-	EXPECT_TRUE (windows.size() > 0) << "Should have at least one window";
+	//EXPECT_GT (windows.size(), (uint32_t)0) << "Should get process list" << std::endl;
+	EXPECT_TRUE (windows.size() > (uint32_t)0) << "Should have at least one window";
 
 	int validProcess = 0;
 	int validWin = 0;
 	for (WindowVec::const_iterator i = windows.begin(); i != windows.end(); i++) {
 		const dz::WindowInfo & info (*i);
-		std::cout << info.id << " from " << info.pid << " " << info.title << " on " << info.area << std::endl;
+		//std::cout << info.id << " from " << info.pid << " " << info.title << " on " << info.area << std::endl;
 		const dz::ProcessInfo pinfo = dz::ProcessInfo::about (info.pid);
 		if (pinfo.valid() && !pinfo.exec.empty())
 			validProcess++;
@@ -33,15 +32,19 @@ TEST_F (EnumerateWindowsTest, getWindows) {
 	EXPECT_TRUE (validWin > 0) << "Should get window info for at least one window directly";
 }
 
-TEST_F (EnumerateWindowsTest, getProcesses) {
+TEST_F (EnumerateWindowsTest, getProcesses)
+{
 	typedef std::vector<dz::ProcessInfo> ProcessVec;
 	ProcessVec processes;
 	dz::ProcessInfo::populate (&processes);
-	EXPECT_GT (processes.size(), 0) << "Should get process list" << std::endl;
-	EXPECT_TRUE (processes.size() > 0) << "Should have at least one process?!" << std::endl;
-	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++) {
-		const dz::ProcessInfo & info (*i);
-		std::cout << "Process " << info.pid << " exec: " << info.exec << std::endl;
+	//EXPECT_GT (processes.size(), (uint32_t)0) << "Should get process list" << std::endl;
+	EXPECT_TRUE (processes.size() > (uint32_t)0) << "Should have at least one process?!" << std::endl;
+
+	for (ProcessVec::const_iterator i = processes.begin(); i != processes.end(); i++)
+    {
+		const dz::ProcessInfo &info (*i);
+        EXPECT_TRUE(info.valid()) << "Process info is not valid?" << std::endl;
+		//std::cout << "Process " << info.pid << " exec: " << info.exec << std::endl;
 	}
 }
 #endif

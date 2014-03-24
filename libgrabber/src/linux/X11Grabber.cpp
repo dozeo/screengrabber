@@ -1,8 +1,9 @@
+#ifdef LINUX
+
 #include "X11Grabber.h"
 #include <iostream>
 #include <assert.h>
 
-#ifdef LINUX
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 #include <stdio.h>
@@ -10,64 +11,60 @@
 
 namespace dz {
 
-static int x11ErrorHandler (Display * d, XErrorEvent * e){
+static int x11ErrorHandler (Display * d, XErrorEvent * e)
+{
 	char text[128] = "";
 	XGetErrorText(d, e->error_code, text, (sizeof text) - 1);
 	fprintf (stderr, "Error: X11 Error %d (%s),%d Request:%d\n", e->error_code, text, e->minor_code, e->request_code);
 	return 0;
 }
 
-X11Grabber::X11Grabber () {
-	mRandrAvailable = false;
-}
-
-X11Grabber::~X11Grabber() {
-
-}
-
-int X11Grabber::init ()  {
+X11Grabber::X11Grabber () : mRandrAvailable(false)
+{
 	mDisplay = XOpenDisplay (NULL);
-	if (!mDisplay) {
-		std::cerr << "Could not open display" << std::endl;
-		return 1;
-	}
+	if (!mDisplay)
+		throw exception(strstream() << "Could not open XDisplay");
+
 	mDisplayCount = 1; // default
 	int eventBase;
 	int errorBase;
 	Bool suc = XRRQueryExtension (mDisplay, &eventBase, &errorBase);
 
-	if (suc) {
+	if (suc)
+	{
 		mRandrAvailable = true;
 		int res = loadSizesFromRandr ();
-		if (res) {
+		if (res)
 			loadSizeFromOneDiplay();
-		}
-	} else {
+	}
+	else
+	{
 		std::cerr << "No xrandr" << std::endl;
 		loadSizeFromOneDiplay();
 	}
 
 	mPreviousHandler = XSetErrorHandler(&x11ErrorHandler);
-
-	return 0;
 }
 
-void X11Grabber::deinit () {
-	if (!mDisplay) return;
-	XCloseDisplay (mDisplay);
+X11Grabber::~X11Grabber()
+{
+	XCloseDisplay(mDisplay);
 	XSetErrorHandler(mPreviousHandler);
 }
 
-int X11Grabber::screenCount () const  {
+int X11Grabber::screenCount() const
+{
 	return mDisplayCount;
 }
 
-Rect X11Grabber::screenResolution (int screen) const {
+Rect X11Grabber::screenResolution(int screen) const
+{
 	if (screen < 0 || screen > mDisplayCount) return Rect();
 	return mDisplaySizes[screen];
 }
 
-Rect X11Grabber::combinedScreenResolution () const {
+Rect X11Grabber::combinedScreenResolution () const
+{
 	Rect result;
 	result.w = DisplayWidth  (mDisplay, 0);
 	result.h = DisplayHeight (mDisplay, 0);
@@ -75,7 +72,8 @@ Rect X11Grabber::combinedScreenResolution () const {
 }
 
 /// Clips rectangle into the given window
-static Rect clipRect (const Rect & rect, Display * display, const Window& root) {
+static Rect clipRect(const Rect & rect, Display * display, const Window& root)
+{
 	Window rootReturn;
 	int x,y;
 	unsigned int w;
@@ -90,7 +88,8 @@ static Rect clipRect (const Rect & rect, Display * display, const Window& root) 
 	return inter;
 }
 
-int X11Grabber::grab (const Rect& rect, Buffer * destination) {
+void X11Grabber::grab(const Rect& rect, Buffer * destination)
+{
 	int screen = 0; // no multi window suppot
 	Window root = RootWindow (mDisplay, screen);
 

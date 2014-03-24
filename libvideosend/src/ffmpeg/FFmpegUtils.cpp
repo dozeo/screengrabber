@@ -1,74 +1,98 @@
 #include "FFmpegUtils.h"
 
-#include <libgrabber/src/Math.h>
+#include <libcommon/math_helpers.h>
 #include <assert.h>
+
+#include <dzlib/dzexception.h>
 
 namespace dz
 {
-	AVFormatContext* FFmpegUtils::createFormatContext(const std::string& outputType, enum AVCodecID codecId)
+	void SmartPtrAVFormatContext::deleter(AVFormatContext* context)
 	{
-		AVFormatContext* formatContext = 0;
+		if (context)
+		{
+			av_write_trailer(context);
+			avio_close(context->pb);
 
+			for (unsigned int i = 0; i < context->nb_streams; i++)
+			{
+				av_freep(&context->streams[i]->codec);
+				av_freep(&context->streams[i]);
+			}
+			
+			av_free(context);
+		}
+	}
+
+	void SmartPtrAVFrame::deleter(AVFrame* frame)
+	{
+		if (frame && frame->data[0])
+			avpicture_free((AVPicture*)frame);
+
+		avcodec_free_frame(&frame);
+	}
+
+	SmartPtrAVFormatContext FFmpegUtils::CreateFormatContext(const std::string& outputType, enum AVCodecID codecId)
+	{
 		AVOutputFormat* outputFormat = av_guess_format(outputType.c_str(), NULL, NULL);
-		if (outputFormat == 0) {
-			return NULL;
-		}
+		if (outputFormat == nullptr)
+			throw dz::exception(strstream() << "av_guess_format(" << outputType << ") failed to find an output format");
 
-		avformat_alloc_output_context2(&formatContext, outputFormat, NULL, NULL);
-		if (formatContext == 0) {
-			return NULL;
-		}
+		AVFormatContext* formatContext = nullptr;
+		int iError = avformat_alloc_output_context2(&formatContext, outputFormat, NULL, NULL);
+		if (iError < 0 || formatContext == nullptr)
+			throw dz::exception(strstream() << "avformat_alloc_output_context2() failed to create a format context with error code " << iError);
 
 		formatContext->oformat = outputFormat;
 		formatContext->video_codec_id = codecId;
 		formatContext->max_delay = 0;
 
-		return formatContext;
+		return SmartPtrAVFormatContext(formatContext);
 	}
 
-	void FFmpegUtils::copyRgbaToFrame(const uint8_t* rgba, const Dimension2& sourceSize, uint32_t stride, AVFrame* destFrame)
+	void FFmpegUtils::CopyRgbaToFrame(const uint8_t* srcData, uint32_t height, uint32_t stride, SmartPtrAVFrame& destFrame)
 	{
-		assert(rgba != NULL);
+		assert(srcData != NULL);
 		assert(destFrame != NULL);
 
-		const uint8_t* srcData = rgba;
 		uint8_t* destData = destFrame->data[0];
-		int lineSize = destFrame->linesize[0];
+		assert( destFrame->linesize[0] > 0 );
+		assert( destData != NULL );
+		uint32_t lineSize = (uint32_t)destFrame->linesize[0];
 
-		for (int y = 0; y < sourceSize.height; y++)
+		uint32_t copyStride = stride;
+		if (copyStride > lineSize)
+			copyStride = lineSize;
+
+		for (uint32_t y = 0; y < height; y++)
 		{
-			memcpy(destData, srcData, sourceSize.width * 4);
+			memcpy(destData, srcData, copyStride);
 			srcData += stride;
 			destData += lineSize;
 		}
 	}
 
-	AVFrame* FFmpegUtils::createVideoFrame(enum PixelFormat pixFormat, const Dimension2& frameSize)
+	SmartPtrAVFrame FFmpegUtils::CreateVideoFrame(enum PixelFormat pixFormat, uint32_t width, uint32_t height)
 	{
-		return createVideoFrame(pixFormat, frameSize.width, frameSize.height);
-	}
+		//uint8_t* frameBuffer = NULL;
+		
+		SmartPtrAVFrame frame(avcodec_alloc_frame());
+		if (frame == nullptr)
+			throw dz::exception(strstream() << "avcodec_alloc_frame() failed with params pixFormat = " << pixFormat << ", width = " << width << ", height = " << height);
+		
+		//int size = avpicture_get_size(pixFormat, width, height);
+		//if (size <= 0)
+		//	throw dz::exception(strstream() << "avpicture_get_size() failed and gave size " << size << " with params pixFormat = " << pixFormat << ", width = " << width << ", height = " << height);
 
-	AVFrame* FFmpegUtils::createVideoFrame(enum PixelFormat pixFormat, int width, int height)
-	{
-		AVFrame* frame = NULL;
-		uint8_t* frameBuffer = NULL;
+		//frameBuffer = (uint8_t*)av_malloc(size);
+		//if (frameBuffer == NULL)
+		//	throw dz::exception(strstream() << "av_malloc() for size " << size);
 
-		frame = avcodec_alloc_frame();
-		if (frame == NULL)
-		{
-			return NULL;
-		}
+		//avpicture_fill((AVPicture*)frame.get(), frameBuffer, pixFormat, width, height);
+		if (avpicture_alloc((AVPicture*)frame.get(), pixFormat, width, height) != 0)
+			throw dz::exception(strstream() << "avpicture_alloc failed to allocate a picture for frame with size " << width << "x" << height << ".");
 
-		int size = avpicture_get_size(pixFormat, width, height);
-		frameBuffer = (uint8_t*)av_malloc(size);
-		if (frameBuffer == 0)
-		{
-			return NULL;
-		}
-
-		avpicture_fill((AVPicture*)frame, frameBuffer, pixFormat, width, height);
-
-		return frame;
+		return std::move(frame);
 	}
 
 	bool FFmpegUtils::isConversionSupported(enum PixelFormat srcFmt, enum PixelFormat destFmt)

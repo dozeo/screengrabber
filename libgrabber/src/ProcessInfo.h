@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Grabber.h"
+#include "igrabber.h"
 #include <string>
 #include <vector>
 

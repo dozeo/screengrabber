@@ -1,6 +1,10 @@
 #include "VideoSenderFFmpeg.h"
 
+#include <dzlib/dzexception.h>
+
 #include <assert.h>
+
+#include <boost/thread/thread.hpp>
 
 #ifdef _DEBUG
  #define FFMPEG_LOG_LEVEL (AV_LOG_VERBOSE)
@@ -10,15 +14,13 @@
 
 namespace dz
 {
-	VideoSenderFFmpeg::VideoSenderFFmpeg()
-	: _frameSize(600, 400)
-	, _fps(10)
-	, _bitRate(300000)
-	, _keyframe(10)
-	, _quality(VQ_MEDIUM)
-	, _mode(OM_FILE)
+	VideoSenderFFmpeg::VideoSenderFFmpeg(const VideoSenderOptions& options) : m_options(options), m_lastSendFrameWidth(0), m_lastSendFrameHeight(0), m_stableFrameSizeCount(0)
 	{
 		initLog();
+
+		m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(m_options.url, m_options.videowidth, m_options.videoheight, m_options.quality));
+		m_lastSendFrameWidth = m_options.videowidth;
+		m_lastSendFrameHeight = m_options.videoheight;
 	}
 
 	VideoSenderFFmpeg::~VideoSenderFFmpeg()
@@ -26,60 +28,51 @@ namespace dz
 		uninitLog();
 	}
 
-	void VideoSenderFFmpeg::setVideoSettings(int w, int h, float fps, int bitRate, int keyframe, enum VideoQualityLevel quality)
+	void VideoSenderFFmpeg::SendFrame(VideoFrameHandle videoFrame, double durationInSec)
 	{
-		_frameSize = Dimension2(w, h);
-		_fps = fps;
-		_bitRate = bitRate;
-		_keyframe = keyframe;
-		_quality = quality;
-	}
-
-	void VideoSenderFFmpeg::setTargetFile(const std::string& filename)
-	{
-		_url = filename;
-		_mode = OM_FILE;
-	}
-
-	void VideoSenderFFmpeg::setTargetUrl(const std::string& url)
-	{
-		_url = url;
-		_mode = OM_URL;
-	}
-
-	void VideoSenderFFmpeg::OpenVideoStream()
-	{
-		assert(m_videoStream.get() == nullptr);
-
-		m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(_frameSize, CODEC_ID_H264));
-		if (_mode == OM_FILE)
+		if (videoFrame->GetWidth() != m_lastSendFrameWidth ||
+			videoFrame->GetHeight() != m_lastSendFrameHeight)
 		{
-			m_videoStream->openFile(_url, _fps, _bitRate, _keyframe, _quality);
+			m_stableFrameSizeCount = 0;
+			m_lastSendFrameWidth = videoFrame->GetWidth();
+			m_lastSendFrameHeight = videoFrame->GetHeight();
 		}
-		else if (_mode == OM_URL)
+		else
+			m_stableFrameSizeCount++;
+
+		// half a second of frame size stability before we re establish the stream
+		const uint32_t reqFrames = static_cast<uint32_t>(m_videoStream->GetFPS()) / 2;
+
+		if (m_stableFrameSizeCount >= reqFrames)
 		{
-			m_videoStream->openUrl(_url, _fps, _bitRate, _keyframe, _quality);
+			const bool bNeedsResize = (videoFrame->GetWidth() != m_options.videowidth) || (videoFrame->GetHeight() != m_options.videoheight);
+			if (bNeedsResize)
+			{
+				m_videoStream = nullptr;
+				boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+
+				m_options.videowidth = videoFrame->GetWidth();
+				m_options.videoheight = videoFrame->GetHeight();
+				m_videoStream = std::unique_ptr<VideoStream>(new VideoStream(m_options.url, m_options.videowidth, m_options.videoheight, m_options.quality));
+			}
 		}
+
+		return m_videoStream->SendFrame(std::move(videoFrame), durationInSec);
 	}
 
-	void VideoSenderFFmpeg::putFrame(const uint8_t * data, int width, int height, int bytesPerRow, double durationInSec)
+	//virtual 
+	float VideoSenderFFmpeg::GetFPS() const
 	{
-		assert(data != 0);
-		assert(m_videoStream.get() != nullptr);
+		if (m_videoStream == nullptr)
+			throw exception("Video stream is null inside this VideoSenderFFMpeg object");
 
-		Dimension2 imageSize(width, height);
-		return m_videoStream->sendFrame(data, imageSize, (uint32_t)bytesPerRow, durationInSec);
-	}
-
-	void VideoSenderFFmpeg::close()
-	{
-		m_videoStream = nullptr;
+		return m_videoStream->GetFPS();
 	}
 
 	void * gLogCallbackUser = 0;
 	VideoSender::LogCallback gLogCallback = 0;
 
-	static void avUtillogHandler (void * avcl, int level, const char* format, va_list list)
+	static void avUtillogHandler(void * avcl, int level, const char* format, va_list list)
 	{
 #if NDEBUG
 		if (level == AV_LOG_INFO)
@@ -96,7 +89,8 @@ namespace dz
 		}
 	}
 
-	void VideoSenderFFmpeg::setLoggingCallback (const LogCallback& callback, void * user) {
+	void VideoSenderFFmpeg::setLoggingCallback(const LogCallback& callback, void * user)
+	{
 		gLogCallbackUser = user;
 		gLogCallback = callback;
 		::av_log_set_callback(&avUtillogHandler);
@@ -107,7 +101,6 @@ namespace dz
 		_defaultLogLevel = ::av_log_get_level ();
 		::av_log_set_level(FFMPEG_LOG_LEVEL);
 	}
-
 
 	void VideoSenderFFmpeg::uninitLog ()
 	{

@@ -1,3 +1,5 @@
+#if 0
+
 #include "DirectXGrabber.h"
 
 #ifdef WIN32
@@ -11,64 +13,32 @@
 #include <vector>
 
 #include <dzlib/dzexception.h>
+#include <cstdint>
 
 using namespace dz;
 
-DirectXGrabber::DirectXGrabber() : _d3d(NULL), _window(NULL)
-{
-}
-
-DirectXGrabber::~DirectXGrabber()
-{
-	deinit();
-}
-
-void DirectXGrabber::init()
+DirectXGrabber::DirectXGrabber() : m_desktopTools(IDesktopTools::CreateDesktopTools())
 {
 	_window = new Window();
 
-	initD3D();
+	_d3d = Direct3DCreate9(D3D_SDK_VERSION);
+	if (_d3d == NULL)
+	{
+		delete _window;
+		throw exception(strstream() << "Direct3DCreate9(" << D3D_SDK_VERSION << ") failed to initialize");
+	}
 
 	ScreenEnumerator enumerator;
 	if (!enumerator.enumerate())
 	{
-		deinit();
+		_d3d->Release();
+		delete _window;
 		throw exception(strstream() << "Failed to enumerate displays");
 	}
 
 	enumerateDisplays(_d3d, enumerator);
 
-	initD3DDisplays();
-}
-
-void DirectXGrabber::deinit()
-{
-	if (_d3d != 0)
-	{
-		_d3d->Release();
-		_d3d = 0;
-	}
-	if (_window != 0)
-	{
-		delete _window;	
-		_window = 0;
-	}
-	_displays.clear();
-	_adapters.clear();
-}
-
-void DirectXGrabber::initD3D()
-{
-	_d3d = Direct3DCreate9(D3D_SDK_VERSION);
-
-	if (_d3d == NULL)
-		throw exception(strstream() << "Direct3DCreate9(" << D3D_SDK_VERSION << ") failed to initialize");
-}
-
-void DirectXGrabber::initD3DDisplays()
-{
-	assert(_window != NULL);
-	for (unsigned int i = 0; i < _displays.size(); i++)
+	for (uint32_t i = 0; i < m_desktopTools->GetScreenCount(); i++)
 	{
 		DirectXDisplay& display = _displays[i];
 		IDirect3DDevice9* d3dDevice;
@@ -90,11 +60,27 @@ void DirectXGrabber::initD3DDisplays()
 			}
 			catch (...)
 			{
-				_displays.clear();
+				_d3d->Release();
+				delete _window;
 				throw;
 			}
 		}
 	}
+}
+
+DirectXGrabber::~DirectXGrabber()
+{
+	if (_d3d != 0)
+	{
+		_d3d->Release();
+		_d3d = 0;
+	}
+	if (_window != 0)
+	{
+		delete _window;	
+		_window = 0;
+	}
+	_displays.clear();
 }
 
 void DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
@@ -119,30 +105,11 @@ void DirectXGrabber::grab(const Rect& captureRect, Buffer* destination)
 	}
 }
 
-int DirectXGrabber::screenCount() const
-{
-	return _displays.size();
-}
-
-Rect DirectXGrabber::screenResolution(int screen) const
-{
-	if (screen >= 0 && screen < (int)_adapters.size())
-	{
-		int adapter = _adapters[screen];
-		if (adapter >= 0 && adapter < (int)_displays.size())
-			return _displays[adapter].screenRect();
-	}
-	return Rect();
-}
-
-void DirectXGrabber::enumerateDisplays(
-	IDirect3D9* d3d,
-	const ScreenEnumerator& enumerator)
+void DirectXGrabber::enumerateDisplays(IDirect3D9* d3d, const ScreenEnumerator& enumerator)
 {
 	assert(d3d != 0);
 
 	_displays.clear();
-	_adapters.clear();
 	for (unsigned int adapter = 0; adapter < d3d->GetAdapterCount(); adapter++)
 	{
 		HMONITOR hMonitor = d3d->GetAdapterMonitor(adapter);
@@ -162,7 +129,6 @@ void DirectXGrabber::enumerateDisplays(
 			int screen = enumerator.screen(rect);
 			if (screen != -1)
 			{
-				_adapters.push_back(screen);
 				_displays.push_back(DirectXDisplay(adapter, rect));
 			}
 		}
@@ -239,3 +205,6 @@ D3DFORMAT DirectXGrabber::findAutoDepthStencilFormat(int adapter, D3DFORMAT back
 	return D3DFMT_UNKNOWN;
 }
 #endif
+
+
+#endif // 0

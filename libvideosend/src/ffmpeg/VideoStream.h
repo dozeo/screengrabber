@@ -3,72 +3,61 @@
 #include <libgrabber/src/Dimension.h>
 #include "VideoSender.h"
 #include "ffmpeg_includes.h"
+#include "FFmpegUtils.h"
 
 #include <iostream>
+#include <memory>
+
+#include <libcommon/videotypes.h>
 
 namespace dz
 {
+	typedef UniquePtrCustom<AVStream> SmartPtrAVStream;
+	typedef UniquePtrCustom<SwsContext> SmartPtrSwsContext;
+	typedef UniquePtrCustom<uint8_t> SmartPtrAvMalloc;
+
 	class VideoStream
 	{
 		public:
-			VideoStream(const Dimension2& videoSize, enum AVCodecID videoCodec);
+			VideoStream(const std::string& url, uint32_t width, uint32_t height, VideoQualityLevel::Enum level = VideoQualityLevel::Medium);
 			virtual ~VideoStream();
 
-			void openUrl(const std::string& url, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level);
-			void openFile(const std::string& filename, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level);
+			void SendFrame(VideoFrameHandle videoFrame, double timeDurationInSeconds);
 
-			void close();
-
-			void sendFrame(const uint8_t* rgba, const Dimension2& imageSize, uint32_t stride, double timeDurationInSeconds);
+			float GetFPS() const;
+			uint32_t GetVideoWidth() const { return m_videoFrameWidth; }
+			uint32_t GetVideoHeight() const { return m_videoFrameHeight; }
 
 			const VideoSender::Statistic* statistic() const { return &_statistic; }
 
 		private:
-			enum ConnectionMode 
-			{
-				CM_FILE = 0,
-				CM_RTP,
-			};
+			SmartPtrAVStream addVideoStream(VideoQualityLevel::Enum level);
 
-			void OpenVideoStream(const std::string& fileUrl, enum ConnectionMode mode, float frameRate, int bitRate, int keyframe, enum VideoQualityLevel level);
+			void SetBasicSettings(AVCodecContext* codec, VideoQualityLevel::Enum level);
 
-			AVStream* addVideoStream(enum AVCodecID codecId, int bitRate, int keyframe, float fps, enum PixelFormat pixFormat, enum VideoQualityLevel level);
-			void openVideo(AVStream* stream);
+			void setupScaleContext(uint32_t srcWidth, uint32_t srcHeight, uint32_t destWidth, uint32_t destHeight);
 
-			void setBasicSettings(AVCodecContext* codec, int bitRate, int keyframe, float fps, enum AVCodecID codecId, enum PixelFormat pixFormat);
-			void setVideoQualitySettings(AVCodecContext* codec, enum VideoQualityLevel level);
+			void SendFrame(SmartPtrAVFrame& frame, double timeDurationInSeconds);
 
-			void setupScaleContext(const Dimension2& srcSize, const Dimension2& destSize);
-			void releaseScaleContext();
+			SmartPtrAVFrame m_scaleSrcFrame;
+			SmartPtrAVFrame m_scaleDstFrame;
+			SmartPtrAVStream m_videoStream;
+			SmartPtrAVFormatContext m_formatContext;
 
-			void openStream(AVFormatContext* formatContext, const std::string& url, enum ConnectionMode mode);
+			SmartPtrSwsContext m_convertContext;
 
-			void closeVideo();
-			void closeFile(AVFormatContext* formatContext);
+			uint32_t m_frameBufferSize;
+			SmartPtrAvMalloc m_frameBuffer;
 
-			void sendFrame(AVStream* videoStream, AVFrame* frame, double timeDurationInSeconds);
-
-			static const std::string StreamProtocol;
-			static bool AVCodecInitialized;
-
-			AVFormatContext* _formatContext;
-			SwsContext* _convertContext;
-
-			AVStream* _videoStream;
-			AVFrame*  _tempFrame;
-			AVFrame*  _scaledFrame;
-
-			uint32_t _frameBufferSize;
-			uint8_t* _frameBuffer;
-
-			Dimension2   _videoFrameSize;
+			uint32_t m_videoFrameWidth, m_videoFrameHeight;
+			uint32_t m_scaleSrcImageWidth, m_scaleSrcImageHeight;
 			Dimension2   _scalingImageSize;
-			enum AVCodecID _videoCodec;
 
-			uint64_t _lastTimeStamp;
-			bool _waitForFirstFrame;
+			//uint64_t _lastTimeStamp;
+			//bool _waitForFirstFrame;
 
-			bool _isStreamOpen;
 			VideoSender::Statistic _statistic;
+
+			uint32_t m_fps;
 	};
 }
