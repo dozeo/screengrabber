@@ -1,7 +1,11 @@
-#include "GrabberOSX.h"
 #ifdef MAC_OSX
+
+#include "GrabberOSX.h"
+
 #include <assert.h>
 #include <iostream>
+
+#include <dzlib/dzexception.h>
 
 namespace dz {
 
@@ -12,9 +16,8 @@ GrabberOSX::GrabberOSX () {
 GrabberOSX::~GrabberOSX () {
 }
 
-int GrabberOSX::init () {
+void GrabberOSX::init () {
     // nothing to do
-    return 0;
 }
 
 void GrabberOSX::deinit () {
@@ -48,20 +51,16 @@ void GrabberOSX::setEnableGrabCursor (bool enable) {
 }
     
 /// Grabs a part of a specific display (in screen coordinates) into the destination
-static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, Buffer * destination) {
-        
+static void subscreenGrab(CGDirectDisplayID display, const CGRect& screenRect, Buffer * destination)
+{
 #if defined(USE_COCOA_GRAB)
     CGImageRef image = CGDisplayCreateImageForRect (display, screenRect);
-    if (!image) {
-        std::cerr << "Could not grab screen!" << std::endl;
-        return GrabberOSX::GE_COULD_NOT_GRAB;
-    }
+    if (!image)
+        throw exception(strstream() << "Could not grab screen " << display);
 #else
     void* baseAddress = CGDisplayAddressForPosition(display, screenRect.origin.x, screenRect.origin.y);
-    if (baseAddress == NULL) {
-        std::cerr << "Could not grab screen!" << std::endl;
-        return GrabberOSX::GE_COULD_NOT_GRAB;
-    }
+    if (baseAddress == NULL)
+        throw exception(strstream() << "Could CGDisplayAddressForPosition(" << display << ")");
 #endif
     
     CGColorSpaceRef bufferColorSpace = CGColorSpaceCreateDeviceRGB();
@@ -88,8 +87,6 @@ static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, B
     
     CGContextRelease(bufferContext);
     CGColorSpaceRelease(bufferColorSpace);
-    
-    return GrabberOSX::GE_OK;
 }
 
 /// Draws mouse pointer into target buffer
@@ -97,13 +94,16 @@ static int subscreenGrab (CGDirectDisplayID display, const CGRect& screenRect, B
 void drawMouseIntoBuffer (const Rect& rect, Buffer * destination);
     
 
-int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
+void GrabberOSX::grab (const Rect& rect, Buffer * destination)
+{
     updateDisplayInformation();
-    int firstError = 0;
-    for (uint32_t i = 0; i < mDisplayCount; i++) {
+
+    for (uint32_t i = 0; i < mDisplayCount; i++)
+    {
         const Rect & displayRect (mDisplaySizes[i]);
         Rect intersection;
-        if (rect.intersects (displayRect, &intersection)) {
+        if (rect.intersects (displayRect, &intersection))
+        {
             CGRect displayCoordinates;
             displayCoordinates.origin.x    = intersection.x - displayRect.x;
             displayCoordinates.origin.y    = intersection.y - displayRect.y;
@@ -111,13 +111,13 @@ int GrabberOSX::grab (const Rect& rect, Buffer * destination) {
             displayCoordinates.size.height = intersection.h;
             Buffer subBuffer;
             subBuffer.initAsSubBufferFrom(destination, intersection.x - rect.x, intersection.y - rect.y, intersection.w, intersection.h);
-            int code = subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
-            firstError = firstError ? firstError : code;
+            
+            subscreenGrab(mDisplays[i], displayCoordinates, &subBuffer);
         }
     }
+    
     if (mEnableGrabCursor)
         drawMouseIntoBuffer(rect, destination);
-    return firstError;
 }
     
 void GrabberOSX::updateDisplayInformation () const {
