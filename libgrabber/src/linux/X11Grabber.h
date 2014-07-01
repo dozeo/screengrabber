@@ -1,7 +1,8 @@
+#ifdef LINUX
+
 #pragma once
 #include "../Grabber.h"
 
-#ifdef LINUX
 #include <X11/Xlib.h>
 
 namespace dz {
