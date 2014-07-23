@@ -1,6 +1,6 @@
 #ifdef MAC_OSX
 
-#include "../ProcessInfo.h"
+#include "ProcessInfo.h"
 #include <Carbon/Carbon.h>
 
 namespace dz

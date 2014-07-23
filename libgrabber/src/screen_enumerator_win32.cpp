@@ -1,4 +1,4 @@
-#include "ScreenEnumerator.h"
+#include "screen_enumerator_win32.h"
 
 #ifdef WIN32
 

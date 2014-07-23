@@ -9,21 +9,17 @@ include (FindAllExternals)
 file (GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file (GLOB_RECURSE header_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
+use_lib(libgrabber ..)
+
 add_gtest()
 add_boost()
-add_dzlib()
 add_directx()
-add_libcommon()
 
 include_directories (../..)
 include_directories (${HDRS} ${CMAKE_CURRENT_BINARY_DIR})  # Place of UIC Files
 
-if (NOT TARGET libgrabber)
-	add_subdirectory(../../libgrabber ${CMAKE_CURRENT_BINARY_DIR}/libgrabber)
-endif()
-
 add_executable (libgrabbertest ${src_files} ${header_files})
-target_link_libraries (libgrabbertest libgrabber ${LIBS} ${APPLE_FRAMEWORK_LIBS})
+target_link_libraries (libgrabbertest libgrabber gtest_main ${LIBS} ${APPLE_FRAMEWORK_LIBS})
 
 enable_testing()
 

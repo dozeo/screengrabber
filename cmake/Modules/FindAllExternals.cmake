@@ -47,6 +47,14 @@ if (MAC_OSX)
 endif()
 
 #=============================================================
+macro(use_lib libname vendorpath)
+	if (NOT TARGET ${libname})
+		add_subdirectory(${vendorpath}/${libname} ${CMAKE_BINARY_DIR}/${libname})
+	endif()
+endmacro()
+#=============================================================
+
+#=============================================================
 # Macros for adding subprojects and external to your project (adds libs and include directories too)
 macro(add_libcommon)
 	if (NOT TARGET libcommon)

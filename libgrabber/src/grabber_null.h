@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../igrabber.h"
+#include "igrabber.h"
 
 namespace dz
 {

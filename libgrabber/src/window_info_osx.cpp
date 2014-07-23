@@ -1,6 +1,6 @@
 #ifdef MAC_OSX
 
-#include "../WindowInfo.h"
+#include "window_info.h"
 #include <ApplicationServices/ApplicationServices.h>
 #include <CoreFoundation/CoreFoundation.h>
 

@@ -79,22 +79,10 @@ namespace dz
 			if (lines == 0)
 				throw exception(strstream() << "Failed to GetDIBits with return " << lines << " and with error code " << GetLastError());
 
-			//copyBitmapToBuffer(_bmpBuffer, m_captureRect.width * (BITS_PER_PIXEL / 8), lines, destination);
 			CopyToFrame(frame);
 		}
 
 		return std::move(frame);
-	}
-
-	void BitBltGrabber_Win32::copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer)
-	{
-		uint8_t* dest = buffer->data;
-		for (int y = 0; y < lines; y++)
-		{
-			CopyMemory(dest, src, srcWidth);
-			dest += buffer->rowLength;
-			src += srcWidth;
-		}
 	}
 
 	void BitBltGrabber_Win32::CopyToFrame(VideoFrameHandle& frame)

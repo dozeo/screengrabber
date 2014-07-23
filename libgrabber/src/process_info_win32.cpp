@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <psapi.h> // for iterating processes
 
-#include "../ProcessInfo.h"
+#include "ProcessInfo.h"
 
 namespace dz
 {

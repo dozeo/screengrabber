@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "platform.h"
-#include "Buffer.h"
+//#include "Buffer.h"
 
 #include <dzlib/dzexception.h>
 #include <libcommon/dzrect.h>

@@ -4,7 +4,7 @@
 
 #include "IDesktopTools.h"
 #include "igrabber.h"
-#include "win32/ScreenEnumerator.h"
+#include "screen_enumerator_win32.h"
 
 namespace dz
 {

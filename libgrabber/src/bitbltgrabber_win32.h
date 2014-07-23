@@ -3,7 +3,7 @@
 #ifdef WIN32
 
 #include "grabber_win32.h"
-#include "win32/ScreenEnumerator.h"
+#include "screen_enumerator_win32.h"
 #include "Dimension.h"
 #include <vector>
 #include <Windows.h>
@@ -34,7 +34,6 @@ namespace dz
 			void shutdownBitmapBuffer();
 
 			void resizeBitmapIfNecessary(int width, int height);
-			void copyBitmapToBuffer(uint8_t* src, int srcWidth, int lines, Buffer* buffer);
 			void CopyToFrame(VideoFrameHandle& frame);
 
 			Rect m_captureRect;

@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(libcommon CXX)
+project(libcommon)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/Modules/")
 include (Common)
 include (FindAllExternals)
 
-add_dzlib()
+use_lib(dzlib ../vendor)
 add_boost()
 
 set(src_files
@@ -18,21 +18,28 @@ set(src_files
 	"src/videotypes.cpp"
 	"src/sender_options.cpp")
 
-set(hdr_folder "src/include")
+list(APPEND hdr_folder
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/include"
+	"${Boost_INCLUDE_DIRS}"
+	)
+
 set(header_files
-	"${hdr_folder}/libcommon/videoframe.h"
-	"${hdr_folder}/libcommon/videosubframe.h"
-	"${hdr_folder}/libcommon/videoframepool.h"
-	"${hdr_folder}/libcommon/math_helpers.h"
-	"${hdr_folder}/libcommon/dzrect.h"
-	"${hdr_folder}/libcommon/grabber_options.h"
-	"${hdr_folder}/libcommon/videotypes.h"
-	"${hdr_folder}/libcommon/sender_options.h")
+	"src/include/libcommon/videoframe.h"
+	"src/include/libcommon/videosubframe.h"
+	"src/include/libcommon/videoframepool.h"
+	"src/include/libcommon/math_helpers.h"
+	"src/include/libcommon/dzrect.h"
+	"src/include/libcommon/grabber_options.h"
+	"src/include/libcommon/videotypes.h"
+	"src/include/libcommon/sender_options.h")
 
-include_directories(${HDRS} "${hdr_folder}")
+if (NOT TARGET libcommon)
+	add_library (libcommon ${src_files} ${header_files})
+	set_target_properties(libcommon PROPERTIES
+		PUBLIC_HEADER "${header_files}"
+		INCLUDE_DIRECTORIES "${hdr_folder}"
+		INTERFACE_INCLUDE_DIRECTORIES "${hdr_folder}"
+		)
 
-add_library (libcommon ${src_files} ${header_files})
-#add_executable (libcommon ${src_files} ${header_files})
-
-target_link_libraries(libcommon ${LIBS})
-
+	target_link_libraries(libcommon dzlib ${Boost_LIBRARIES})
+endif()

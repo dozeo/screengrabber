@@ -1,7 +1,7 @@
 #ifndef LINUX
 
 #include <gtest/gtest.h>
-#include <libgrabber/src/WindowInfo.h>
+#include <libgrabber/src/window_info.h>
 #include <libgrabber/src/ProcessInfo.h>
 
 class EnumerateWindowsTest : public testing::Test {

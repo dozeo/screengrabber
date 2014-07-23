@@ -10,7 +10,7 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <stdio.h>
-#include <libgrabber/src/WindowInfo.h>
+#include <libgrabber/src/window_info.h>
 #include <libgrabber/src/ProcessInfo.h>
 #include <assert.h>
 #include <signal.h>
