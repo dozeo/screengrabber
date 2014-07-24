@@ -21,6 +21,9 @@ static BOOL CALLBACK EnumWindowsProc (HWND win, LPARAM user){
 		return TRUE; // skipping
 	}
 
+	if (process == GetCurrentProcessId())
+		return TRUE;
+
 	WINDOWINFO info;
 	GetWindowInfo(win, &info);
 
