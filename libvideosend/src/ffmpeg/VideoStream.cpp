@@ -336,7 +336,6 @@ namespace dz
 	void VideoStream::releaseScaleContext()
 	{
 		if (_tempFrame != 0) {
-			av_free(_tempFrame->data[0]);
 			av_free(_tempFrame);
 			_tempFrame = 0;
 		}

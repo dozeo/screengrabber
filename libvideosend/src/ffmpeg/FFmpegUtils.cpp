@@ -1,4 +1,5 @@
 #include "FFmpegUtils.h"
+#include <dzlib/dzexception.h>
 
 #include <libgrabber/src/Math.h>
 #include <assert.h>
@@ -48,25 +49,19 @@ namespace dz
 		return createVideoFrame(pixFormat, frameSize.width, frameSize.height);
 	}
 
-	AVFrame* FFmpegUtils::createVideoFrame(enum PixelFormat pixFormat, int width, int height)
-	{
+    AVFrame* FFmpegUtils::createVideoFrame(enum PixelFormat pixFormat, int width, int height)
+    {
 		AVFrame* frame = NULL;
-		uint8_t* frameBuffer = NULL;
 
 		frame = avcodec_alloc_frame();
 		if (frame == NULL)
-		{
 			return NULL;
-		}
 
-		int size = avpicture_get_size(pixFormat, width, height);
-		frameBuffer = (uint8_t*)av_malloc(size);
-		if (frameBuffer == 0)
-		{
-			return NULL;
-		}
-
-		avpicture_fill((AVPicture*)frame, frameBuffer, pixFormat, width, height);
+        frame->format = pixFormat;
+        frame->width = width;
+        frame->height = height;
+        if (av_frame_get_buffer(frame, 4) != 0)
+            throw exception("av_frame_buffer() failed to allocate buffers");
 
 		return frame;
 	}
