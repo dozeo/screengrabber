@@ -48,7 +48,7 @@ else
 		(
 			echo "Downloading Yasm" &&
 			cd $SRC_DIR &&
-			wget --no-check-certificate https://github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz -O yasm-1.2.0.tar.gz &&
+			curl https://cloud.github.com/downloads/dozeo/screengrabber/yasm-1.2.0.tar.gz > yasm-1.2.0.tar.gz &&
 			tar zxvf yasm-1.2.0.tar.gz &&
 			rm yasm-1.2.0.tar.gz
 		) || exit 1;
