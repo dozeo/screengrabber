@@ -11,7 +11,8 @@ namespace dz
 	{
 		if (context)
 		{
-			av_write_trailer(context);
+			if (context->pb)
+				av_write_trailer(context);
 			avio_close(context->pb);
 
 			for (unsigned int i = 0; i < context->nb_streams; i++)
@@ -60,15 +61,22 @@ namespace dz
 		assert( destData != NULL );
 		uint32_t lineSize = (uint32_t)destFrame->linesize[0];
 
-		uint32_t copyStride = stride;
-		if (copyStride > lineSize)
-			copyStride = lineSize;
-
-		for (uint32_t y = 0; y < height; y++)
+		if (lineSize == stride)
 		{
-			memcpy(destData, srcData, copyStride);
-			srcData += stride;
-			destData += lineSize;
+			memcpy(destData, srcData, stride * height);
+		}
+		else
+		{
+			uint32_t copyStride = stride;
+			if (copyStride > lineSize)
+				copyStride = lineSize;
+
+			for (uint32_t y = 0; y < height; y++)
+			{
+				memcpy(destData, srcData, copyStride);
+				srcData += stride;
+				destData += lineSize;
+			}
 		}
 	}
 

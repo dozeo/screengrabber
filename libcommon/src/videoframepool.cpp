@@ -37,9 +37,7 @@ namespace dz
 
 			if (curFrame != nullptr)
 			{
-				if (curFrame->GetWidth() != width ||
-					curFrame->GetHeight() != height ||
-					curFrame->GetVideoFrameFormat() != format)
+				if (curFrame->GetVideoFrameFormat() != format)
 				{
 					{
 						boost::lock_guard<boost::mutex> lock(m_mutex);
@@ -48,6 +46,12 @@ namespace dz
 
 					delete curFrame;
 					curFrame = nullptr;
+				}
+				else
+				if (curFrame->GetWidth() != width ||
+					curFrame->GetHeight() != height)
+				{
+					curFrame->Resize(width, height);
 				}
 
 				if (curFrame != nullptr)

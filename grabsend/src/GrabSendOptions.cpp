@@ -1,7 +1,7 @@
 #include "GrabSendOptions.h"
 namespace po = boost::program_options;
 #include <iostream>
-#include <gitdescribe.h>
+#include <grabsend_version.h>
 
 #include <dzlib/dzexception.h>
 

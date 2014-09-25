@@ -6,7 +6,6 @@ OPTION(OPTION_BUILD_TESTS "Build Test Projects" ON)
 
 message (STATUS "adding application: grabsend")
 add_subdirectory(grabsend)
-add_subdirectory(grabsend ${CMAKE_BINARY_DIR}/grabsend2)
 
 if (APPLE)
     add_definitions(-DMAC_OSX -DUNIX)

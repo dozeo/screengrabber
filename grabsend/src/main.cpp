@@ -8,7 +8,7 @@
 #include <libcommon/videoframepool.h>
 #include <libvideosend/src/VideoSender.h>
 #include "GrabSendOptions.h"
-#include <gitdescribe.h>
+#include <grabsend_version.h>
 
 #include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>

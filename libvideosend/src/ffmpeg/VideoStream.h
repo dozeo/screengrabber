@@ -15,6 +15,7 @@ namespace dz
 	typedef UniquePtrCustom<AVStream> SmartPtrAVStream;
 	typedef UniquePtrCustom<SwsContext> SmartPtrSwsContext;
 	typedef UniquePtrCustom<uint8_t> SmartPtrAvMalloc;
+	typedef UniquePtrCustom<AVDictionary> SmartPtrAVDict;
 
 	class VideoStream
 	{
@@ -31,7 +32,7 @@ namespace dz
 			const VideoSender::Statistic* statistic() const { return &_statistic; }
 
 		private:
-			SmartPtrAVStream addVideoStream(VideoQualityLevel::Enum level);
+			AVStream* addVideoStream(VideoQualityLevel::Enum level);
 
 			void SetBasicSettings(AVCodecContext* codec, VideoQualityLevel::Enum level);
 
@@ -41,8 +42,9 @@ namespace dz
 
 			SmartPtrAVFrame m_scaleSrcFrame;
 			SmartPtrAVFrame m_scaleDstFrame;
-			SmartPtrAVStream m_videoStream;
+			AVStream* m_videoStream;
 			SmartPtrAVFormatContext m_formatContext;
+			SmartPtrAVDict m_codec_opt;
 
 			SmartPtrSwsContext m_convertContext;
 
@@ -51,7 +53,7 @@ namespace dz
 
 			uint32_t m_videoFrameWidth, m_videoFrameHeight;
 			uint32_t m_scaleSrcImageWidth, m_scaleSrcImageHeight;
-			Dimension2   _scalingImageSize;
+			Dimension2 _scalingImageSize;
 
 			//uint64_t _lastTimeStamp;
 			//bool _waitForFirstFrame;

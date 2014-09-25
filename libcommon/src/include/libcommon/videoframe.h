@@ -14,9 +14,13 @@ namespace dz
 		};
 	};
 
+	class VideoFramePool;
+
 	class VideoFrame
 	{
 		public:
+			friend class VideoFramePool;
+
 			VideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format);
 			~VideoFrame();
 
@@ -31,10 +35,15 @@ namespace dz
 			uint32_t GetPixelSize() const { return m_pixelSize; }
 			VideoFrameFormat::Enum GetVideoFrameFormat() const { return m_format; }
 
+		protected:
+			bool Resize(uint32_t new_width, uint32_t new_height);
+
 		private:
 			uint32_t m_width, m_height, m_pixelSize;
 			VideoFrameFormat::Enum m_format;
 			std::unique_ptr<uint8_t> m_pData;
+			uint32_t m_width_cap;
+			uint32_t m_height_cap;
 	};
 
 	class VideoFrameHandle : public std::unique_ptr<VideoFrame, void(*)(VideoFrame*)>

@@ -85,7 +85,8 @@ namespace dz
 		if (IsIconic(m_windowHandle) == TRUE)
 		{
 			auto frame(VideoFramePool::GetInstance().AllocVideoFrame(windowRect.width, windowRect.height));
-			frame->Clear();
+			if (frame)
+				frame->Clear();
 			return std::move(frame);
 		}
 

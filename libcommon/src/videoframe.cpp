@@ -7,7 +7,7 @@
 
 namespace dz
 {
-	VideoFrame::VideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format) : m_width(width), m_height(height), m_format(format)
+	VideoFrame::VideoFrame(uint32_t width, uint32_t height, VideoFrameFormat::Enum format) : m_width_cap(width), m_height_cap(height), m_format(format), m_width(width), m_height(height)
 	{
 		switch (m_format)
 		{
@@ -38,6 +38,26 @@ namespace dz
 		return m_pData.get();
 	}
 
+	bool VideoFrame::Resize(uint32_t new_width, uint32_t new_height)
+	{
+		if (new_width > m_width_cap || new_height > m_height_cap)
+		{
+			try
+			{
+				m_pData = std::unique_ptr<uint8_t>(new uint8_t[new_width * new_height * GetPixelSize()]);
+				m_width_cap = new_width;
+				m_height_cap = new_height;
+			}
+			catch (std::bad_alloc&)
+			{
+				return false;
+			}
+		}
+
+		m_width = new_width;
+		m_height = new_height;
+		return true;
+	}
 
 	//=======================================
 
