@@ -123,8 +123,8 @@ macro(add_boost)
 endmacro()
 
 macro(add_qt)
-	find_package (Qt4 COMPONENTS QtMain QtCore QtGui QtNetwork REQUIRED)
-	include (${QT_USE_FILE})
+	find_package(Qt4 COMPONENTS QtMain QtCore QtGui QtNetwork REQUIRED)
+	include(${QT_USE_FILE})
 	if (WIN32)
 		set (QT_DLLS
 			${QT_BINARY_DIR}/QtGui4.dll
@@ -135,10 +135,8 @@ macro(add_qt)
 			${QT_BINARY_DIR}/QtCored4.dll
 			${QT_BINARY_DIR}/QtNetworkd4.dll)
 	endif()
-	include_directories (${QT_INCLUDE_DIR})
-	set(LIBS ${LIBS} ${QT_LIBRARIES})
-	file(COPY
-		${QT_DLLS} ${QT_DLLS_DEBUG}
+	list(APPEND LIBS ${QT_LIBRARIES})
+	file(COPY ${QT_DLLS} ${QT_DLLS_DEBUG}
 		DESTINATION ${CMAKE_BINARY_DIR})
 endmacro()
 
