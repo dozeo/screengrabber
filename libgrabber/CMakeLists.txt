@@ -64,4 +64,5 @@ target_link_libraries(libgrabber dzlib libcommon)
 set_target_properties(libgrabber PROPERTIES
 	INCLUDE_DIRECTORIES "${hdr_dir}"
 	INTERFACE_INCLUDE_DIRECTORIES "${hdr_dir}"
+	PREFIX ""
 	)

@@ -72,7 +72,7 @@ static bool IsFrameContainingOnlyColor(dz::VideoFrameHandle& frame, uint32_t col
 #define RGBA(r, g, b, a) (((uint32_t)a << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | ((uint32_t)b))
 static uint32_t colorWhite = RGBA(255, 255, 255, 255);
 
-TEST_F (GrabberTest, CheckTestFunctions)
+TEST_F(GrabberTest, CheckTestFunctions)
 {
 	auto frame(VideoFramePool::GetInstance().AllocVideoFrame(640, 480, dz::VideoFrameFormat::RGBA));
 
@@ -86,7 +86,7 @@ TEST_F (GrabberTest, CheckTestFunctions)
 	ASSERT_FALSE(IsFrameContainingOnlyColor(frame, colorWhite)) << "Cannot detect small change";
 }
 
-TEST_F (GrabberTest, GrabEverything)
+TEST_F(GrabberTest, GrabEverything)
 {
 	dz::Rect all = m_desktopTools->GetCombinedScreenResolution();
 	m_grabber->SetCaptureRect(all);
@@ -97,7 +97,7 @@ TEST_F (GrabberTest, GrabEverything)
 	EXPECT_FALSE(IsFrameContainingOnlyColor(frameHandle, blackColor)) << "Grabbing should change at least one pixel!";
 }
 
-TEST_F (GrabberTest, GrabPart)
+TEST_F(GrabberTest, GrabPart)
 {
 	dz::Rect part(100, 100, 50, 50);
 	m_grabber->SetCaptureRect(part);

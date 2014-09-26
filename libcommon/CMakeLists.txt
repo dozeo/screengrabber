@@ -39,6 +39,7 @@ if (NOT TARGET libcommon)
 		PUBLIC_HEADER "${header_files}"
 		INCLUDE_DIRECTORIES "${hdr_folder}"
 		INTERFACE_INCLUDE_DIRECTORIES "${hdr_folder}"
+		PREFIX ""
 		)
 
 	target_link_libraries(libcommon dzlib ${Boost_LIBRARIES})
