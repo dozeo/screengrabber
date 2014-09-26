@@ -13,6 +13,7 @@ if (APPLE)
 endif()
 
 if (OPTION_BUILD_TESTS)
+	enable_testing()
 	message (STATUS "adding tests...")
 	add_subdirectory(tests/libgrabbertest)
 endif ()
