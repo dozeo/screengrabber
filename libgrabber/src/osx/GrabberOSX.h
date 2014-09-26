@@ -14,6 +14,7 @@ namespace dz
 			virtual ~GrabberOSX();
 
 			virtual void SetCaptureRect(Rect capture);
+			virtual Rect GetCaptureRect() const override { return _capture_rect; }
 
 			// Implementation of Grabber
 			virtual void setEnableGrabCursor(bool enable = true);
@@ -21,6 +22,7 @@ namespace dz
 
 		private:
 			bool mEnableGrabCursor;
+			Rect _capture_rect;
 	};
 }
 

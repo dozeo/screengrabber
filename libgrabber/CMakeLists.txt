@@ -42,6 +42,8 @@ if(APPLE)
 		"src/osx/GrabberOSX_mouse.mm"
 		"src/process_info_osx.cpp"
 		"src/window_info_osx.cpp"
+		"src/DesktopTools_OSX.h"
+		"src/DesktopTools_OSX.cpp"
 		)
 endif()
 

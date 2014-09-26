@@ -1,11 +1,11 @@
-#include "../Grabber.h"
+#include "../igrabber.h"
 
 #include <Cocoa/Cocoa.h>
 #include  <iostream>
 namespace dz {
 
 // Declared in GrabberOSX.cpp
-void drawMouseIntoBuffer (const Rect& rect, Buffer * destination) {
+void drawMouseIntoBuffer(const Rect& rect, VideoFrameHandle& frame) {
     // Note: 
     // - Mouse position is measured from lower left = 0,0
     // - Hotspot in image is measured from upper left
@@ -37,12 +37,12 @@ void drawMouseIntoBuffer (const Rect& rect, Buffer * destination) {
     // In OSX Coordinates
     NSPoint whereToDraw = NSMakePoint (
                                        p.x - hotSpot.x - rect.x, 
-                                       p.y - (s.height - hotSpot.y) - (mainDisplayHeight - rect.y - rect.h)
+                                       p.y - (s.height - hotSpot.y) - (mainDisplayHeight - rect.y - rect.height)
                                        );
 
     
     CGColorSpaceRef bufferColorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef bufferContext = CGBitmapContextCreateWithData(destination->data, destination->width, destination->height, 8, destination->rowLength, bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);
+    CGContextRef bufferContext = CGBitmapContextCreateWithData(frame->GetData(), frame->GetWidth(), frame->GetHeight(), 8, frame->GetStride(), bufferColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little, NULL, NULL);
 
     NSGraphicsContext * ctxt = [NSGraphicsContext graphicsContextWithGraphicsPort: bufferContext flipped: FALSE];
     [NSGraphicsContext saveGraphicsState];

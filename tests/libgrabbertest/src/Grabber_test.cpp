@@ -43,7 +43,7 @@ TEST_F (GrabberTest, FindAtLeastOneMonitor)
 static void fillWithColor(VideoFrameHandle& frame, uint32_t color)
 {
 	if (frame->GetVideoFrameFormat() != dz::VideoFrameFormat::RGBA)
-		throw std::exception("Wrong video frame format - expected RGBA");
+		throw std::runtime_error("Wrong video frame format - expected RGBA");
 
 	for (uint32_t y = 0; y < frame->GetHeight(); y++)
 	{

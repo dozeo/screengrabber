@@ -7,6 +7,7 @@
 
 namespace dz
 {
+	template<>
 	void SmartPtrAVFormatContext::deleter(AVFormatContext* context)
 	{
 		if (context)
@@ -25,6 +26,7 @@ namespace dz
 		}
 	}
 
+	template<>
 	void SmartPtrAVFrame::deleter(AVFrame* frame)
 	{
 		if (frame && frame->data[0])

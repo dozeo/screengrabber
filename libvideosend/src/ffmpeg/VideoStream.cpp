@@ -51,24 +51,28 @@ namespace dz
 		}
 	}
 
+	template<>
 	void SmartPtrAVStream::deleter(AVStream* object)
 	{
 		if (object && object->codec && object->codec && object->codec->codec_id != AV_CODEC_ID_NONE)
 			avcodec_close(object->codec);
 	}
 
+	template<>
 	void SmartPtrSwsContext::deleter(SwsContext* object)
 	{
 		if (object != nullptr)
 			sws_freeContext(object);
 	}
 
+	template<>
 	void SmartPtrAvMalloc::deleter(uint8_t* memory)
 	{
 		if (memory != nullptr)
 			av_free(memory);
 	}
 
+	template<>
 	void SmartPtrAVDict::deleter(AVDictionary* dict)
 	{
 		if (dict != nullptr)

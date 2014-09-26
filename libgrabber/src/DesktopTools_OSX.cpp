@@ -21,6 +21,17 @@ namespace dz
 	{
 	}
 
+	bool DesktopTools_OSX::IsInsideAnyScreen(const Rect& otherRect) const
+	{
+		for (uint32_t i = 0; i < m_displayCount; i++)
+		{
+			if (otherRect.intersects(otherRect))
+				return true;
+		}
+
+		return false;
+	}
+
 	uint32_t DesktopTools_OSX::GetScreenCount() const
 	{
 		return m_displayCount;

@@ -1,9 +1,9 @@
-#pragma once
-
 #ifdef MAC_OSX
 
+#pragma once
+
 #include "IDesktopTools.h"
-#include "Grabber.h"
+#include "igrabber.h"
 
 #include <ApplicationServices/ApplicationServices.h>
 

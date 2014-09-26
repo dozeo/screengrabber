@@ -18,8 +18,8 @@ add_directx()
 include_directories (../..)
 include_directories (${HDRS} ${CMAKE_CURRENT_BINARY_DIR})  # Place of UIC Files
 
-add_executable (libgrabbertest ${src_files} ${header_files})
-target_link_libraries (libgrabbertest libgrabber gtest_main ${LIBS} ${APPLE_FRAMEWORK_LIBS})
+add_executable(libgrabbertest ${src_files} ${header_files})
+target_link_libraries(libgrabbertest libgrabber gtest_main ${LIBS} ${APPLE_FRAMEWORK_LIBS})
 
 enable_testing()
 
