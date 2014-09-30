@@ -60,7 +60,7 @@ else()
 endif()
 
 add_library(libgrabber ${src} ${objcpp_src_files})
-target_link_libraries(libgrabber dzlib libcommon)
+target_link_libraries(libgrabber dzlib libcommon slog)
 set_target_properties(libgrabber PROPERTIES
 	INCLUDE_DIRECTORIES "${hdr_dir}"
 	INTERFACE_INCLUDE_DIRECTORIES "${hdr_dir}"

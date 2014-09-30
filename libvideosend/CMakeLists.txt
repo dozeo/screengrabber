@@ -24,7 +24,7 @@ endif()
 
 include_directories(${SCREENGRABBER_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/src ${HDRS})
 add_library(libvideosend ${src_files} ${header_files})
-target_link_libraries(libvideosend dzlib libcommon ${LIBS})
+target_link_libraries(libvideosend dzlib libcommon slog ${LIBS})
 set_target_properties(libvideosend PROPERTIES
 	PREFIX ""
 	)

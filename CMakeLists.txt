@@ -4,7 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 
 OPTION(OPTION_BUILD_TESTS "Build Test Projects" ON)
 
-message (STATUS "adding application: grabsend")
+set(SLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(vendor/slog)
+
+message(STATUS "adding application: grabsend")
 add_subdirectory(grabsend)
 
 if (APPLE)
