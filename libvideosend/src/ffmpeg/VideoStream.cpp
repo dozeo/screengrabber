@@ -187,7 +187,6 @@ namespace dz
 	{
 		uint32_t keyframeEverySeconds = 4;
 		uint32_t bitrate = 100 * 1000;
-		
 		uint32_t keyframes = 30;
 		float maxDelay = 0.2f;
 		m_fps = 5;
@@ -202,22 +201,19 @@ namespace dz
 				break;
 
 			case VideoQualityLevel::Medium:
-				bitrate = 400 * 1000;
-				m_fps = 6;
+				bitrate = 200 * 1000;
+				m_fps = 10;
 				keyframeEverySeconds = 3;
 				maxDelay = 0.5f;
 				break;
 
 			case VideoQualityLevel::High:
-				bitrate = 1000 * 1000;
-				m_fps = 6;
-				keyframeEverySeconds = 10;
+				bitrate = 500 * 1000;
+				m_fps = 10;
+				keyframeEverySeconds = 1;
 				maxDelay = 0.5f;
 				break;
 		}
-
-		float pixel_bitrate_multiplier = (float)bitrate / (1920.f*1200.f);
-		bitrate = (uint32_t)((float)m_videoFrameWidth * (float)m_videoFrameHeight * pixel_bitrate_multiplier);
 
 		// set up properties
 		codec->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -227,66 +223,67 @@ namespace dz
 		codec->pix_fmt = OutputPixelFormat;
 
 		codec->codec_id = CODEC_ID_H264;
+		//codec->flags |= CODEC_FLAG_LOOP_FILTER;
+		//codec->time_base.den = (int)fps;
+		//codec->time_base.num = 1;
 		//codec->gop_size = 2*keyframe; // max key frames
 		//codec->keyint_min = keyframe; // minimum number of keyframes
 
-		codec->me_method = ME_HEX; // motion estimation algorithm
-		codec->me_range = 16;
-		codec->bit_rate_tolerance = 0;
-		codec->rc_max_rate = 0;
-		codec->rc_buffer_size = 0;
-		codec->flags |= CODEC_FLAG_LOOP_FILTER;
-		codec->me_subpel_quality = 5;
-		//codec->thread_count = 0; // determines the number of threads automatically
+		//codec->me_method = ME_HEX; // motion estimation algorithm
+		//codec->me_subpel_quality = 7;
+		//codec->delay = 0;
+		codec->thread_count = 0; // determines the number of threads automatically
 		codec->refs = 3;
-		codec->profile = FF_PROFILE_H264_BASELINE;//FF_PROFILE_H264_HIGH;
-		codec->b_frame_strategy = 1;
-		codec->max_b_frames = 16;
+		codec->profile = FF_PROFILE_H264_BASELINE;
+		//codec->max_b_frames = bframes;
+		//codec->rc_buffer_size = 182 * 1000;
 		//codec->rc_initial_buffer_occupancy = 182 * 1000;
 
 		// documentation says to set it to 2 on H.264
-		codec->ticks_per_frame = 2;
+		//codec->ticks_per_frame = 2;
 
+		//codec->bit_rate = 0;
 		//codec->rc_min_rate = 500*1000;
 		//codec->rc_max_rate = 600*1000;
 		//codec->bit_rate_tolerance = 0;
 		//codec->compression_level = 10;
-		codec->me_cmp = 1;
-		
+		//codec->rc_max_rate = 0;
+		//codec->rc_buffer_size = 0;
+		//codec->gop_size = int(fps * (float)keyframeEverySeconds);
+		//codec->keyint_min = int(fps * (float)keyframeEverySeconds);
+		//codec->max_b_frames = 2;
+		//codec->b_frame_strategy = 1;
+		//codec->coder_type = 1;
+		//codec->me_cmp = 1;
+		//codec->me_range = 16;
 		//codec->qmin = 10;
 		//codec->qmax = 51;
 		//codec->scenechange_threshold = 40;
+		//codec->flags |= CODEC_FLAG_LOOP_FILTER;
+		//codec->me_method = ME_LOG;
+		//codec->me_subpel_quality = 10;
 		//codec->i_quant_factor = 0.71f;
 		//codec->qcompress = 0.6f;
 		//codec->max_qdiff = 4;
 		//codec->directpred = 1;
 		//codec->flags2 |= CODEC_FLAG2_FASTPSKIP;
 
+		//const double refSec = 0.2;
 		const double timePerFrame = (1.0 / (double)m_fps);
+		const uint32_t bframes = 0;//(timePerFrame > maxDelay) ? (uint32_t)(maxDelay / (1.0 / (double)m_fps)) : 0;
 
-		codec->max_b_frames = 3;
+		codec->max_b_frames = bframes;
 		codec->bit_rate = bitrate;
 		codec->gop_size = int(m_fps * keyframeEverySeconds);
-		codec->keyint_min = int(m_fps / 2);
+		codec->keyint_min = int(m_fps * keyframeEverySeconds);
 		codec->time_base.den = (int)m_fps;
 		codec->time_base.num = 1;
 
-		//AVDictionary* curdict = NULL;
-		//av_dict_set(&curdict, "vprofile", "baseline", 0);
-		//av_dict_set(&curdict, "tune", "zerolatency", 0);
-		//av_dict_set(&curdict, "preset", "fast", 0);
-		//av_dict_set(&curdict, "intra-refresh", "1", 0);
-
-		//av_opt_set(codec->priv_data, "tune", "zerolatency", 0);
+		av_opt_set(codec->priv_data, "tune", "zerolatency", 0);
 		av_opt_set(codec->priv_data, "profile", "baseline", 0);
 		//av_opt_set(codec->priv_data, "vprofile", "baseline", 0);
 		av_opt_set(codec->priv_data, "preset", "medium", 0);
-		av_opt_set(codec->priv_data, "tune", "zerolatency", 1);
-		
-		av_opt_set_int(codec->priv_data, "intra-refresh", 1, 0);
-		av_opt_set_int(codec->priv_data, "slice-max-size", 10000, 0);
-		//av_opt_set_double(codec->priv_data, "crf", 23, 0);
-
+		//av_opt_set(codec->priv_data, "tune", "zerolatency", 1);
 		//av_opt_set(codec->priv_data, "preset", "medium", 0);
 
 		//std::cout << "Video Quality: " << level << std::endl;
