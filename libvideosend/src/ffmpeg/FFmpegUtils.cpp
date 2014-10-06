@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 namespace dz
 {
@@ -39,12 +40,12 @@ namespace dz
 	{
 		AVOutputFormat* outputFormat = av_guess_format(outputType.c_str(), NULL, NULL);
 		if (outputFormat == nullptr)
-			throw dz::exception(strstream() << "av_guess_format(" << outputType << ") failed to find an output format");
+			throw dz::exception(strobj() << "av_guess_format(" << outputType << ") failed to find an output format");
 
 		AVFormatContext* formatContext = nullptr;
 		int iError = avformat_alloc_output_context2(&formatContext, outputFormat, NULL, NULL);
 		if (iError < 0 || formatContext == nullptr)
-			throw dz::exception(strstream() << "avformat_alloc_output_context2() failed to create a format context with error code " << iError);
+			throw dz::exception(strobj() << "avformat_alloc_output_context2() failed to create a format context with error code " << iError);
 
 		formatContext->oformat = outputFormat;
 		formatContext->video_codec_id = codecId;
@@ -88,7 +89,7 @@ namespace dz
 		
 		SmartPtrAVFrame frame(avcodec_alloc_frame());
 		if (frame == nullptr)
-			throw dz::exception(strstream() << "avcodec_alloc_frame() failed with params pixFormat = " << pixFormat << ", width = " << width << ", height = " << height);
+			throw dz::exception(strobj() << "avcodec_alloc_frame() failed with params pixFormat = " << pixFormat << ", width = " << width << ", height = " << height);
 		
 		//int size = avpicture_get_size(pixFormat, width, height);
 		//if (size <= 0)
@@ -100,7 +101,7 @@ namespace dz
 
 		//avpicture_fill((AVPicture*)frame.get(), frameBuffer, pixFormat, width, height);
 		if (avpicture_alloc((AVPicture*)frame.get(), pixFormat, width, height) != 0)
-			throw dz::exception(strstream() << "avpicture_alloc failed to allocate a picture for frame with size " << width << "x" << height << ".");
+			throw dz::exception(strobj() << "avpicture_alloc failed to allocate a picture for frame with size " << width << "x" << height << ".");
 
 		return std::move(frame);
 	}

@@ -2,6 +2,7 @@
 #include "libcommon/videoframepool.h"
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -13,7 +14,7 @@ namespace dz
 		{
 			case VideoFrameFormat::RGB: m_pixelSize = 3; break;
 			case VideoFrameFormat::RGBA: m_pixelSize = 4; break;
-			default: throw exception(strstream() << "Unknown pixel format " << m_format << " alteast to GetPixelSize()");
+			default: throw exception(strobj() << "Unknown pixel format " << m_format << " alteast to GetPixelSize()");
 		}
 
 		m_pData.reset(new uint8_t[m_height * m_width * GetPixelSize()]);

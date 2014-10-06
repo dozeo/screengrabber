@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 #include <libcommon/videoframe.h>
 #include <libcommon/videoframepool.h>
@@ -31,11 +32,11 @@ namespace dz
 	{
 		_hdcDesktop = GetDC(GetDesktopWindow());
 		if (_hdcDesktop == NULL)
-			throw exception(strstream() << "GetDC failed - error code is " << GetLastError());
+			throw exception(strobj() << "GetDC failed - error code is " << GetLastError());
 
 		_hdcCapture = CreateCompatibleDC(_hdcDesktop);
 		if (_hdcCapture == NULL)
-			throw exception(strstream() << "CreateCompatibleDC failed - error code is " << GetLastError());
+			throw exception(strobj() << "CreateCompatibleDC failed - error code is " << GetLastError());
 	}
 
 	BitBltGrabber_Win32::~BitBltGrabber_Win32()
@@ -67,7 +68,7 @@ namespace dz
 
 			BOOL result = BitBlt(_hdcCapture, 0, 0, m_captureRect.width, m_captureRect.height, _hdcDesktop, m_captureRect.x, m_captureRect.y, SRCCOPY | CAPTUREBLT);
 			if (result == FALSE)
-				throw exception(strstream() << "Failed to BitBlt with error code " << GetLastError());
+				throw exception(strobj() << "Failed to BitBlt with error code " << GetLastError());
 
 			// draw mouse cursor into buffer
 			if (_grabMouseCursor)
@@ -77,7 +78,7 @@ namespace dz
 	
 			int lines = GetDIBits(_hdcDesktop, _hBitmap, 0, _captureSize.height, _bmpBuffer, &_bmpInfo, DIB_RGB_COLORS);
 			if (lines == 0)
-				throw exception(strstream() << "Failed to GetDIBits with return " << lines << " and with error code " << GetLastError());
+				throw exception(strobj() << "Failed to GetDIBits with return " << lines << " and with error code " << GetLastError());
 
 			CopyToFrame(frame);
 		}
@@ -118,7 +119,7 @@ namespace dz
 		fillBitmapInfo(captureSize.width, captureSize.height, _bmpInfo);
 		_hBitmap = CreateCompatibleBitmap(_hdcDesktop, captureSize.width, captureSize.height);
 		if (_hBitmap == NULL)
-			throw exception(strstream() << "CreateCompatibleBitmap failed with capture size (" << captureSize.width << ", " << captureSize.height << ")");
+			throw exception(strobj() << "CreateCompatibleBitmap failed with capture size (" << captureSize.width << ", " << captureSize.height << ")");
 	}
 
 	void BitBltGrabber_Win32::initBitmapBuffer(const Dimension2& captureSize)

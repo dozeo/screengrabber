@@ -15,6 +15,7 @@
 #include <boost/thread.hpp>
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 namespace po = boost::program_options;
 using namespace dz;
@@ -175,7 +176,7 @@ int main (int argc, char * argv[])
 	}
 	catch (dz::exception e)
 	{
-		std::string msg = strstream() << "Exception on grabsend: " << e.msg();
+		std::string msg = strobj() << "Exception on grabsend: " << e.what();
 		std::cerr << msg << std::endl;
 		OutputDebugString(msg.c_str());
 		

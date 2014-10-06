@@ -1,5 +1,6 @@
 #include <libcommon/videosubframe.h>
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 namespace dz
 {
@@ -36,7 +37,7 @@ namespace dz
 	uint8_t* VideoSubframe::GetLineData(uint32_t lineNumber)
 	{
 		if (lineNumber > m_height)
-			throw exception(strstream() << "VideoSubframe::GetLineData() - Invalid line number " << lineNumber << " because this subframe only has " << m_height << " lines");
+			throw exception(strobj() << "VideoSubframe::GetLineData() - Invalid line number " << lineNumber << " because this subframe only has " << m_height << " lines");
 
 		uint32_t pixelSize = m_frame.GetPixelSize();
 		uint32_t stride = m_frame.GetStride();

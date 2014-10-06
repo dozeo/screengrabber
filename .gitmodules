@@ -4,3 +4,6 @@
 [submodule "vendor/gtest"]
 	path = vendor/gtest
 	url = git@github.com:dozeo/gtest.git
+[submodule "vendor/slog"]
+	path = vendor/slog
+	url = git@github.com:ksophocleous/slog.git

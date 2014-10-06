@@ -3,6 +3,7 @@
 #include "../VideoSender.h"
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 #include <assert.h>
 #include <string>
@@ -101,7 +102,7 @@ namespace dz
 		m_videoFrameHeight = height - height % 4;
 
 		if (m_videoFrameWidth == 0 || m_videoFrameHeight == 0)
-			throw dz::exception(strstream() << "Invalid Video size (" << m_videoFrameWidth << "x" << m_videoFrameHeight << ")");
+			throw dz::exception(strobj() << "Invalid Video size (" << m_videoFrameWidth << "x" << m_videoFrameHeight << ")");
 
 		//_lastTimeStamp = 0;
 		//_waitForFirstFrame = true;
@@ -113,11 +114,11 @@ namespace dz
 		AVCodecContext* ctx = m_videoStream->codec;
 		AVCodec* codec = avcodec_find_encoder(ctx->codec_id);
 		if (!codec)
-			throw exception(strstream() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
+			throw exception(strobj() << "avcodec_find_encoder failed to find the encoder with id " << ctx->codec_id);
 
 		int code = avcodec_open2(ctx, codec, NULL);
 		if (code < 0)
-			throw exception(strstream() << "avcodec_open2 failed with error code " << code << " to open the stream");
+			throw exception(strobj() << "avcodec_open2 failed with error code " << code << " to open the stream");
 	
 		m_frameBufferSize = avpicture_get_size(ctx->pix_fmt, ctx->width, ctx->height);
 		m_frameBuffer = static_cast<uint8_t*>(av_malloc(m_frameBufferSize));
@@ -130,7 +131,7 @@ namespace dz
 		// av_dict_set(&options, "rtsp_transport", "udp", 0);
 		int result = avio_open2(&ioContext, url.c_str(), AVIO_FLAG_WRITE, NULL, &options);
 		if (result < 0)
-			throw exception(strstream() << "Failed to open url stream (" << url << ") with avio_open2 result = " << result );
+			throw exception(strobj() << "Failed to open url stream (" << url << ") with avio_open2 result = " << result );
 
 		if (urlGetProtocol(url) == "tcp")
 		{
@@ -146,7 +147,7 @@ namespace dz
 		//av_dict_set(&options, "widthtest", text.c_str() + 1, 0);
 
 		if (avformat_write_header(m_formatContext.get(), &options) < 0)
-			throw exception(strstream() << "avformat_write_header failed to write header");
+			throw exception(strobj() << "avformat_write_header failed to write header");
 	}
 
 	VideoStream::~VideoStream()
@@ -164,11 +165,11 @@ namespace dz
 	{
 		AVCodec* codec = avcodec_find_encoder(CODEC_ID_H264);
 		if (!codec)
-			throw exception(strstream() << "avcodec_find_encoder in addVideoStream failed to find the encoder with id " << CODEC_ID_H264);
+			throw exception(strobj() << "avcodec_find_encoder in addVideoStream failed to find the encoder with id " << CODEC_ID_H264);
 
 		AVStream* stream = avformat_new_stream(m_formatContext.get(), codec);
 		if (stream == nullptr)
-			throw exception(strstream() << "avformat_new_stream in addVideoStream failed");
+			throw exception(strobj() << "avformat_new_stream in addVideoStream failed");
 
 		AVCodecContext* codecContext = stream->codec;
 
@@ -338,7 +339,7 @@ namespace dz
 
 		int scaleRes = sws_scale(m_convertContext.get(), m_scaleSrcFrame->data, m_scaleSrcFrame->linesize, 0, curHeight, m_scaleDstFrame->data, m_scaleDstFrame->linesize);
 		if (scaleRes != m_videoFrameHeight)
-			throw exception(strstream() << "Failed to scale the resulting frame from " << curWidth << "x" << curHeight << " to " << m_videoFrameWidth << "x" << m_videoFrameHeight);
+			throw exception(strobj() << "Failed to scale the resulting frame from " << curWidth << "x" << curHeight << " to " << m_videoFrameWidth << "x" << m_videoFrameHeight);
 		
 		_statistic.lastScaleTime = (av_gettime() - t0);
 
@@ -392,7 +393,7 @@ namespace dz
 			t0 = av_gettime();
 			int result = av_interleaved_write_frame(m_formatContext.get(), &packet);
 			if (result < 0)
-				throw exception(strstream() << "av_interleaved_write_frame failed with return code: " << result);
+				throw exception(strobj() << "av_interleaved_write_frame failed with return code: " << result);
 			
 			_statistic.lastSendTime = (av_gettime() - t0);
 			int64_t bytes = packet.size;
@@ -418,7 +419,7 @@ namespace dz
 		PixelFormat srcFormat  = (BITS_PER_PIXEL == 24) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_BGRA;
 
 		if (!FFmpegUtils::isConversionSupported(srcFormat, OutputPixelFormat))
-			throw exception(strstream() << "color space conversion not supported");
+			throw exception(strobj() << "color space conversion not supported");
 
 		m_scaleSrcFrame = FFmpegUtils::CreateVideoFrame(srcFormat, srcWidth, srcHeight);
 		m_scaleSrcImageWidth = srcWidth;
@@ -439,6 +440,6 @@ namespace dz
 			NULL);
 
 		if (m_convertContext == nullptr)
-			throw exception(strstream() << "sws_getContext failed (src " << m_scaleSrcImageWidth << "x" << m_scaleSrcImageHeight << ") (dst " << destWidth << "x" << destHeight << ")");
+			throw exception(strobj() << "sws_getContext failed (src " << m_scaleSrcImageWidth << "x" << m_scaleSrcImageHeight << ") (dst " << destWidth << "x" << destHeight << ")");
 	}
 }

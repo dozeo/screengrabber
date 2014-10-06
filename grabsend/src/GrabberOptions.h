@@ -6,7 +6,6 @@
 #include <vector>
 #include <stdio.h>
 
-#include <dzlib/strstream.h>
 #include <libcommon/grabber_options.h>
 
 /// Boost program_options parser for Grabber options

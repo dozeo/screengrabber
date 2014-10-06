@@ -1,4 +1,5 @@
 #include "IDesktopTools.h"
+#include <slog/slog.h>
 
 #ifdef _WIN32
 	#include "DesktopTools_Win32.h"
@@ -21,7 +22,7 @@ namespace dz
 			return new DesktopTools_OSX();
 		#endif // MAC_OSX
 
-		throw exception(strstream() << "Failed to instantiate the desktop tools for this platform!");
+		throw exception(strobj() << "Failed to instantiate the desktop tools for this platform!");
 	}
 }
 

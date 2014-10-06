@@ -1,6 +1,7 @@
 #include "libcommon/videotypes.h"
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 #include <algorithm>
 
@@ -16,7 +17,7 @@ namespace dz
 				case Medium: return "medium";
 				case High: return "high";
 				default:
-					throw exception(strstream() << "Unknown VideoQualityLevel enum found " << type << ". Forgot to add the new one on the list (videosender.cpp)");
+					throw exception(strobj() << "Unknown VideoQualityLevel enum found " << type << ". Forgot to add the new one on the list (videosender.cpp)");
 			}
 		}
 
@@ -33,7 +34,7 @@ namespace dz
 			if (text.compare("high") == 0)
 				return High;
 
-			throw exception(strstream() << "Unknown VideoQualityLevel value '" << text << "' encountered. Valid values are 'low', 'medium' and 'high'");
+			throw exception(strobj() << "Unknown VideoQualityLevel value '" << text << "' encountered. Valid values are 'low', 'medium' and 'high'");
 		}
 	}
 
@@ -47,7 +48,7 @@ namespace dz
 				case Default: return "default";
 			}
 
-			throw exception(strstream() << "Invalid VideoSenderType given to ToString");
+			throw exception(strobj() << "Invalid VideoSenderType given to ToString");
 		}
 
 		Enum FromString(std::string name)
@@ -58,7 +59,7 @@ namespace dz
 			if (name.compare("default") == 0)
 				return Default;
 
-			throw exception(strstream() << "Invalid string given to VideoSenderType::FromString(" << name << ")");
+			throw exception(strobj() << "Invalid string given to VideoSenderType::FromString(" << name << ")");
 		}
 	};
 
@@ -84,7 +85,7 @@ namespace dz
 			if (value.compare("grabwindow") == 0) return GrabWindow;
 			if (value.compare("") == 0) return Default;
 
-			throw exception(strstream() << "GrabberType::FromString() - Invalid GrabberType value '" << value << "'");
+			throw exception(strobj() << "GrabberType::FromString() - Invalid GrabberType value '" << value << "'");
 		}
 	};
 };

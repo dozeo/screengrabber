@@ -4,6 +4,7 @@ namespace po = boost::program_options;
 #include <grabsend_version.h>
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 using namespace dz;
 
@@ -54,7 +55,7 @@ GrabSendOptions::GrabSendOptions(int argc, char* argv[]) : desc ("General Config
 	} 
 	catch (po::error & e)
 	{
-		throw exception(strstream() << "GrabSendOptions parse exception: " << e.what());
+		throw exception(strobj() << "GrabSendOptions parse exception: " << e.what());
 	}
 }
 

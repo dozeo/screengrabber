@@ -2,6 +2,7 @@
 
 #include "DesktopTools_Win32.h"
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 namespace dz
 {
@@ -11,7 +12,7 @@ namespace dz
 		enumerator.enumerate();
 		m_displays = enumerator.displays();
 		if (m_displays.size() == 0)
-			throw exception(strstream() << "DesktopTools_Win32 - found no displays");
+			throw exception(strobj() << "DesktopTools_Win32 - found no displays");
 	}
 	
 	DesktopTools_Win32::~DesktopTools_Win32()
@@ -26,7 +27,7 @@ namespace dz
 	Rect DesktopTools_Win32::GetScreenResolution(uint32_t screen) const
 	{
 		if (screen > m_displays.size())
-			throw exception(strstream() << "DesktopTools_Win32::GetScreenResolution(" << screen << ") - Invalid display number given. Only " << m_displays.size() << " display(s) found");
+			throw exception(strobj() << "DesktopTools_Win32::GetScreenResolution(" << screen << ") - Invalid display number given. Only " << m_displays.size() << " display(s) found");
 
 		return m_displays[screen].rect;
 	}

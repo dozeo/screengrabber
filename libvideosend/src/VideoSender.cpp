@@ -4,6 +4,7 @@
 #include "ffmpeg/VideoSenderFFmpeg.h"
 
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 #include <sstream>
 #include <algorithm>
@@ -19,7 +20,7 @@ namespace dz
 			case VideoSenderType::Default: return new VideoSenderFFmpeg(senderOptions);
 		}
 	
-		throw exception(strstream() << "Could not create video sender of type " << senderOptions.senderType);
+		throw exception(strobj() << "Could not create video sender of type " << senderOptions.senderType);
 	}
 
 	VideoSender::Statistic::Statistic()

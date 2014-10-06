@@ -1,6 +1,6 @@
 #include "libcommon/videoframepool.h"
-
 #include <dzlib/dzexception.h>
+#include <slog/slog.h>
 
 namespace dz
 {
@@ -9,7 +9,7 @@ namespace dz
 	VideoFramePool::VideoFramePool(uint32_t maxFrames) : m_curFrames(0), m_maxFrames(maxFrames)
 	{
 		if (m_instance != nullptr)
-			throw exception(strstream() << "Another Video frame pool already exists!");
+			throw exception(strobj() << "Another Video frame pool already exists!");
 
 		m_instance = this;
 	}
@@ -24,7 +24,7 @@ namespace dz
 	VideoFramePool& VideoFramePool::GetInstance()
 	{
 		if (m_instance == nullptr)
-			throw exception(strstream() << "No VideoFramePool instance found");
+			throw exception(strobj() << "No VideoFramePool instance found");
 
 		return *m_instance;
 	}

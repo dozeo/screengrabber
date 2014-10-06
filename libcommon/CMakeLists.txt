@@ -16,7 +16,8 @@ set(src_files
 	"src/videoframepool.cpp"
 	"src/dzrect.cpp"
 	"src/videotypes.cpp"
-	"src/sender_options.cpp")
+	"src/sender_options.cpp"
+	"src/string_helpers.cpp")
 
 list(APPEND hdr_folder
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/include"
@@ -31,7 +32,8 @@ set(header_files
 	"src/include/libcommon/dzrect.h"
 	"src/include/libcommon/grabber_options.h"
 	"src/include/libcommon/videotypes.h"
-	"src/include/libcommon/sender_options.h")
+	"src/include/libcommon/sender_options.h"
+	"src/include/libcommon/string_helpers.h")
 
 if (NOT TARGET libcommon)
 	add_library (libcommon ${src_files} ${header_files})
@@ -42,5 +44,5 @@ if (NOT TARGET libcommon)
 		PREFIX ""
 		)
 
-	target_link_libraries(libcommon dzlib ${Boost_LIBRARIES})
+	target_link_libraries(libcommon dzlib slog ${Boost_LIBRARIES})
 endif()

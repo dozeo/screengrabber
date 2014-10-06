@@ -4,6 +4,7 @@
 #include <dzlib/dzexception.h>
 #include <libcommon/videoframe.h>
 #include <libcommon/videoframepool.h>
+#include <slog/slog.h>
 
 #include <cassert>
 
@@ -13,17 +14,17 @@ namespace dz
 		m_desktopTools(IDesktopTools::CreateDesktopTools()), m_areaGrabber(Rect(0, 0, 640, 480)), m_width(0), m_height(0)
 	{
 		if (IsWindow(m_windowHandle) == FALSE)
-			throw exception(strstream() << "WindowGrabber_Win32 given an invalid window handle");
+			throw exception(strobj() << "WindowGrabber_Win32 given an invalid window handle");
 
 		m_windowDC = GetWindowDC(m_windowHandle);
 		if (m_windowDC == NULL)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowDC failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - GetWindowDC failed with error code " << GetLastError());
 
 		m_memDC = CreateCompatibleDC(m_windowDC);
 		if (m_memDC == NULL)
 		{
 			ReleaseDC(m_windowHandle, m_windowDC);
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - CreateCompatibleDC failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - CreateCompatibleDC failed with error code " << GetLastError());
 		}
 
 		m_areaGrabber.SetCaptureRect(GetCaptureRect());
@@ -59,14 +60,14 @@ namespace dz
 		}
 
 		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
 
 		windowRect.x = curWindowRect.left;
 		windowRect.y = curWindowRect.top;
 
 		// figure out of the window lies outside of any of the screens, and if yes use the window grab method
 		if (OffsetRect(&curWindowRect, -curWindowRect.left, -curWindowRect.top) == FALSE)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
 
 		windowRect.width = curWindowRect.right;
 		windowRect.height = curWindowRect.bottom;
@@ -153,7 +154,7 @@ namespace dz
 		if (m_memDC == NULL)
 		{
 			DeleteDC(m_memDC);
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - CreateCompatibleDC failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - CreateCompatibleDC failed with error code " << GetLastError());
 		}
 
 		BITMAPINFO bmi;
@@ -172,11 +173,11 @@ namespace dz
 		// Create the surface.
 		m_winBitmap = CreateDIBSection(winDC, &bmi, DIB_RGB_COLORS, (void**)&m_pData, NULL, 0);
 		if (m_winBitmap == NULL)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - CreateDIBSection(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - CreateDIBSection(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
 
 		HGDIOBJ obj = SelectObject(m_memDC, m_winBitmap);
 		if (obj == NULL || obj == HGDI_ERROR)
-			throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - SelectObject failed with error code " << GetLastError());
+			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - SelectObject failed with error code " << GetLastError());
 	}
 }
 
