@@ -13,7 +13,7 @@ bool ScreenEnumerator::enumerate()
 	return !_displays.empty();
 }
 
-const std::vector<Display>& ScreenEnumerator::displays() const
+std::vector<Display> ScreenEnumerator::displays() const
 {
 	return _displays;
 }
@@ -31,9 +31,9 @@ int ScreenEnumerator::screen(const Rect& screenRect) const
 BOOL CALLBACK ScreenEnumerator::monitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM data)
 {
 	ScreenEnumerator* instance = reinterpret_cast<ScreenEnumerator*>(data);
-	if (instance != NULL)
+	if (instance != nullptr && rect != nullptr)
 	{
-		Rect screenRect = Rect::cornered(rect->left, rect->top, rect->right, rect->bottom);
+		Rect screenRect = Rect::convert(*rect);
 		Display display = Display(hMonitor, screenRect);
 		instance->_displays.push_back(display);
 	}

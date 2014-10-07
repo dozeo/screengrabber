@@ -22,3 +22,7 @@ add_executable(libgrabbertest ${src_files} ${header_files})
 target_link_libraries(libgrabbertest libgrabber gtest_main ${LIBS} ${APPLE_FRAMEWORK_LIBS})
 
 add_test(libgrabbertest libgrabbertest)
+
+set_target_properties(libgrabbertest PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})

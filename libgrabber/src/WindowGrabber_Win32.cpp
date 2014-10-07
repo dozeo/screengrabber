@@ -43,13 +43,13 @@ namespace dz
 
 	void WindowGrabber_Win32::setEnableGrabCursor(bool enable)
 	{
+		m_areaGrabber.setEnableGrabCursor(enable);
 	}
 
 	//void WindowGrabber_Win32::GrabWindow(Buffer& destination)
 	Rect WindowGrabber_Win32::GetCaptureRect() const
 	{
 		RECT curWindowRect;
-		dz::Rect windowRect;
 
 		if (IsIconic(m_windowHandle) == TRUE)
 		{
@@ -59,20 +59,51 @@ namespace dz
 				return Rect(320, 240);
 		}
 
-		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
-			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
+		WINDOWPLACEMENT win_placement;
+		win_placement.length = sizeof(win_placement);
+		bool bIsMaximized = false;
+		if (GetWindowPlacement(m_windowHandle, &win_placement) == TRUE)
+		{
+			bIsMaximized = (win_placement.showCmd == SW_MAXIMIZE);
+		}
 
-		windowRect.x = curWindowRect.left;
-		windowRect.y = curWindowRect.top;
+		// warning: codepath for maximized window is different!
+		if (bIsMaximized)
+		{
+			auto win_monitor = MonitorFromWindow(m_windowHandle, MONITOR_DEFAULTTONULL);
+			if (win_monitor)
+			{
+				MONITORINFO mon_info;
+				mon_info.cbSize = sizeof(mon_info);
+				if (GetMonitorInfo(win_monitor, &mon_info) == TRUE)
+				{
+					return Rect::convert(mon_info.rcWork);
+				}
+			}
+		}
+
+		if (GetWindowRect(m_windowHandle, &curWindowRect) == FALSE)
+		{
+			auto err = GetLastError();
+			// the window might have closed.. let's not crash if it did
+			if (err != ERROR_INVALID_WINDOW_HANDLE)
+				throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - GetWindowRect failed with error code " << GetLastError());
+
+			return Rect(0, 0);
+		}
+
+		int origx = curWindowRect.left;
+		int origy = curWindowRect.top;
 
 		// figure out of the window lies outside of any of the screens, and if yes use the window grab method
 		if (OffsetRect(&curWindowRect, -curWindowRect.left, -curWindowRect.top) == FALSE)
 			throw exception(strobj() << "WindowGrabber_Win32::GrabWindow() - OffsetRect failed with error code " << GetLastError());
 
-		windowRect.width = curWindowRect.right;
-		windowRect.height = curWindowRect.bottom;
+		auto converted(Rect::convert(curWindowRect));
+		converted.x = origx;
+		converted.y = origy;
 
-		return windowRect;
+		return converted;
 	}
 
 	//virtual
@@ -105,15 +136,19 @@ namespace dz
 			m_height != windowRect.height)
 		{
 			// window size changed
+			
 			OnWindowResized(m_windowDC, windowRect.width, windowRect.height);
 		}
 
 		//SendMessage(m_windowHandle, WM_PRINT, (WPARAM)m_windowDC, PRF_NONCLIENT | PRF_CLIENT);
-
+		
 		PrintWindow(m_windowHandle, m_memDC, 0);
 		//PrintWindow(m_windowHandle, m_memDC, 0);
 		//if (::BitBlt(m_memDC, 0, 0, m_width, m_height, m_windowDC, 0, 0, CAPTUREBLT | SRCCOPY) == FALSE)
 		//	throw exception(strstream() << "WindowGrabber_Win32::GrabWindow() - BitBlt(" << m_width << ", " << m_height << ") failed with error code " << GetLastError());
+
+		//if (_grabMouseCursor)
+		Grabber_Win32::grabCursor(windowRect, m_memDC);
 
 		uint32_t lineStride = m_width * 4;
 

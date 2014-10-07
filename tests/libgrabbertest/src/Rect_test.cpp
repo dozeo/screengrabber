@@ -3,9 +3,7 @@
 
 using dz::Rect;
 
-class RectTest : public ::testing::Test {
-public:
-};
+class RectTest : public ::testing::Test { public: };
 
 TEST_F(RectTest, leftRectLiesNextToRight)
 {
@@ -14,6 +12,21 @@ TEST_F(RectTest, leftRectLiesNextToRight)
 
 	EXPECT_FALSE(actual.intersects(other));
 	EXPECT_FALSE(other.intersects(actual));
+}
+
+TEST_F(RectTest, completelyContained)
+{
+	Rect inner(5,5,10,10);
+	Rect outer(0,0,20,20);
+
+	EXPECT_TRUE(outer.contains(inner));
+}
+
+TEST_F(RectTest, completelyContainedExactlySameSize)
+{
+	Rect inner(0,0,1920,1080);
+
+	EXPECT_TRUE(inner.contains(inner));
 }
 
 TEST_F(RectTest, smallerRectintersectsBigger)
@@ -66,7 +79,7 @@ TEST_F(RectTest, intersectinRect)
 	EXPECT_EQ(40, intersect.height);
 }
 
-TEST_F (RectTest, intersect2) 
+TEST_F(RectTest, intersect2) 
 {
     Rect monitor (0, 0, 1440, 900);
     Rect piece (100, 100, 50, 50);
@@ -75,12 +88,12 @@ TEST_F (RectTest, intersect2)
     EXPECT_EQ (intersect, piece) << "Hey, the piece is exactly inside the monitor";
 }
 
-TEST_F (RectTest, addTwoScreensToBoundingRect)
+TEST_F(RectTest, addTwoScreensToBoundingRect)
 {
-	Rect screen0 (0, 100, 1680, 1050);
-	Rect screen1 (1680, 0, 1920, 1280);
+	Rect screen0(0, 100, 1680, 1050);
+	Rect screen1(1680, 0, 1920, 1280);
 
-	Rect expected (0, 0, 1680 + 1920, 1280);
+	Rect expected(0, 0, 1680 + 1920, 1280);
 	Rect actual;
 	actual.addToBoundingRect(screen0);
 	actual.addToBoundingRect(screen1);
@@ -88,7 +101,7 @@ TEST_F (RectTest, addTwoScreensToBoundingRect)
 	EXPECT_EQ(expected, actual) << "Bounding rect must contain both screens!";
 }
 
-TEST_F (RectTest, cornerBoundingBox)
+TEST_F(RectTest, cornerBoundingBox)
 {
 	Rect a;
 	Rect b (10, 20, 30, 40);
@@ -96,12 +109,10 @@ TEST_F (RectTest, cornerBoundingBox)
 	Rect d;
 	a.addToBoundingRect(b);
 	EXPECT_EQ (a, b) << "Empty rects must be ignored as bounding boxes";
-
-	c.addToBoundingRect(d);
-	EXPECT_EQ (b, b) << "Empty rects must be ignored as bounding boxes";
 }
 
-TEST_F (RectTest, overlappingBound) {
+TEST_F(RectTest, overlappingBound)
+{
 	Rect a (10, 20, 100, 200);
 	Rect b (20, 30, 100, 200);
 	Rect r;
@@ -111,7 +122,8 @@ TEST_F (RectTest, overlappingBound) {
 	EXPECT_EQ (r, exp) << "Bounding Addition does not work";
 }
 
-TEST_F (RectTest, containedBound) {
+TEST_F(RectTest, containedBound)
+{
 	Rect a (10, 10, 100, 200);
 	Rect b (15, 15, 10, 20);
 	Rect exp = a;
@@ -119,7 +131,7 @@ TEST_F (RectTest, containedBound) {
 	EXPECT_EQ (a, exp) << "Adding a box inside should not increase the BB";
 }
 
-TEST_F (RectTest, bugAddScreenAsBoundingRectToAnotherScreen)
+TEST_F(RectTest, bugAddScreenAsBoundingRectToAnotherScreen)
 {
 	Rect screen0 (1920, 30, 1680, 1050);
 	Rect screen1 (   0,  0, 1920, 1080);
@@ -134,32 +146,36 @@ TEST_F (RectTest, bugAddScreenAsBoundingRectToAnotherScreen)
 }
 
 
-TEST_F (RectTest, bottomRightBoundaryWithOffsetPos)
+TEST_F(RectTest, bottomRightBoundaryWithOffsetPos)
 {
 	Rect screen (1920, 30, 1680, 1050);
 
-	EXPECT_EQ (1680, screen.width);
-	EXPECT_EQ (1050, screen.height);
-	EXPECT_EQ (1920, screen.left());
-	EXPECT_EQ (  30, screen.top());
-	EXPECT_EQ (1920, screen.x);
-	EXPECT_EQ (  30, screen.y);
+	EXPECT_EQ(1680, screen.width);
+	EXPECT_EQ(1050, screen.height);
+	EXPECT_EQ(1920, screen.left());
+	EXPECT_EQ(  30, screen.top());
+	EXPECT_EQ(1920, screen.x);
+	EXPECT_EQ(  30, screen.y);
 
-	EXPECT_EQ (3600, screen.right());
-	EXPECT_EQ (3600, screen.x + screen.width);
-	EXPECT_EQ (1080, screen.bottom());
-	EXPECT_EQ (1080, screen.y + screen.height);
+	// important - the right and bottom points must be different than the (x+width) and (y+height) respectively
+	// otherwise something isn't quite right.. (0..99 = 100 different values)
+	EXPECT_EQ(3599, screen.right());
+	EXPECT_EQ(3600, screen.x + screen.width);
+	EXPECT_EQ(1079, screen.bottom());
+	EXPECT_EQ(1080, screen.y + screen.height);
 }
 
-TEST_F (RectTest, containsTest)
+TEST_F(RectTest, containsTest)
 {
-	Rect screen0 (-50, -60, 150, 170);
-	EXPECT_TRUE (screen0.contains (-50,-60));
-	EXPECT_FALSE (screen0.contains (-50,-61));
-	EXPECT_FALSE (screen0.contains (-51,-60));
-	EXPECT_FALSE (screen0.contains (100, 110));
-	EXPECT_TRUE  (screen0.contains (99, 109));
-	EXPECT_FALSE (screen0.contains (100, 109));
-	EXPECT_FALSE (screen0.contains (99, 110));
-	EXPECT_TRUE (screen0.contains (0,0));
+	Rect screen0(-50, -60, 150, 170);
+
+	EXPECT_TRUE(screen0.contains(-50,-60));
+	EXPECT_TRUE(screen0.contains(99, 109));
+	EXPECT_TRUE(screen0.contains(0,0));
+
+	EXPECT_FALSE(screen0.contains(-50,-61));
+	EXPECT_FALSE(screen0.contains(-51,-60));
+	EXPECT_FALSE(screen0.contains(100, 110));
+	EXPECT_FALSE(screen0.contains(100, 109));
+	EXPECT_FALSE(screen0.contains(99, 110));
 }

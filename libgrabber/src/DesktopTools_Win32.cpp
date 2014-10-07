@@ -48,8 +48,7 @@ namespace dz
 		for (uint32_t i = 0; i < GetScreenCount(); i++)
 		{
 			Rect screenRect = GetScreenResolution(i);
-			if (screenRect.contains(otherRect.x, otherRect.y) &&
-				screenRect.contains(otherRect.x + otherRect.width, otherRect.y + otherRect.height))
+			if (screenRect.contains(otherRect))
 				return true;
 		}
 

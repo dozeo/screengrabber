@@ -20,6 +20,8 @@
 namespace po = boost::program_options;
 using namespace dz;
 
+using slog::error;
+
 /// Implements main grabbing loop
 /// Starts / Stop the video and does signal handling
 /// Note: grabbbingPipeline and sender must be completely initialized.
@@ -165,31 +167,24 @@ void doGrabSend(GrabSendOptions& options)
 
 int main (int argc, char * argv[])
 {
-	bool bWaitOnError = false;
-
 	try
 	{
 		GrabSendOptions options(argc, argv);
-		bWaitOnError = options.m_bWaitOnException;
 		doGrabSend(options);
 		return 0;
 	}
 	catch (dz::exception e)
 	{
 		std::string msg = strobj() << "Exception on grabsend: " << e.what();
-		std::cerr << msg << std::endl;
-		OutputDebugString(msg.c_str());
-		
-		if (bWaitOnError)
-		{
-			char t;
-			std::cin >> t;
-		}
+		error() << msg;
 
-		throw;
-		//throw std::exception(e.msg().c_str());
 #if _WIN32
-		DebugBreak();
+		if (IsDebuggerPresent())
+		{
+			OutputDebugString(msg.c_str());
+			DebugBreak();
+			throw;
+		}
 #endif
 	}
 

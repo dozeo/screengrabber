@@ -6,27 +6,28 @@
 #include <vector>
 #include <Windows.h>
 
-namespace dz {
+namespace dz
+{
+	struct Display
+	{
+		Display(HMONITOR _hMonitor, const Rect& _rect) : hMonitor(_hMonitor), rect(_rect) {}
+		HMONITOR hMonitor;
+		Rect rect;
+	};
 
-struct Display {
-	Display(HMONITOR _hMonitor, const Rect& _rect) : hMonitor(_hMonitor), rect(_rect) {}
-	HMONITOR hMonitor;
-	Rect rect;
-};
+	class ScreenEnumerator
+	{
+		public:
+			std::vector<Display> displays() const;
+			int screen(const Rect& screenRect) const;
 
-class ScreenEnumerator {
-public:
-	const std::vector<Display>& displays() const;
-	int screen(const Rect& screenRect) const;
+			bool enumerate();
 
-	bool enumerate();
+		private:
+			static BOOL CALLBACK monitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM data);
 
-private:
-	static BOOL CALLBACK monitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM data);
-
-	std::vector<Display> _displays;
-};
-
+			std::vector<Display> _displays;
+	};
 }
 
 #endif

@@ -9,7 +9,7 @@ namespace po = boost::program_options;
 using namespace dz;
 
 GrabSendOptions::GrabSendOptions(int argc, char* argv[]) : desc ("General Configuration"), /*grabberOptionsParser(&grabberOptions), videoSenderOptionsParser (&videoSenderOptions),*/
-	m_bWaitOnException(false), m_bPrintVersion(false), printHelp(false), printScreens(false), printWindows(false), printProcesses(false), statLevel(1)
+	m_bPrintVersion(false), printHelp(false), printScreens(false), printWindows(false), printProcesses(false), statLevel(1)
 {
 	// grabber options
 	desc.add_options()
@@ -83,8 +83,6 @@ void GrabSendOptions::ApplyGrabSendOptions(const boost::program_options::variabl
 	
 	if (vm.count ("processes") > 0)
 		printProcesses = true;
-
-	m_bWaitOnException = vm.count("waitonerror") > 0;
 
 	ApplyGrabberOptions(vm);
 	ApplySenderOptions(vm);

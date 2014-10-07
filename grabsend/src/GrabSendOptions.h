@@ -17,7 +17,6 @@ class GrabSendOptions : public GrabberOptions, public VideoSenderOptions
 		bool printScreens;
 		bool printWindows;
 		bool printProcesses;
-		bool m_bWaitOnException;
 		bool m_bPrintVersion;
 		int statLevel;
 

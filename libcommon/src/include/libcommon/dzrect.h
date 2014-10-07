@@ -3,6 +3,11 @@
 #include <libcommon/math_helpers.h>
 #include <iostream>
 
+#ifdef _WIN32
+	struct tagRECT;
+	typedef tagRECT RECT;
+#endif // _WIN32
+
 namespace dz
 {
 	class Rect
@@ -17,8 +22,8 @@ namespace dz
 
 			const int left() const { return x; }
 			const int top() const { return y; }
-			const int right() const { return x + width; }
-			const int bottom() const { return y + height; }
+			const int right() const { return (x + width) - 1; }
+			const int bottom() const { return (y + height) - 1; }
 
 			const uint32_t GetWidth() const { return width; }
 			const uint32_t GetHeight() const { return height; }
@@ -30,7 +35,10 @@ namespace dz
 
 			bool empty() const { return width == 0 || height == 0; }
 
-			bool contains(int _x, int _y) const { return (_x >= x && _y >= y && _x < right() && _y < bottom()); }
+			bool contains(int _x, int _y) const { return (_x >= x && _y >= y && _x <= right() && _y <= bottom()); }
+
+			// returns true if the otherrect is completely contained within this
+			bool contains(const Rect& otherrect) const;
 
 			friend bool operator== (const Rect& a, const Rect & b)
 			{
@@ -46,6 +54,10 @@ namespace dz
 			{
 				return s << r.x << "," << r.y << " " << r.width << "x" << r.height;
 			}
+
+#ifdef _WIN32
+			static Rect convert(const RECT& winrect);
+#endif // _WIN32
 
 			int x;
 			int y;
