@@ -25,8 +25,10 @@ $ABSDIR/build_dependencies_win.sh
 	cd $ABSDIR/build/
 	rm -f screengrabber.tar.gz 
 	rm -rf install/
-	../vs10env 'cmake .. -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release'
-	../vs10env 'msbuild INSTALL.vcxproj /p:Configuration=Release'
+	
+	cmake .. -G "Visual Studio 10" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install/
+	cmake --build . --config Release --target INSTALL
+
 	echo "compressing binaries to screengrabber.tar.gz"
 	cd install && tar -c * | gzip - > ../screengrabber.tar.gz
 )
